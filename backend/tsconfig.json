@@ -21,7 +21,7 @@
   ],
   "include": [
     "src/**/*.ts",
-    "tests/**/*.test.ts"
+    "tests/**/*.spec.ts"
   ],
   "files": [
     "src/app.ts"

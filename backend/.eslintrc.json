@@ -1,7 +1,9 @@
 {
     "env": {
       "node": true,
-      "jest": true
+      "jest": true,
+      "browser": true, 
+      "es2020": true
     },
     "extends": ["airbnb-base", "plugin:security/recommended", "plugin:prettier/recommended"],
     "plugins": ["jest", "security", "prettier"],
