@@ -1,5 +1,9 @@
 const express = require('express');
 import { Request, Response } from 'express';
+const dotenv = require('dotenv');
+
+dotenv.config();
+const port = process.env.PORT;
 
 const helmet = require('helmet');
 const morgan = require('morgan')
@@ -19,4 +23,6 @@ app.get("/", (req: Request, res: Response) => {
     res.send("Hello world!");
 });
   
-app.listen(8000);
+app.listen(port, () => {
+    console.log(`[server]: Server is running at port ${port}`)
+});
