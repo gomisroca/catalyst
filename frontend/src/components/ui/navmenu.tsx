@@ -15,6 +15,7 @@ import {
   } from "@/components/ui/tooltip"
 import { UserRound } from "lucide-react"
 import { useUser } from "@/contexts/user-provider"
+import { UserSettingsForm } from "../user/user-settings-form"
 
 export default function Navmenu(){
     const { user } = useUser()
@@ -32,7 +33,7 @@ export default function Navmenu(){
                                     <Button variant="outline" size="icon">
                                         {user ?
                                             <Avatar className="rounded-md hover:contrast-50 p-[0.2rem]">
-                                                <AvatarImage className="rounded-sm" src={user.avatar} />
+                                                <AvatarImage className="rounded-sm" src={`${import.meta.env.VITE_BACKEND_ORIGIN}/${user.avatar}`} />
                                                 <AvatarFallback>{user.username[0]}</AvatarFallback>
                                             </Avatar>
                                         :
@@ -49,7 +50,10 @@ export default function Navmenu(){
                         </Tooltip>
                     </TooltipProvider>
                     <DialogContent>
-                        <SignInForm />
+                        {user ?
+                        <UserSettingsForm />
+                        :
+                        <SignInForm />}
                     </DialogContent>
                 </Dialog>
             </div>
