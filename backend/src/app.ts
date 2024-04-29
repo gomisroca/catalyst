@@ -29,9 +29,9 @@ const corsOptions = {
     origin: [process.env.FRONTEND_ORIGIN]
 }
 
-app.use(express.json());
+app.use(express.json({ limit: '5mb'}));
 app.use(session(sess));
-app.use('/public', express.static('public'));
+app.use(express.static('public'));
 app.use(cors(corsOptions));
 app.use(morgan('combined'));
 app.use(helmet());

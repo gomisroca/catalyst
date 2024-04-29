@@ -1,8 +1,9 @@
 const express = require('express');
 import { Request, Response } from 'express';
 const router = express.Router();
+import formidable from 'formidable';
 
-import { User, PrismaClient, Discord } from "@prisma/client";
+import { User, PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
 
 const { FRONTEND_ORIGIN } = process.env;
@@ -11,6 +12,7 @@ const bcrypt = require('bcrypt');
 import * as jwt from 'jsonwebtoken';
 
 import { verifyUser } from '../utils/auth';
+import uploadImage from '../utils/upload-image';
 const passportGoogle = require('../utils/google-oauth2');
 const passportFacebook = require('../utils/fb-oauth2');
 const passportDiscord = require('../utils/discord-oauth2');
@@ -26,6 +28,7 @@ passportDiscord.authenticate('discord', { session: true }),
             id: user.id, 
             email: user.email, 
             username: user.username, 
+            nickname: user.nickname,
             avatar: user.avatar,
             role: user.role
         },
@@ -53,6 +56,7 @@ passportFacebook.authenticate('facebook', { session: true }),
             id: user.id, 
             email: user.email, 
             username: user.username, 
+            nickname: user.nickname,
             avatar: user.avatar,
             role: user.role
         },
@@ -80,6 +84,7 @@ passportGoogle.authenticate('google', { session: true }),
             id: user.id, 
             email: user.email, 
             username: user.username, 
+            nickname: user.nickname,
             avatar: user.avatar,
             role: user.role
         },
@@ -118,7 +123,8 @@ router.post('/sign-in', async(req: Request, res: Response) => {
                 { 
                     id: existingUser.id, 
                     email: existingUser.email, 
-                    username: existingUser.username, 
+                    username: existingUser.username,
+                    nickname: existingUser.nickname, 
                     avatar: existingUser.avatar,
                     role: existingUser.role
                 },
@@ -128,7 +134,7 @@ router.post('/sign-in', async(req: Request, res: Response) => {
             let encryptedPassword: string = await bcrypt.hash(password, 10);
             const newUser: User = await prisma.user.create({ 
                 data: { 
-                    username: email.toLowerCase(),
+                    username: email.toLowerCase().split('@')[0],
                     email: email.toLowerCase(),
                     password: encryptedPassword,
                 }
@@ -138,6 +144,7 @@ router.post('/sign-in', async(req: Request, res: Response) => {
                     id: newUser.id, 
                     email: newUser.email, 
                     username: newUser.username, 
+                    nickname: newUser.nickname,
                     avatar: newUser.avatar,
                     role: newUser.role  
                 },
@@ -164,9 +171,10 @@ RES - 200 - User Data
 router.get('/info', async(req: Request, res: Response) => {
     try{
         const user = await verifyUser(req.header('authorization'));
-        if (user){
-            return res.send(user);
+        if (!user){
+            throw new Error('No user found')
         }
+        return res.send(user);
     }catch(err){
         if(err){
             res.status(500).send(err);
@@ -177,4 +185,62 @@ router.get('/info', async(req: Request, res: Response) => {
         await prisma.$disconnect();
     }
 })
+
+/*
+POST - User Settings
+REQ - username, nickname, email, avatar, password
+RES - 200 - JWT with User Data
+*/
+router.post('/settings', async(req: Request, res: Response) => {
+    try{
+        const user = await verifyUser(req.header('authorization'));
+        if (!user){
+            throw new Error('No user found')
+        }
+        const form = formidable({});
+        form.parse(req, async(err, fields, files) => {
+            if(err){
+                throw new Error(err)
+            }
+            console.log(files)
+            const encryptedPassword: string = await bcrypt.hash(fields.password[0], 10);
+            const avatar = await uploadImage('avatars', files.avatar[0], user.id)
+
+            const newUser = await prisma.user.update({
+                where: {
+                    id: user.id
+                },
+                data: {
+                    username: fields.username[0] ? fields.username[0] : user.username,
+                    nickname: fields.nickname[0] ? fields.nickname[0] : user.nickname,
+                    email: fields.email[0] ? fields.email[0] : user.email,
+                    avatar: avatar,
+                    password: encryptedPassword
+                }
+            })
+            let access_token = jwt.sign(
+                { 
+                    id: newUser.id, 
+                    email: newUser.email, 
+                    username: newUser.username, 
+                    nickname: newUser.nickname,
+                    avatar: newUser.avatar,
+                    role: newUser.role  
+                },
+                process.env.JWT_SECRET as jwt.Secret
+            );
+            res.send({access_token})
+        })
+    }catch(err){
+        if(err){
+            res.status(500).send(err);
+        }else {
+            throw new Error("An unknown error occurred");
+        }
+    } finally {
+        await prisma.$disconnect();
+    }
+})
+
+
 module.exports = router;
