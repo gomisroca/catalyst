@@ -61,7 +61,9 @@ export function SignInForm() {
     const userGoogleLogin = async () => {
         window.location.href = `${import.meta.env.VITE_BACKEND_ORIGIN}/users/google`;
     };
-
+    const userFbLogin = async () => {
+        window.location.href = `${import.meta.env.VITE_BACKEND_ORIGIN}/users/facebook`;
+    };
     async function onSubmit(values: z.infer<typeof formSchema>) {
         const data = {
             email: values.email,
@@ -85,7 +87,7 @@ export function SignInForm() {
                 <GrGoogle />
                 <span>Sign in using Google</span>
             </Button>
-            <Button variant="outline" className="flex gap-2 items-center" onClick={userGoogleLogin}>
+            <Button variant="outline" className="flex gap-2 items-center" onClick={userFbLogin}>
                 <FaFacebook />
                 <span>Sign in using Facebook</span>
             </Button>
