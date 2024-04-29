@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { GrGoogle } from "react-icons/gr";
-import { FaFacebook } from "react-icons/fa";
+import { FaDiscord, FaFacebook } from "react-icons/fa";
 import { Separator } from "../ui/separator";
 import Cookies from 'js-cookie';
  
@@ -64,6 +64,9 @@ export function SignInForm() {
     const userFbLogin = async () => {
         window.location.href = `${import.meta.env.VITE_BACKEND_ORIGIN}/users/facebook`;
     };
+    const userDiscordLogin = async () => {
+        window.location.href= `${import.meta.env.VITE_BACKEND_ORIGIN}/users/discord`;
+    };
     async function onSubmit(values: z.infer<typeof formSchema>) {
         const data = {
             email: values.email,
@@ -90,6 +93,10 @@ export function SignInForm() {
             <Button variant="outline" className="flex gap-2 items-center" onClick={userFbLogin}>
                 <FaFacebook />
                 <span>Sign in using Facebook</span>
+            </Button>
+            <Button variant="outline" className="flex gap-2 items-center" onClick={userDiscordLogin}>
+                <FaDiscord />
+                <span>Sign in using Discord</span>
             </Button>
         </div>
         <Separator />

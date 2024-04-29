@@ -2,7 +2,7 @@ const express = require('express');
 import { Request, Response } from 'express';
 const router = express.Router();
 
-import { User, PrismaClient } from "@prisma/client";
+import { User, PrismaClient, Discord } from "@prisma/client";
 const prisma = new PrismaClient();
 
 const { FRONTEND_ORIGIN } = process.env;
@@ -13,6 +13,26 @@ import * as jwt from 'jsonwebtoken';
 import { verifyUser } from '../utils/auth';
 const passportGoogle = require('../utils/google-oauth2');
 const passportFacebook = require('../utils/fb-oauth2');
+const passportDiscord = require('../utils/discord-oauth2');
+
+router.get('/discord', passportDiscord.authenticate('discord'));
+router.get('/discord/callback',
+passportDiscord.authenticate('discord', { session: true }),
+  async(req, res) => {
+    const user: User | null  = await prisma.user.findUnique({ where: { id: req.user.id }})
+
+    let access_token: string = jwt.sign(
+        { 
+            id: user.id, 
+            email: user.email, 
+            username: user.username, 
+            avatar: user.avatar,
+            role: user.role
+        },
+        process.env.JWT_SECRET as jwt.Secret
+    );
+    res.redirect(FRONTEND_ORIGIN + '/jwt?code=' + access_token);
+});
 
 router.get('/facebook', passportFacebook.authenticate('facebook', { scope: ['email'] }));
 router.get('/facebook/callback',
