@@ -59,7 +59,7 @@ export function SignInForm() {
         },
     })
     const userGoogleLogin = async () => {
-        window.location.href = `${import.meta.env.VITE_BACKEND_ORIGIN}/users/auth`;
+        window.location.href = `${import.meta.env.VITE_BACKEND_ORIGIN}/users/google`;
     };
 
     async function onSubmit(values: z.infer<typeof formSchema>) {

@@ -5,78 +5,45 @@ const router = express.Router();
 import { User, PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
 
-const { CLIENT_ID, CLIENT_SECRET, CALLBACK_URL, FRONTEND_ORIGIN } = process.env;
-const passport = require("passport");
-const GoogleStrategy = require('passport-google-oauth20').Strategy;
+const { FRONTEND_ORIGIN } = process.env;
 
 const bcrypt = require('bcrypt');
 import * as jwt from 'jsonwebtoken';
+
 import { verifyUser } from '../utils/auth';
+const passportGoogle = require('../utils/google-oauth2');
+const passportFacebook = require('../utils/fb-oauth2');
 
-// Passport
-passport.serializeUser((user, done) => {
-    done(null, user);
+router.get('/facebook', passportFacebook.authenticate('facebook', { scope: ['email'] }));
+router.get('/facebook/callback',
+passportFacebook.authenticate('facebook', { session: true }),
+  async(req, res) => {
+    await prisma.facebook.update({
+        where: {
+            userId: req.user.id,
+        },
+        data: {
+            accessToken: req.query.code
+        }
+    })
+    const user = await prisma.user.findUnique({ where: { id: req.user.id }})
+
+    let access_token: string = jwt.sign(
+        { 
+            id: user.id, 
+            email: user.email, 
+            username: user.username, 
+            avatar: user.avatar,
+            role: user.role
+        },
+        process.env.JWT_SECRET as jwt.Secret
+    );
+    res.redirect(FRONTEND_ORIGIN + '/jwt?code=' + access_token);
 });
-passport.deserializeUser((user, done, err) => {
-    done(err, user);
-});
-passport.use(new GoogleStrategy({
-    clientID: CLIENT_ID,
-    clientSecret: CLIENT_SECRET,
-    callbackURL: CALLBACK_URL,
-    scope: [ 'profile', 'email' ],
-    state: true,
-},
-async(accessToken, refreshToken, profile, done) => {
-    try{      
-        const email = profile['_json']['email'];
-        if(!email) return done(new Error('Failed to receive email from Google. Please try again.'));
 
-        const existingUser: User | null = await prisma.user.findUnique({
-            where: {
-                email: email
-            }
-        })
-
-        if(existingUser){
-            if(!existingUser.googleId)[
-                await prisma.user.update({
-                    where: {
-                        email: email
-                    },
-                    data: {
-                        googleId: profile.id
-                    }
-                })
-            ]
-            return done(null, existingUser);
-        } 
-
-        const newUser = await prisma.user.create({
-            data: {
-                username: profile.displayName,
-                email: email,
-                avatar: profile._json.picture,
-                googleId: profile.id,
-                google: {
-                    create: {
-                        id: profile.id,
-                        accessToken: accessToken,
-                        refreshToken: refreshToken ? refreshToken : null,
-                    }
-                }
-            }
-        })
-        return done(null, newUser);
-    }catch (verifyErr) {
-        done(verifyErr);
-    }
-}
-));
-
-router.get('/auth', passport.authenticate('google'));
-router.get('/callback',
-  passport.authenticate('google', { session: true }),
+router.get('/google', passportGoogle.authenticate('google'));
+router.get('/google/callback',
+passportGoogle.authenticate('google', { session: true }),
   async(req, res) => {
     await prisma.google.update({
         where: {
