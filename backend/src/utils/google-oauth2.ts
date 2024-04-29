@@ -31,7 +31,15 @@ async(accessToken, refreshToken, profile, done) => {
         })
 
         if(existingUser){
-            if(!existingUser.googleId)[
+            if(!existingUser.googleId){
+                await prisma.google.create({
+                    data: {
+                        id: profile.id,
+                        userId: existingUser.id,
+                        accessToken: accessToken,
+                        refreshToken: refreshToken ? refreshToken : null,
+                    }
+                })
                 await prisma.user.update({
                     where: {
                         email: email
@@ -40,7 +48,7 @@ async(accessToken, refreshToken, profile, done) => {
                         googleId: profile.id
                     }
                 })
-            ]
+            }
             return done(null, existingUser);
         } 
 

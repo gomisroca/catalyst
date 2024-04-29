@@ -28,7 +28,15 @@ async function(accessToken, refreshToken, profile, done) {
         }) 
         
         if(existingUser){
-            if(!existingUser.facebookId)[
+            if(!existingUser.facebookId){
+                await prisma.facebook.create({
+                    data: {
+                        id: profile.id,
+                        userId: existingUser.id,
+                        accessToken: accessToken,
+                        refreshToken: refreshToken ? refreshToken : null,
+                    }
+                })
                 await prisma.user.update({
                     where: {
                         email: email
@@ -37,7 +45,7 @@ async function(accessToken, refreshToken, profile, done) {
                         facebookId: profile.id
                     }
                 })
-            ]
+            }
             return done(null, existingUser);
         } 
 
