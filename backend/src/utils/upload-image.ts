@@ -35,7 +35,9 @@ export async function downloadImage(type: string, imageUrl: string, id: string) 
     try {
         const response = await fetch(imageUrl);
         const destination = path.resolve(`public/${type}/${id}.jpg`);
-        fs.unlinkSync(destination)
+        if(fs.existsSync(destination)){
+            fs.unlinkSync(destination)
+        }
         const fileStream = fs.createWriteStream(destination, { flags: 'wx' });
         await finished(Readable.fromWeb(response.body).pipe(fileStream));
         let relativePath = path.join(type, `${id}.jpg`);
