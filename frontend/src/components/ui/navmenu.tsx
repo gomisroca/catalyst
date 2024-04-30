@@ -18,19 +18,27 @@ import { useUser } from "@/contexts/user-provider"
 import { UserSettingsForm } from "../user/user-settings-form"
 
 export default function Navmenu(){
-    const { user } = useUser()
-    console.log(user)
+    const { user } = useUser();
     return(
         <>
         <header>
-            <div className="w-fit m-auto flex p-4">
-                <ModeToggle/>
+            <div className="w-fit m-auto flex p-4 gap-1">
+                <TooltipProvider>
+                    <Tooltip>
+                        <TooltipTrigger>
+                            <ModeToggle/>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                            Toggle Theme
+                        </TooltipContent>
+                    </Tooltip>
+                </TooltipProvider>
                 <Dialog>
                     <TooltipProvider>
                         <Tooltip>
-                            <TooltipTrigger>
+                            <TooltipTrigger asChild>
                                 <DialogTrigger asChild>
-                                    <Button variant="outline" size="icon">
+                                    <Button className="cursor-pointer" variant="outline" size="icon" asChild>
                                         {user ?
                                             <Avatar className="rounded-md hover:contrast-50 p-[0.2rem]">
                                                 <AvatarImage className="rounded-sm" src={`${import.meta.env.VITE_BACKEND_ORIGIN}/${user.avatar}`} />
@@ -42,10 +50,10 @@ export default function Navmenu(){
                                 </DialogTrigger>
                             </TooltipTrigger>
                             <TooltipContent>
-                            {user ? 
-                            <p>Settings</p>
-                            :
-                            <p>Sign In</p>}
+                                {user ? 
+                                <p>Account Settings</p>
+                                :
+                                <p>Sign In</p>}
                             </TooltipContent>
                         </Tooltip>
                     </TooltipProvider>
