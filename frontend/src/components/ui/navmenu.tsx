@@ -6,73 +6,31 @@ import {
     DialogTrigger,
 } from "@/components/ui/dialog"
 import { SignInForm } from "../user/signin-form"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import {
     Tooltip,
     TooltipContent,
     TooltipProvider,
     TooltipTrigger,
   } from "@/components/ui/tooltip"
-import { UserRound } from "lucide-react"
 import { useUser } from "@/contexts/user-provider"
 import { UserSettingsForm } from "../user/user-settings-form"
 import { FiFolderPlus } from "react-icons/fi"
 import { ProjectUploadForm } from "../project/project-upload-form"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "./dropdown-menu"
+import UserMenuButton from "../user/user-menu-button"
+import SignInButton from "../user/signin-button"
 
 export default function Navmenu(){
-    const { user, signOut } = useUser();
+    const { user } = useUser();
     return(
         <>
         <header>
             <div className="w-fit m-auto flex p-4 gap-1">
-                <TooltipProvider>
-                    <Tooltip>
-                        <TooltipTrigger>
-                            <ModeToggle/>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                            Toggle Theme
-                        </TooltipContent>
-                    </Tooltip>
-                </TooltipProvider>
+                <ModeToggle />
                 <Dialog>
                     {user ?
-                    <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                            <Button className="cursor-pointer" variant="outline" size="icon" asChild>
-                                <Avatar className="rounded-md hover:contrast-50 p-[0.2rem]">
-                                    <AvatarImage className="rounded-sm" src={`${import.meta.env.VITE_BACKEND_ORIGIN}/${user.avatar}`} />
-                                    <AvatarFallback>{user.username[0]}</AvatarFallback>
-                                </Avatar>
-                            </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                            <DropdownMenuItem>
-                                <DialogTrigger className="w-full text-start">
-                                    Settings
-                                </DialogTrigger>
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => signOut()}>
-                                Sign Out
-                            </DropdownMenuItem>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
+                    <UserMenuButton user={user}  />
                     :
-                    <TooltipProvider>
-                        <Tooltip>
-                            <TooltipTrigger asChild>
-                                <DialogTrigger className="w-full">
-                                    <Button className="cursor-pointer" variant="outline" size="icon" asChild>
-                                        <UserRound />
-                                    </Button>
-                                </DialogTrigger>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                                <p>Sign In</p>
-                            </TooltipContent>
-                        </Tooltip>
-                    </TooltipProvider>}
+                    <SignInButton />}
                     <DialogContent>
                         { user ? <UserSettingsForm /> : <SignInForm /> }
                     </DialogContent>
@@ -81,7 +39,7 @@ export default function Navmenu(){
                 <Dialog>
                     <TooltipProvider>
                         <Tooltip>
-                            <TooltipTrigger>
+                            <TooltipTrigger asChild>
                                 <DialogTrigger asChild>
                                     <Button variant="outline" size="icon">
                                         <FiFolderPlus />
