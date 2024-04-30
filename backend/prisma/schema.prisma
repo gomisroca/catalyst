@@ -27,6 +27,9 @@ model User {
   nickname   String?
   avatar     String?
   role       Role      @default(USER)
+  posts      Post[]
+  branches   Branch[]
+  projects   Project[]
 }
 
 model Google {
@@ -56,4 +59,75 @@ model Discord {
 enum Role {
   USER
   ADMIN
+}
+
+model Interactions {
+  id           String   @id @default(uuid())
+  branchedBy   String[]
+  likedBy      String[]
+  sharedBy     String[]
+  bookmarkedBy String[]
+  reportedBy   String[]
+  hiddenBy     String[]
+  post         Post?    @relation(fields: [postId], references: [id])
+  postId       String?  @unique
+  branch       Branch?  @relation(fields: [branchId], references: [id])
+  branchId     String?  @unique
+}
+
+model Permissions {
+  id               String   @id @default(uuid())
+  private          Boolean  @default(false)
+  allowUsers       String[]
+  allowCollaborate Boolean  @default(true)
+  allowBranch      Boolean  @default(true)
+  allowShare       Boolean  @default(true)
+  branch           Branch   @relation(fields: [branchId], references: [id])
+  branchId         String   @unique
+}
+
+model Post {
+  id           String        @id @default(uuid())
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  author       User          @relation(fields: [authorId], references: [id])
+  authorId     String
+  content      String
+  media        String[]
+  interactions Interactions?
+  branch       Branch        @relation(fields: [branchId], references: [id])
+  branchId     String
+}
+
+model Branch {
+  id             String        @id @default(uuid())
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  author         User          @relation(fields: [authorId], references: [id])
+  authorId       String
+  description    String
+  posts          Post[]
+  default        Boolean       @default(false)
+  parentBranch   Branch?       @relation("ParentChildrenBranch", fields: [parentBranchId], references: [id])
+  parentBranchId String?
+  childBranches  Branch[]      @relation("ParentChildrenBranch")
+  permissions    Permissions?
+  interactions   Interactions?
+  activity       Int           @default(0)
+  popularity     Int           @default(0)
+  project        Project       @relation(fields: [projectId], references: [id])
+  projectId      String
+  name           String
+}
+
+model Project {
+  id          String   @id @default(uuid())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  author      User     @relation(fields: [authorId], references: [id])
+  authorId    String
+  name        String
+  description String
+  avatar      String?
+  branches    Branch[]
 }
