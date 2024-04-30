@@ -5,11 +5,13 @@ import { getProject } from "@/lib/projects";
 import { useEffect, useState } from "react"
 import { Link, Outlet, useParams } from "react-router-dom";
 import { FiPlus } from "react-icons/fi";
+import { useUser } from "@/contexts/user-provider";
 // import { BsFire, BsActivity } from 'react-icons/bs';
 
 export default function Project(){
     const { projectId } = useParams();
     const [project, setProject] = useState<Project>();
+    const { user } = useUser();
     
     async function fetchProject(projectId: string){
         const proj: Project = await getProject(projectId);
@@ -52,13 +54,21 @@ export default function Project(){
                 <span className="text-lg">Branches</span>
                 <div className="flex gap-2">
                 {project.branches && project.branches.map(branch =>
+                    branch.permissions.private ?
+                        user && (branch.author.id == user.id) &&
+                        <Link to={branch.id}>
+                            <Button variant="outline">
+                                {branch.name}
+                            </Button>
+                        </Link>
+                    :
                     <Link to={branch.id}>
                         <Button variant="outline">
                             {branch.name}
                         </Button>
                     </Link>
                 )}
-                {project.permissions.allowBranch &&
+                {project.permissions && project.permissions.allowBranch &&
                 <Button variant='outline' size='icon' asChild>
                     {/* Open modal with form to add a branch, IF the user is logged in, and the project allows it */}
                     <FiPlus />
