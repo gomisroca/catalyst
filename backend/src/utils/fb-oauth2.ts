@@ -9,8 +9,8 @@ const { FACEBOOK_APP_ID, FACEBOOK_APP_SECRET, FACEBOOK_CALLBACK_URL } = process.
 passport.serializeUser((user, done) => {
     done(null, user);
 });
-passport.deserializeUser((user, done, err) => {
-    done(err, user);
+passport.deserializeUser((user, done) => {
+    done(null, user);
 });
 passport.use(new FacebookStrategy({
     clientID: FACEBOOK_APP_ID,

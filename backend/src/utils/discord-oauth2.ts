@@ -9,8 +9,8 @@ import { downloadImage } from './upload-image';
 passport.serializeUser((user, done) => {
     done(null, user);
 });
-passport.deserializeUser((user, done, err) => {
-    done(err, user);
+passport.deserializeUser((user, done) => {
+    done(null, user);
 });
 passport.use(new DiscordStrategy({
     clientID: DISCORD_ID,
