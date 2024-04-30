@@ -59,6 +59,9 @@ router.get('/:id', async(req: Request, res: Response) => {
         const project: Project | null = await prisma.project.findUnique({
             where: {
                 id: id,
+                permissions: {
+                    private: false,
+                }
             },
             include:{
                 author: true,
@@ -103,6 +106,9 @@ router.get('/:project/branch/:branch', async(req: Request, res: Response) => {
         const branch: Branch | null = await prisma.branch.findUnique({
             where: {
                 id: branchId,
+                permissions: {
+                    private: false,
+                }
             },
             include: {
                 author: true,
@@ -154,6 +160,11 @@ router.post('/', async(req: Request, res: Response) => {
                     name: fields.name[0],
                     description: fields.description[0],
                     authorId: user.id
+                }
+            })
+            await prisma.permissions.create({
+                data: {
+                    projectId: project.id
                 }
             })
             if(fields.branchName){

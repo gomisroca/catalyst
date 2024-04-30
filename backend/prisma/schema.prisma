@@ -82,8 +82,10 @@ model Permissions {
   allowCollaborate Boolean  @default(true)
   allowBranch      Boolean  @default(true)
   allowShare       Boolean  @default(true)
-  branch           Branch   @relation(fields: [branchId], references: [id])
-  branchId         String   @unique
+  branch           Branch?  @relation(fields: [branchId], references: [id])
+  branchId         String?  @unique
+  project          Project? @relation(fields: [projectId], references: [id])
+  projectId        String?  @unique
 }
 
 model Post {
@@ -121,13 +123,14 @@ model Branch {
 }
 
 model Project {
-  id          String   @id @default(uuid())
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  author      User     @relation(fields: [authorId], references: [id])
+  id          String       @id @default(uuid())
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  author      User         @relation(fields: [authorId], references: [id])
   authorId    String
   name        String
   description String
   avatar      String?
   branches    Branch[]
+  permissions Permissions?
 }

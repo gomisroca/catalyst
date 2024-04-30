@@ -9,12 +9,29 @@ interface User {
     role: string;
 }
 
+interface Interactions {
+    branchedBy: string[];
+    likedBy: string[];
+    sharedBy: string[];
+    bookmarkedBy: string[];
+    reportedBy: string[];
+    hiddenBy: string[];
+}
+
+interface Permissions {
+    private: boolean;
+    allowUsers: string[];
+    allowCollaborate: boolean;
+    allowBranch: boolean;
+    allowShare: boolean;
+}
 interface Post {
     id: string
     content: string;
     createdAt: Date;
     updatedAt: Date;
     author: User;
+    interactions: Interactions;
 }
 interface Branch {
     id: string
@@ -25,6 +42,8 @@ interface Branch {
     author: User;
     default: boolean;
     posts: Post[];
+    permissions: Permissions;
+    interactions: Interactions;
 }
 interface Project {
     id: string
@@ -35,4 +54,5 @@ interface Project {
     updatedAt: Date;
     author: User;
     branches: Branch[];
+    permissions: Permissions;
 }
