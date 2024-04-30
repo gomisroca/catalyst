@@ -31,6 +31,7 @@ interface Post {
     createdAt: Date;
     updatedAt: Date;
     author: User;
+    media: string[];
     interactions: Interactions;
 }
 interface Branch {
