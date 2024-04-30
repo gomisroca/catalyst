@@ -40,6 +40,8 @@ app.use(passport.session());
   
 const usersRouter = require('./routes/users');
 app.use('/users', usersRouter);
+const projectsRouter = require('./routes/projects');
+app.use('/projects', projectsRouter);
 
 app.listen(process.env.PORT, () => {
     console.log(`[SERVER] Running at port ${process.env.PORT}`)
