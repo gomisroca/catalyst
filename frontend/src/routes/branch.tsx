@@ -29,7 +29,14 @@ export default function Branch(){
                 {branch.description}
                 {branch.posts && branch.posts.map(post => 
                     <Card>
-                        {post.content}
+                        <CardDescription>{`${new Date(post.updatedAt).toLocaleDateString()}`}</CardDescription>
+                        <CardContent>{post.content}</CardContent>
+                        {post.media &&
+                        <CardFooter>
+                            {post.media.map(media =>
+                                <img src={`${import.meta.env.VITE_BACKEND_ORIGIN}/${media}`} />
+                            )}
+                        </CardFooter>}
                     </Card>
                 )}
             </CardContent>
