@@ -12,9 +12,10 @@ interface JWTUser {
 
 type UserProviderState = {
     user?: JWTUser,
+    signOut: () => void
 }
 
-const UserContext = createContext<UserProviderState>({});
+const UserContext = createContext<UserProviderState>({} as UserProviderState);
 
 export function UserProvider({ children }: PropsWithChildren) {
     const [user, setUser] = useState<JWTUser | undefined>();
@@ -35,7 +36,15 @@ export function UserProvider({ children }: PropsWithChildren) {
             console.log(err)
         }
     }
-
+    const signOut = async() => {
+        try {
+            Cookies.remove('__catalyst__jwt');
+            setUser(undefined)
+        }
+        catch(err) {
+            console.log(err)
+        } 
+    }
     useEffect((): void => {
         if(accessToken && !user){
             getUserInfo(accessToken);
@@ -43,7 +52,7 @@ export function UserProvider({ children }: PropsWithChildren) {
     }, [accessToken, user]);
 
     return (
-        <UserContext.Provider value={({ user })}>
+        <UserContext.Provider value={({ user, signOut })}>
           {children}
         </UserContext.Provider>
       )

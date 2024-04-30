@@ -16,9 +16,12 @@ import {
 import { UserRound } from "lucide-react"
 import { useUser } from "@/contexts/user-provider"
 import { UserSettingsForm } from "../user/user-settings-form"
+import { FiFolderPlus } from "react-icons/fi"
+import { ProjectUploadForm } from "../project/project-upload-form"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "./dropdown-menu"
 
 export default function Navmenu(){
-    const { user } = useUser();
+    const { user, signOut } = useUser();
     return(
         <>
         <header>
@@ -34,36 +37,66 @@ export default function Navmenu(){
                     </Tooltip>
                 </TooltipProvider>
                 <Dialog>
+                    {user ?
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button className="cursor-pointer" variant="outline" size="icon" asChild>
+                                <Avatar className="rounded-md hover:contrast-50 p-[0.2rem]">
+                                    <AvatarImage className="rounded-sm" src={`${import.meta.env.VITE_BACKEND_ORIGIN}/${user.avatar}`} />
+                                    <AvatarFallback>{user.username[0]}</AvatarFallback>
+                                </Avatar>
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                            <DropdownMenuItem>
+                                <DialogTrigger className="w-full text-start">
+                                    Settings
+                                </DialogTrigger>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => signOut()}>
+                                Sign Out
+                            </DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+                    :
                     <TooltipProvider>
                         <Tooltip>
                             <TooltipTrigger asChild>
-                                <DialogTrigger asChild>
+                                <DialogTrigger className="w-full">
                                     <Button className="cursor-pointer" variant="outline" size="icon" asChild>
-                                        {user ?
-                                            <Avatar className="rounded-md hover:contrast-50 p-[0.2rem]">
-                                                <AvatarImage className="rounded-sm" src={`${import.meta.env.VITE_BACKEND_ORIGIN}/${user.avatar}`} />
-                                                <AvatarFallback>{user.username[0]}</AvatarFallback>
-                                            </Avatar>
-                                        :
-                                        <UserRound />}
+                                        <UserRound />
                                     </Button>
                                 </DialogTrigger>
                             </TooltipTrigger>
                             <TooltipContent>
-                                {user ? 
-                                <p>Account Settings</p>
-                                :
-                                <p>Sign In</p>}
+                                <p>Sign In</p>
+                            </TooltipContent>
+                        </Tooltip>
+                    </TooltipProvider>}
+                    <DialogContent>
+                        { user ? <UserSettingsForm /> : <SignInForm /> }
+                    </DialogContent>
+                </Dialog>
+                {user &&
+                <Dialog>
+                    <TooltipProvider>
+                        <Tooltip>
+                            <TooltipTrigger>
+                                <DialogTrigger asChild>
+                                    <Button variant="outline" size="icon">
+                                        <FiFolderPlus />
+                                    </Button>
+                                </DialogTrigger>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                                Create Project
                             </TooltipContent>
                         </Tooltip>
                     </TooltipProvider>
                     <DialogContent>
-                        {user ?
-                        <UserSettingsForm />
-                        :
-                        <SignInForm />}
+                        <ProjectUploadForm />
                     </DialogContent>
-                </Dialog>
+                </Dialog>}
             </div>
         </header>
         </>
