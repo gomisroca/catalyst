@@ -1,16 +1,16 @@
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardTitle } from "@/components/ui/card";
-import { Pagination } from "@/components/ui/pagination";
 import { getProject } from "@/lib/projects";
 import { useEffect, useState } from "react"
 import { Link, Outlet, useParams } from "react-router-dom";
+import { FiPlus } from "react-icons/fi";
 // import { BsFire, BsActivity } from 'react-icons/bs';
-
 
 export default function Project(){
     const { projectId } = useParams();
     const [project, setProject] = useState<Project>();
-
+    
     async function fetchProject(projectId: string){
         const proj: Project = await getProject(projectId);
         console.log(proj)
@@ -27,14 +27,24 @@ export default function Project(){
         <div className="flex flex-col gap-2 w-full">
         {project &&
          <Card className="p-4 w-full">
-            <CardTitle className="flex gap-8 items-center">
-                {project.name}
-                {/* <BsActivity />  if project is in top % of recent activity (posts, branches in last 7 days) */}
-                {/* <BsFire />  if project is in top % of recent popularity (positive interactions minus negative interactions in last 7 days) */}
-            </CardTitle>
-            <CardDescription>
-                {`${new Date(project.updatedAt).toLocaleDateString()}`}
-            </CardDescription>
+            <div className="flex gap-2 items-center">
+                <Avatar className="rounded-md">
+                    <AvatarImage className="rounded-sm" src={`${import.meta.env.VITE_BACKEND_ORIGIN}/${project.avatar}`} />
+                    <AvatarFallback>{project.name[0]}</AvatarFallback>
+                </Avatar>
+                <div>
+                    <CardTitle>
+                        {project.name}
+                        {/* <BsActivity />  if project is in top % of recent activity (posts, branches in last 7 days) */}
+                        {/* <BsFire />  if project is in top % of recent popularity (positive interactions minus negative interactions in last 7 days) */}
+                        
+                        {/* On the top right, buttons to share, bookmark */}
+                    </CardTitle>
+                    <CardDescription>
+                        {`${new Date(project.updatedAt).toLocaleDateString()}`}
+                    </CardDescription>
+                </div>
+            </div>
             <CardContent className="p-4">
                 {project.description}
             </CardContent>
@@ -48,6 +58,11 @@ export default function Project(){
                         </Button>
                     </Link>
                 )}
+                {project.permissions.allowBranch &&
+                <Button variant='outline' size='icon' asChild>
+                    {/* Open modal with form to add a branch, IF the user is logged in, and the project allows it */}
+                    <FiPlus />
+                </Button>}
                 </div>
             </CardFooter>
         </Card>}
