@@ -1,4 +1,5 @@
 import { User, PrismaClient } from "@prisma/client";
+import { downloadImage } from "./upload-image";
 const prisma = new PrismaClient();
 
 const passport = require('passport');
@@ -21,13 +22,14 @@ async function(accessToken, refreshToken, profile, done) {
     try{
         const email = profile.emails[0].value;
         if(!email) return done(new Error('Failed to receive email from Facebook. Please try again.'));
-        const existingUser: User | null = await prisma.user.findUnique({
+        let existingUser: User | null = await prisma.user.findUnique({
             where: {
                 email: email
             }
         }) 
         
         if(existingUser){
+            const newAvatar = await downloadImage('avatars', profile.photos[0].value, existingUser.id);
             if(!existingUser.facebookId){
                 await prisma.facebook.create({
                     data: {
@@ -37,19 +39,28 @@ async function(accessToken, refreshToken, profile, done) {
                         refreshToken: refreshToken ? refreshToken : null,
                     }
                 })
-                await prisma.user.update({
+                existingUser = await prisma.user.update({
                     where: {
                         email: email
                     },
                     data: {
-                        facebookId: profile.id
+                        facebookId: profile.id,
+                        avatar: newAvatar,
                     }
                 })
             }
+            existingUser = await prisma.user.update({
+                where: {
+                    email: email
+                },
+                data: {
+                    avatar: newAvatar,
+                }
+            })
             return done(null, existingUser);
         } 
 
-        const newUser = await prisma.user.create({
+        let newUser = await prisma.user.create({
             data: {
                 username: profile.displayName,
                 email: email,
@@ -62,6 +73,15 @@ async function(accessToken, refreshToken, profile, done) {
                         refreshToken: refreshToken ? refreshToken : null,
                     }
                 }
+            }
+        })
+        const newAvatar = await downloadImage('avatars', profile.photos[0].value, newUser.id);
+        newUser = await prisma.user.update({
+            where: {
+                id: newUser.id
+            },
+            data: {
+                avatar: newAvatar
             }
         })
 

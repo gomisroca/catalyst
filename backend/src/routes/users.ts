@@ -12,7 +12,7 @@ const bcrypt = require('bcrypt');
 import * as jwt from 'jsonwebtoken';
 
 import { verifyUser } from '../utils/auth';
-import uploadImage from '../utils/upload-image';
+import { uploadImage } from '../utils/upload-image';
 const passportGoogle = require('../utils/google-oauth2');
 const passportFacebook = require('../utils/fb-oauth2');
 const passportDiscord = require('../utils/discord-oauth2');

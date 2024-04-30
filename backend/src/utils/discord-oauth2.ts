@@ -4,6 +4,7 @@ const prisma = new PrismaClient();
 const passport = require('passport');
 const DiscordStrategy = require('passport-discord').Strategy;
 const { DISCORD_ID, DISCORD_SECRET, DISCORD_CALLBACK_URL } = process.env;
+import { downloadImage } from './upload-image';
 
 passport.serializeUser((user, done) => {
     done(null, user);
@@ -19,17 +20,17 @@ passport.use(new DiscordStrategy({
 },
 async function(accessToken, refreshToken, profile, done) {
     try{
-        console.log(profile)
         const avatar = `https://cdn.discordapp.com/avatars/${profile.id}/${profile.avatar}.jpg`
         const email = profile.email;
         if(!email) return done(new Error('Failed to receive email from Discord. Please try again.'));
-        const existingUser: User | null = await prisma.user.findUnique({
+        let existingUser: User | null = await prisma.user.findUnique({
             where: {
                 email: email
             }
         }) 
         
         if(existingUser){
+            const newAvatar = await downloadImage('avatars', avatar, existingUser.id);
             if(!existingUser.discordId){
                 await prisma.discord.create({
                     data: {
@@ -39,19 +40,30 @@ async function(accessToken, refreshToken, profile, done) {
                         refreshToken: refreshToken ? refreshToken : null,
                     }
                 })
-                await prisma.user.update({
+                existingUser = await prisma.user.update({
                     where: {
                         email: email
                     },
                     data: {
-                        discordId: profile.id
+                        discordId: profile.id,
+                        avatar: newAvatar,
+                    }
+                })
+            } else{
+                existingUser = await prisma.user.update({
+                    where: {
+                        email: email
+                    },
+                    data: {
+                        avatar: newAvatar,
                     }
                 })
             }
+            
             return done(null, existingUser);
         } 
 
-        const newUser = await prisma.user.create({
+        let newUser = await prisma.user.create({
             data: {
                 username: profile.username,
                 email: email,
@@ -64,6 +76,15 @@ async function(accessToken, refreshToken, profile, done) {
                         refreshToken: refreshToken ? refreshToken : null,
                     }
                 }
+            }
+        })
+        const newAvatar = await downloadImage('avatars', avatar, newUser.id);
+        newUser = await prisma.user.update({
+            where: {
+                id: newUser.id
+            },
+            data: {
+                avatar: newAvatar
             }
         })
 
