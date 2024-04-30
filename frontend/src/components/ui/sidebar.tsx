@@ -8,7 +8,7 @@ import { LuGitBranchPlus } from "react-icons/lu";
 export default function Sidebar(){
     return (
         <>
-        <div className="absolute w-fit top-[8rem] right-0 flex p-4 gap-1 flex-col">
+        {/* <div className="absolute w-fit top-[8rem] right-0 flex p-4 gap-1 flex-col">
             <Dialog>
                 <TooltipProvider>
                     <Tooltip>
@@ -66,7 +66,7 @@ export default function Sidebar(){
                     <ProjectUploadForm />
                 </DialogContent>
             </Dialog>
-        </div>
+        </div> */}
         </>
     )
 }
