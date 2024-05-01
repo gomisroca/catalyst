@@ -15,6 +15,7 @@ import {
 import { Input } from "@/components/ui/input"
 import { Switch } from "../ui/switch";
 import { useState } from "react";
+import { createProject } from "@/lib/projects";
 
 const formSchema = z.object({
     name: z.string(),
@@ -45,16 +46,9 @@ export function ProjectUploadForm() {
             data.append('branchName', values.branchName);
             data.append('branchDescription', values.branchDescription);
         }
-
-        const res = await fetch(`${import.meta.env.VITE_BACKEND_ORIGIN}/projects`, {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${accessToken}`
-            },
-            body: data
-        })
-        if(res.ok){
-            console.log('ok')
+        if(accessToken){
+            const res = await createProject(accessToken, data);
+            console.log(res)
         }
     }
     return (
