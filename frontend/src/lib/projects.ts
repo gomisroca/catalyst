@@ -4,12 +4,12 @@ export async function getProjects(): Promise<Project[]> {
 }
 
 export async function getProject(projectId: string): Promise<Project> {
-    const res = await fetch(`${import.meta.env.VITE_BACKEND_ORIGIN}/projects/${projectId}`);
+    const res = await fetch(`${import.meta.env.VITE_BACKEND_ORIGIN}/projects/${projectId}/`);
     return res.json() as Promise<Project>;
 }
 
 export async function getBranch(projectId: string, branchId: string): Promise<Branch> {
-    const res = await fetch(`${import.meta.env.VITE_BACKEND_ORIGIN}/projects/${projectId}/branch/${branchId}`);
+    const res = await fetch(`${import.meta.env.VITE_BACKEND_ORIGIN}/projects/${projectId}/branch/${branchId}/`);
     return res.json() as Promise<Branch>;
 }
 
@@ -40,6 +40,17 @@ export async function createBranch(accessToken: string, branchData: BranchData, 
             'Authorization': `Bearer ${accessToken}`
         },
         body: JSON.stringify(branchData)
+    })
+    return res
+}
+
+export async function createPost(accessToken: string, postData: FormData, branch: Branch){
+    const res = await fetch(`${import.meta.env.VITE_BACKEND_ORIGIN}/projects/${branch.projectId}/branch/${branch.id}/post`, {
+        method: 'POST',
+        headers: {
+            'Authorization': `Bearer ${accessToken}`
+        },
+        body: postData
     })
     return res
 }

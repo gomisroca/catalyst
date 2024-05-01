@@ -2,11 +2,12 @@ const express = require('express');
 import { Request, Response } from 'express';
 const router = express.Router();
 
-import { Branch, PrismaClient, Project } from "@prisma/client";
+import { Branch, Post, PrismaClient, Project } from "@prisma/client";
 import { verifyUser } from '../utils/auth';
 const prisma = new PrismaClient();
 import formidable from 'formidable';
 import { uploadImage } from '../utils/upload-image';
+const { v4: uuidv4 } = require('uuid');
 
 /*
 GET - Get All Projects
@@ -24,6 +25,13 @@ router.get('/', async(req: Request, res: Response) => {
                         author: true,
                         interactions: true,
                         permissions: true,
+                        childBranches: {
+                            include: {
+                                interactions: true,
+                                permissions: true,
+                            }
+                        },
+                        parentBranch: true,
                         posts: {
                             include: {
                                 author: true,
@@ -57,6 +65,7 @@ RES - 200 - Project Data
 router.get('/:id', async(req: Request, res: Response) => {
     try{
         const id = req.params.id;
+        console.log(id)
         const project: Project | null = await prisma.project.findUnique({
             where: {
                 id: id,
@@ -69,6 +78,13 @@ router.get('/:id', async(req: Request, res: Response) => {
                         author: true,
                         interactions: true,
                         permissions: true,
+                        childBranches: {
+                            include: {
+                                interactions: true,
+                                permissions: true,
+                            }
+                        },
+                        parentBranch: true,
                         posts: {
                             include: {
                                 author: true,
@@ -110,6 +126,13 @@ router.get('/:project/branch/:branch', async(req: Request, res: Response) => {
                 author: true,
                 interactions: true,
                 permissions: true,
+                childBranches: {
+                    include: {
+                        interactions: true,
+                        permissions: true,
+                    }
+                },
+                parentBranch: true,
                 posts: {
                     include: {
                         author: true,
@@ -258,6 +281,65 @@ router.post('/:project/branch', async(req: Request, res: Response) => {
         })
 
         return res.send(branch)
+    }catch(err){
+        if(err){
+            res.status(500).send(err);
+        }else {
+            throw new Error("An unknown error occurred");
+        }
+    } finally {
+        await prisma.$disconnect();
+    }
+})
+
+/*
+POST - Create Post
+REQ - content, media
+RES - 200 - Post Data
+*/
+router.post('/:project/branch/:branch/post', async(req: Request, res: Response) => {
+    try{
+        const user = await verifyUser(req.header('authorization'));
+        const projectId = req.params.project;
+        const branchId = req.params.branch;
+        if(!user){
+            throw new Error('No user found')
+        }
+
+        const form = formidable({});
+        form.parse(req, async(err, fields, files) => {
+            if(err){
+                throw new Error(err)
+            }
+
+            let post: Post = await prisma.post.create({
+                data: {
+                    content: fields.content[0],
+                    branchId: branchId,
+                    authorId: user.id
+                }
+            })
+            await prisma.interactions.create({
+                data: {
+                    postId: post.id
+                }
+            })
+            let mediaArray = [];
+            console.log(files.media)
+            for(const image of files.media){
+                const media = await uploadImage(`projects/${projectId}/posts`, image, uuidv4());
+                mediaArray.push(media)
+            }
+            post = await prisma.post.update({
+                where: {
+                    id: post.id
+                },
+                data: {
+                    media: mediaArray,
+                }
+            })
+            return res.send(post)
+        })
     }catch(err){
         if(err){
             res.status(500).send(err);
