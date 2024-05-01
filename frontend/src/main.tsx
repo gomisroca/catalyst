@@ -41,7 +41,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
       <ThemeProvider defaultTheme="dark" storageKey="catalyst-theme">
         <Navmenu />
         <Sidebar />
-        <div className='p-20 flex items-center justify-center'>
+        <div className='p-2 md:p-10 lg:p-20 flex items-center justify-center'>
           <RouterProvider router={router} />
         </div>
       </ThemeProvider>

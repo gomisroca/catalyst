@@ -45,7 +45,7 @@ export default function Navmenu(){
                     <UserMenuButton user={user}  />
                     :
                     <SignInButton />}
-                    <DialogContent>
+                    <DialogContent className="w-5/6 rounded-md">
                         { user ? <UserSettingsForm /> : <SignInForm /> }
                     </DialogContent>
                 </Dialog>
@@ -65,7 +65,7 @@ export default function Navmenu(){
                             </TooltipContent>
                         </Tooltip>
                     </TooltipProvider>
-                    <DialogContent>
+                    <DialogContent className="w-5/6 rounded-md">
                         <ProjectUploadForm />
                     </DialogContent>
                 </Dialog>}

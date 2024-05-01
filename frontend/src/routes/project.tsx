@@ -40,7 +40,7 @@ export default function Project(){
                         {/* <BsActivity />  if project is in top % of recent activity (posts, branches in last 7 days) */}
                         {/* <BsFire />  if project is in top % of recent popularity (positive interactions minus negative interactions in last 7 days) */}
                         
-                        {/* On the top right, buttons to share, bookmark */}
+                        {/* On the top right, buttons to share, bookmark if allowed */}
                     </CardTitle>
                     <CardDescription>
                         {`${new Date(project.updatedAt).toLocaleDateString()}`}
@@ -52,7 +52,8 @@ export default function Project(){
             </CardContent>
             <CardFooter className="flex flex-col gap-2">
                 <span className="text-lg">Branches</span>
-                <div className="flex gap-2">
+                <div className="gap-2 grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6">
+                {/* Maybe this should be a select with the branches ordered by activity/popularity */}
                 {project.branches && project.branches.map(branch =>
                     branch.permissions.private ?
                         user && (branch.author.id == user.id) &&
@@ -68,9 +69,9 @@ export default function Project(){
                         </Button>
                     </Link>
                 )}
-                {project.permissions.allowBranch &&
-                <CreateBranchButton project={project} />}
                 </div>
+                {user && (project.author.id == user.id || project.permissions.allowBranch) &&
+                <CreateBranchButton project={project} />}
             </CardFooter>
         </Card>}
         <Outlet />

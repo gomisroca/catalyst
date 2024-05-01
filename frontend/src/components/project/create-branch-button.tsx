@@ -11,17 +11,17 @@ export default function CreateBranchButton({ project }: { project: Project }){
                 <Tooltip>
                     <TooltipTrigger>
                         <DialogTrigger asChild>
-                            <Button variant='outline' size='icon' asChild>
-                                <FiPlus className="p-2" />
+                            <Button variant='outline' className="flex items-center">
+                                <FiPlus className="mr-2 h-4 w-4" /> Add Branch
                             </Button>
                         </DialogTrigger>
                     </TooltipTrigger>
                     <TooltipContent>
-                        Create Branch
+                        Add Branch
                     </TooltipContent>
                 </Tooltip>
             </TooltipProvider>
-            <DialogContent>
+            <DialogContent className="w-5/6 rounded-md">
                 <BranchUploadForm  project={project} />
             </DialogContent>
         </Dialog>
