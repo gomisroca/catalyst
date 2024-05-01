@@ -35,6 +35,7 @@ interface Post {
     interactions: Interactions;
 }
 interface Branch {
+    projectId: string;
     id: string
     name: string;
     description: string;
@@ -43,6 +44,8 @@ interface Branch {
     author: User;
     default: boolean;
     posts: Post[];
+    parentBranch: Branch;
+    childBranches: Branch[];
     permissions: Permissions;
     interactions: Interactions;
 }
