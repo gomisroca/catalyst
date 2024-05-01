@@ -9,6 +9,9 @@ import formidable from 'formidable';
 import { uploadImage } from '../utils/upload-image';
 const { v4: uuidv4 } = require('uuid');
 
+const NodeCache = require("node-cache");
+const projectsCache = new NodeCache({ stdTTL: 60 * 5 });
+
 /*
 GET - Get All Projects
 REQ - null
@@ -16,6 +19,9 @@ RES - 200 - Project Data
 */
 router.get('/', async(req: Request, res: Response) => {
     try{
+        if(projectsCache.has('projects')){
+            return res.send(projectsCache.get('projects'))
+        }
         const projects: Project[] | null = await prisma.project.findMany({
             include:{
                 author: true,
@@ -45,6 +51,7 @@ router.get('/', async(req: Request, res: Response) => {
         if (!projects){
             throw new Error('No projects found')
         }
+        projectsCache.set('projects', projects)
         return res.send(projects);
     }catch(err){
         if(err){
@@ -64,8 +71,10 @@ RES - 200 - Project Data
 */
 router.get('/:id', async(req: Request, res: Response) => {
     try{
+        if(projectsCache.has(req.params.id)){
+            return res.send(projectsCache.get(req.params.id))
+        }
         const id = req.params.id;
-        console.log(id)
         const project: Project | null = await prisma.project.findUnique({
             where: {
                 id: id,
@@ -98,6 +107,7 @@ router.get('/:id', async(req: Request, res: Response) => {
         if (!project){
             throw new Error('No project found')
         }
+        projectsCache.set(req.params.id, project)
         return res.send(project);
     }catch(err){
         if(err){
@@ -117,6 +127,9 @@ RES - 200 - Branch Data
 */
 router.get('/:project/branch/:branch', async(req: Request, res: Response) => {
     try{
+        if(projectsCache.has(req.params.branch)){
+            return res.send(projectsCache.get(req.params.branch))
+        } 
         const branchId = req.params.branch;
         const branch: Branch | null = await prisma.branch.findUnique({
             where: {
@@ -144,6 +157,7 @@ router.get('/:project/branch/:branch', async(req: Request, res: Response) => {
         if (!branch){
             throw new Error('No project found')
         }
+        projectsCache.set(branchId, branch, 60)
         return res.send(branch);
     }catch(err){
         if(err){
