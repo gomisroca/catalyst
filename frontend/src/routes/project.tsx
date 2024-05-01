@@ -1,18 +1,19 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardTitle } from "@/components/ui/card";
 import { getProject } from "@/lib/projects";
 import { useEffect, useState } from "react"
-import { Link, Outlet, useParams } from "react-router-dom";
+import { Outlet, useNavigate, useParams } from "react-router-dom";
 import { useUser } from "@/contexts/user-provider";
 import CreateBranchButton from "@/components/project/create-branch-button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 // import { BsFire, BsActivity } from 'react-icons/bs';
 
 export default function Project(){
+    const { user } = useUser();
+
     const { projectId } = useParams();
     const [project, setProject] = useState<Project>();
-    const { user } = useUser();
-    
+
     async function fetchProject(projectId: string){
         const proj: Project = await getProject(projectId);
         console.log(proj)
@@ -24,6 +25,15 @@ export default function Project(){
             fetchProject(projectId)
         }
     }, [projectId])
+
+    const navigate = useNavigate();
+    const [selectedBranch, setSelectedBranch] = useState<string>();
+    useEffect(() => {
+        if(selectedBranch && selectedBranch !== 'null'){
+            navigate(selectedBranch)
+            setSelectedBranch('null')
+        }
+    }, [selectedBranch, navigate])
     
     return( 
         <div className="flex flex-col gap-2 w-full">
@@ -52,24 +62,20 @@ export default function Project(){
             </CardContent>
             <CardFooter className="flex flex-col gap-2">
                 <span className="text-lg">Branches</span>
-                <div className="gap-2 grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6">
-                {/* Maybe this should be a select with the branches ordered by activity/popularity */}
-                {project.branches && project.branches.map(branch =>
-                    branch.permissions.private ?
-                        user && (branch.author.id == user.id) &&
-                        <Link to={branch.id}>
-                            <Button variant="outline">
-                                {branch.name}
-                            </Button>
-                        </Link>
-                    :
-                    <Link to={branch.id}>
-                        <Button variant="outline">
-                            {branch.name}
-                        </Button>
-                    </Link>
-                )}
-                </div>
+                <Select onValueChange={e => setSelectedBranch(e)} defaultValue={'null'} value={selectedBranch}>
+                    <SelectTrigger className="w-[280px]">
+                        <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem className="hidden" value={'null'}>--</SelectItem>
+                        {project.branches && project.branches.map(branch =>
+                        branch.permissions.private ?
+                            user && (branch.author.id == user.id) &&
+                            <SelectItem value={branch.id}>{branch.name}</SelectItem>
+                        :
+                        <SelectItem value={branch.id}>{branch.name}</SelectItem>)}
+                    </SelectContent>
+                </Select>
                 {user && (project.author.id == user.id || project.permissions.allowBranch) &&
                 <CreateBranchButton project={project} />}
             </CardFooter>
