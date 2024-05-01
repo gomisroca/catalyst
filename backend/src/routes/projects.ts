@@ -95,9 +95,9 @@ router.get('/:id', async(req: Request, res: Response) => {
 })
 
 /*
-GET - Get Specific Project
+GET - Get Specific Branch
 REQ - null
-RES - 200 - Project Data
+RES - 200 - Branch Data
 */
 router.get('/:project/branch/:branch', async(req: Request, res: Response) => {
     try{
@@ -134,7 +134,7 @@ router.get('/:project/branch/:branch', async(req: Request, res: Response) => {
 })
 
 /*
-POST - Get All Projects
+POST - Create Project
 REQ - name, description, avatar, branchName?, branchDescription?
 RES - 200 - Project Data
 */
@@ -195,6 +195,69 @@ router.post('/', async(req: Request, res: Response) => {
             })
             return res.send(project)
         })
+    }catch(err){
+        if(err){
+            res.status(500).send(err);
+        }else {
+            throw new Error("An unknown error occurred");
+        }
+    } finally {
+        await prisma.$disconnect();
+    }
+})
+
+/*
+POST - Create Branch
+REQ - name, description, parentBranch, permissions, projectId
+RES - 200 - Project Data
+*/
+router.post('/:project/branch', async(req: Request, res: Response) => {
+    try{
+        const user = await verifyUser(req.header('authorization'));
+        if(!user){
+            throw new Error('No user found')
+        }
+
+        const { projectId, name, description, parentBranch, permissions }: 
+        { projectId: string; name: string; description: string; parentBranch: string; permissions: string[]; } = req.body;
+        if(!(projectId && name && description && parentBranch && permissions)){
+            throw new Error('Invalid inputs')
+        }
+
+        const project: Project = await prisma.project.findUnique({
+            where: {
+                id: projectId
+            }
+        })
+        if(!project){
+            throw new Error('No project found')
+        }
+
+        const branch: Branch = await prisma.branch.create({
+            data: {
+                name: name,
+                description: description,
+                authorId: user.id,
+                parentBranchId: parentBranch == 'none' ? null : parentBranch,
+                projectId: projectId
+            }
+        })
+        await prisma.permissions.create({
+            data: {
+                private: permissions.includes('private'),
+                allowCollaborate: permissions.includes('allowCollaborate'),
+                allowBranch: permissions.includes('allowBranch'),
+                allowShare: permissions.includes('allowShare'),
+                branchId: branch.id
+            }
+        })
+        await prisma.interactions.create({
+            data: {
+                branchId: branch.id
+            }
+        })
+
+        return res.send(branch)
     }catch(err){
         if(err){
             res.status(500).send(err);
