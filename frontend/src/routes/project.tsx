@@ -4,8 +4,8 @@ import { Card, CardContent, CardDescription, CardFooter, CardTitle } from "@/com
 import { getProject } from "@/lib/projects";
 import { useEffect, useState } from "react"
 import { Link, Outlet, useParams } from "react-router-dom";
-import { FiPlus } from "react-icons/fi";
 import { useUser } from "@/contexts/user-provider";
+import CreateBranchButton from "@/components/project/create-branch-button";
 // import { BsFire, BsActivity } from 'react-icons/bs';
 
 export default function Project(){
@@ -68,11 +68,8 @@ export default function Project(){
                         </Button>
                     </Link>
                 )}
-                {project.permissions && project.permissions.allowBranch &&
-                <Button variant='outline' size='icon' asChild>
-                    {/* Open modal with form to add a branch, IF the user is logged in, and the project allows it */}
-                    <FiPlus />
-                </Button>}
+                {project.permissions.allowBranch &&
+                <CreateBranchButton project={project} />}
                 </div>
             </CardFooter>
         </Card>}
