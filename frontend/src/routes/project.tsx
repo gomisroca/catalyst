@@ -16,7 +16,6 @@ export default function Project(){
 
     async function fetchProject(projectId: string){
         const proj: Project = await getProject(projectId);
-        console.log(proj)
         setProject(proj)
     }
 
@@ -62,9 +61,9 @@ export default function Project(){
             </CardContent>
             <CardFooter className="flex flex-col gap-2">
                 <span className="text-lg">Branches</span>
-                <Select onValueChange={e => setSelectedBranch(e)} defaultValue={'null'} value={selectedBranch}>
+                <Select onValueChange={e => setSelectedBranch(e)} value={selectedBranch}>
                     <SelectTrigger className="w-[280px]">
-                        <SelectValue />
+                        <SelectValue placeholder="Select a branch" />
                     </SelectTrigger>
                     <SelectContent>
                         <SelectItem className="hidden" value={'null'}>--</SelectItem>
