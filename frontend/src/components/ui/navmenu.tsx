@@ -18,13 +18,27 @@ import { FiFolderPlus } from "react-icons/fi"
 import { ProjectUploadForm } from "../project/project-upload-form"
 import UserMenuButton from "../user/user-menu-button"
 import SignInButton from "../user/signin-button"
+import { Home } from "lucide-react"
 
 export default function Navmenu(){
     const { user } = useUser();
+
     return(
         <>
         <header>
             <div className="w-fit m-auto flex p-4 gap-1">
+                <TooltipProvider>
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <Button className="w-[40px]" size='icon' variant='outline'>
+                                <Home className="w-[40px]" onClick={() => window.location.href = '/'} />
+                            </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                            Home
+                        </TooltipContent>
+                    </Tooltip>
+                </TooltipProvider>
                 <ModeToggle />
                 <Dialog>
                     {user ?
