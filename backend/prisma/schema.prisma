@@ -13,23 +13,83 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model Like {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  branch    Branch?  @relation(fields: [branchId], references: [id])
+  branchId  String?  @unique
+  post      Post?    @relation(fields: [postId], references: [id])
+  postId    String?  @unique
+  user      User     @relation(fields: [userId], references: [id])
+  userId    String
+}
+
+model Share {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  branch    Branch?  @relation(fields: [branchId], references: [id])
+  branchId  String?
+  post      Post?    @relation(fields: [postId], references: [id])
+  postId    String?
+  user      User     @relation(fields: [userId], references: [id])
+  userId    String
+}
+
+model Bookmark {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  branch    Branch?  @relation(fields: [branchId], references: [id])
+  branchId  String?  @unique
+  post      Post?    @relation(fields: [postId], references: [id])
+  postId    String?  @unique
+  user      User     @relation(fields: [userId], references: [id])
+  userId    String
+}
+
+model Report {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  branch    Branch?  @relation(fields: [branchId], references: [id])
+  branchId  String?  @unique
+  post      Post?    @relation(fields: [postId], references: [id])
+  postId    String?  @unique
+  user      User     @relation(fields: [userId], references: [id])
+  userId    String
+}
+
+model Hidden {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  branch    Branch?  @relation(fields: [branchId], references: [id])
+  branchId  String?  @unique
+  post      Post?    @relation(fields: [postId], references: [id])
+  postId    String?  @unique
+  user      User     @relation(fields: [userId], references: [id])
+  userId    String
+}
+
 model User {
-  id         String    @id @default(uuid())
+  id         String     @id @default(uuid())
   google     Google?
   googleId   String?
   facebook   Facebook?
   facebookId String?
   discord    Discord?
   discordId  String?
-  email      String    @unique
+  email      String     @unique
   password   String?
   username   String
   nickname   String?
   avatar     String?
-  role       Role      @default(USER)
-  posts      Post[]
-  branches   Branch[]
+  role       Role       @default(USER)
+  posts      Post[]     @relation("author")
+  branches   Branch[]   @relation("author")
   projects   Project[]
+  likes      Like[]
+  shares     Share[]
+  bookmarks  Bookmark[]
+  reports    Report[]
+  hidden     Hidden[]
 }
 
 model Google {
@@ -61,20 +121,6 @@ enum Role {
   ADMIN
 }
 
-model Interactions {
-  id           String   @id @default(uuid())
-  branchedBy   String[]
-  likedBy      String[]
-  sharedBy     String[]
-  bookmarkedBy String[]
-  reportedBy   String[]
-  hiddenBy     String[]
-  post         Post?    @relation(fields: [postId], references: [id])
-  postId       String?  @unique
-  branch       Branch?  @relation(fields: [branchId], references: [id])
-  branchId     String?  @unique
-}
-
 model Permissions {
   id               String   @id @default(uuid())
   private          Boolean  @default(false)
@@ -89,37 +135,45 @@ model Permissions {
 }
 
 model Post {
-  id           String        @id @default(uuid())
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
-  author       User          @relation(fields: [authorId], references: [id])
-  authorId     String
-  content      String
-  media        String[]
-  interactions Interactions?
-  branch       Branch        @relation(fields: [branchId], references: [id])
-  branchId     String
+  id        String     @id @default(uuid())
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  author    User       @relation("author", fields: [authorId], references: [id])
+  authorId  String
+  content   String
+  media     String[]
+  branch    Branch     @relation(fields: [branchId], references: [id])
+  branchId  String
+  likes     Like[]
+  shares    Share[]
+  bookmarks Bookmark[]
+  reports   Report[]
+  hidden    Hidden[]
 }
 
 model Branch {
-  id             String        @id @default(uuid())
-  createdAt      DateTime      @default(now())
-  updatedAt      DateTime      @updatedAt
-  author         User          @relation(fields: [authorId], references: [id])
+  id             String       @id @default(uuid())
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  author         User         @relation("author", fields: [authorId], references: [id])
   authorId       String
   description    String
   posts          Post[]
-  default        Boolean       @default(false)
-  parentBranch   Branch?       @relation("ParentChildrenBranch", fields: [parentBranchId], references: [id])
+  default        Boolean      @default(false)
+  parentBranch   Branch?      @relation("ParentChildrenBranch", fields: [parentBranchId], references: [id])
   parentBranchId String?
-  childBranches  Branch[]      @relation("ParentChildrenBranch")
+  childBranches  Branch[]     @relation("ParentChildrenBranch")
   permissions    Permissions?
-  interactions   Interactions?
-  activity       Int           @default(0)
-  popularity     Int           @default(0)
-  project        Project       @relation(fields: [projectId], references: [id])
+  activity       Int          @default(0)
+  popularity     Int          @default(0)
+  project        Project      @relation(fields: [projectId], references: [id])
   projectId      String
   name           String
+  likes          Like[]
+  shares         Share[]
+  bookmarks      Bookmark[]
+  reports        Report[]
+  hidden         Hidden[]
 }
 
 model Project {
