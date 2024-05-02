@@ -14,11 +14,10 @@ export default function PostCarousel({ carousel, selected }: { carousel: string[
         opts={{
             startIndex: selected
         }}>
-        <CarouselContent className="rounded-md -mt-1 h-[75vh] flex">
+        <CarouselContent className="rounded-md -mt-1 flex">
             {carousel.map(image =>
                 <CarouselItem className="rounded-md flex pt-1">
-                    <img className="rounded-md h-full m-auto" src={`${import.meta.env.VITE_BACKEND_ORIGIN}/${image}`} />
-
+                    <img className="rounded-md m-auto" src={`${import.meta.env.VITE_BACKEND_ORIGIN}/${image}`} />
                 </CarouselItem>
             )}
             </CarouselContent>
