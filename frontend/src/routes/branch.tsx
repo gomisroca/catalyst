@@ -73,7 +73,7 @@ export default function Branch(){
             <CardContent className="p-4">
                 {branch.description}
                 <div className="flex flex-col gap-1 mt-8">
-                {branch.permissions.allowCollaborate &&
+                {user && (branch.author.id == user.id || branch.permissions.allowCollaborate) &&
                 <CreatePostButton branch={branch} />}
                 {branch.posts && branch.posts.map(post => 
                     <PostMain post={post} />

@@ -2,9 +2,11 @@ import { Card, CardContent, CardDescription, CardFooter, CardTitle } from "@/com
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Dialog, DialogContent, DialogTrigger } from "../ui/dialog";
 import PostCarousel from "./post-carousel";
+import PostInteractions from "./post-interactions";
 
 export default function PostMain({ post }: { post: Post}){
     return(
+        // Need to fix media and carousel for mobile!
         <>
         <Card className="p-4">
             <div className="flex gap-2 items-center">
@@ -13,7 +15,7 @@ export default function PostMain({ post }: { post: Post}){
                     <AvatarFallback>{post.author.username[0]}</AvatarFallback>
                 </Avatar>
                 <div>
-                    <CardTitle>
+                    <CardTitle className="text-lg">
                         {post.author.nickname ?
                         <span>{post.author.nickname}</span>
                         :
@@ -37,12 +39,14 @@ export default function PostMain({ post }: { post: Post}){
                             <img className="rounded-md self-center" src={`${import.meta.env.VITE_BACKEND_ORIGIN}/${media}`} />
                         </div>
                     </DialogTrigger>
-                    <DialogContent className="p-1 max-w-none w-3/4 rounded-md">
+                    <DialogContent className="p-1 max-w-none rounded-md w-auto">
                         <PostCarousel carousel={post.media} selected={post.media.findIndex(x => x == media)} />
                     </DialogContent>
                 </Dialog>
                 )}
             </CardFooter>}
+            
+            <PostInteractions post={post} />
         </Card>
         </>
     )

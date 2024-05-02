@@ -1,6 +1,12 @@
 import { createContext, useState, useEffect, useContext, PropsWithChildren } from 'react';
 import Cookies  from 'js-cookie';
 
+interface Like {
+    id: string;
+    userId: string;
+    postId?: string;
+    branchId?: string;
+}
 interface JWTUser {
     id: string; 
     email: string; 
@@ -8,6 +14,11 @@ interface JWTUser {
     nickname: string;
     avatar: string; 
     role: string;
+    likes: Like[];
+    shares: Share[];
+    bookmarks: Bookmark[];
+    reports: Report[];
+    hidden: Hidden[];
 }
 
 type UserProviderState = {
@@ -19,6 +30,7 @@ const UserContext = createContext<UserProviderState>({} as UserProviderState);
 
 export function UserProvider({ children }: PropsWithChildren) {
     const [user, setUser] = useState<JWTUser | undefined>();
+    console.log(user)
     const accessToken = Cookies.get('__catalyst__jwt');
     
     const getUserInfo = async(accessToken: string): Promise<JWTUser | void> => {
