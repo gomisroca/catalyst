@@ -8,8 +8,8 @@ export async function getProject(projectId: string): Promise<Project> {
     return res.json() as Promise<Project>;
 }
 
-export async function getBranch(projectId: string, branchId: string): Promise<Branch> {
-    const res = await fetch(`${import.meta.env.VITE_BACKEND_ORIGIN}/projects/${projectId}/branch/${branchId}/`);
+export async function getBranch(branchId: string): Promise<Branch> {
+    const res = await fetch(`${import.meta.env.VITE_BACKEND_ORIGIN}/projects/branch/${branchId}/`);
     return res.json() as Promise<Branch>;
 }
 
@@ -45,7 +45,7 @@ export async function createBranch(accessToken: string, branchData: BranchData, 
 }
 
 export async function createPost(accessToken: string, postData: FormData, branch: Branch){
-    const res = await fetch(`${import.meta.env.VITE_BACKEND_ORIGIN}/projects/${branch.projectId}/branch/${branch.id}/post`, {
+    const res = await fetch(`${import.meta.env.VITE_BACKEND_ORIGIN}/projects/branch/${branch.id}/post`, {
         method: 'POST',
         headers: {
             'Authorization': `Bearer ${accessToken}`
@@ -59,7 +59,7 @@ interface InteractionData{
     type: string;
 }
 export async function updateInteractions(accessToken: string, postId: string, data: InteractionData){
-    const res = await fetch(`${import.meta.env.VITE_BACKEND_ORIGIN}/projects/posts/${postId}/interactions`, {
+    const res = await fetch(`${import.meta.env.VITE_BACKEND_ORIGIN}/projects/post/${postId}/interactions`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -71,7 +71,7 @@ export async function updateInteractions(accessToken: string, postId: string, da
 }
 
 export async function removeInteractions(accessToken: string, postId: string, data: InteractionData){
-    const res = await fetch(`${import.meta.env.VITE_BACKEND_ORIGIN}/projects/posts/${postId}/interactions`, {
+    const res = await fetch(`${import.meta.env.VITE_BACKEND_ORIGIN}/projects/post/${postId}/interactions`, {
         method: 'DELETE',
         headers: {
             'Content-Type': 'application/json',

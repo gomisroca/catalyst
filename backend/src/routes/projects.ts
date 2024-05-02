@@ -144,7 +144,7 @@ GET - Get Specific Branch
 REQ - null
 RES - 200 - Branch Data
 */
-router.get('/:project/branch/:branch', async(req: Request, res: Response) => {
+router.get('/branch/:branch', async(req: Request, res: Response) => {
     try{
         if(projectsCache.has(req.params.branch)){
             return res.send(projectsCache.get(req.params.branch))
@@ -328,13 +328,19 @@ POST - Create Post
 REQ - content, media
 RES - 200 - Post Data
 */
-router.post('/:project/branch/:branch/post', async(req: Request, res: Response) => {
+router.post('/branch/:branch/post', async(req: Request, res: Response) => {
     try{
         const user = await verifyUser(req.header('authorization'));
-        const projectId = req.params.project;
-        const branchId = req.params.branch;
         if(!user){
             throw new Error('No user found')
+        }
+        const branch: Branch | null = await prisma.branch.findUnique({
+            where: {
+                id: req.params.branch
+            }
+        })
+        if(!branch){
+            throw new Error('No branch found.')
         }
 
         const form = formidable({});
@@ -346,14 +352,14 @@ router.post('/:project/branch/:branch/post', async(req: Request, res: Response) 
             let post: Post = await prisma.post.create({
                 data: {
                     content: fields.content[0],
-                    branchId: branchId,
+                    branchId: branch.id,
                     authorId: user.id
                 }
             })
 
             let mediaArray = [];
             for(const image of files.media){
-                const media = await uploadImage(`projects/${projectId}/branches/${branchId}/posts`, image, uuidv4());
+                const media = await uploadImage(`projects/${branch.projectId}/branches/${branch.id}/posts`, image, uuidv4());
                 mediaArray.push(media)
             }
             post = await prisma.post.update({
@@ -382,7 +388,7 @@ POST - Add Post Interaction
 REQ - interaction
 RES - 200
 */
-router.post('/posts/:post/interactions', async(req: Request, res: Response) => {
+router.post('/post/:post/interactions', async(req: Request, res: Response) => {
     try{
         const user = await verifyUser(req.header('authorization'));
         if(!user){
@@ -465,7 +471,7 @@ DELETE - Remove Post Interaction
 REQ - interaction
 RES - 200
 */
-router.delete('/posts/:post/interactions', async(req: Request, res: Response) => {
+router.delete('/post/:post/interactions', async(req: Request, res: Response) => {
     try{
         const user = await verifyUser(req.header('authorization'));
         if(!user){

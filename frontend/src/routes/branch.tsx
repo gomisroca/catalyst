@@ -13,15 +13,15 @@ export default function Branch(){
     const { projectId, branchId } = useParams();
     const [branch, setBranch] = useState<Branch>();
 
-    async function fetchBranch(projectId: string, branchId: string){
-        const fetchedBranch: Branch = await getBranch(projectId, branchId);
+    async function fetchBranch(branchId: string){
+        const fetchedBranch: Branch = await getBranch(branchId);
         console.log(fetchedBranch)
         setBranch(fetchedBranch)
     }
 
     useEffect(() => {
         if(projectId && branchId){
-            fetchBranch(projectId, branchId)
+            fetchBranch(branchId)
         }
     }, [projectId, branchId])
     
