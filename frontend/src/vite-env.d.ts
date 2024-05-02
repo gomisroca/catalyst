@@ -1,5 +1,38 @@
 /// <reference types="vite/client" />
 
+interface Like {
+    id: string;
+    userId: string;
+    postId?: string;
+    branchId?: string;
+}
+interface Share {
+    id: string;
+    userId: string;
+    postId?: string;
+    branchId?: string;
+}
+
+interface Bookmark {
+    id: string;
+    userId: string;
+    postId?: string;
+    branchId?: string;
+}
+
+interface Report {
+    id: string;
+    userId: string;
+    postId?: string;
+    branchId?: string;
+}
+
+interface Hidden {
+    id: string;
+    userId: string;
+    postId?: string;
+    branchId?: string;
+}
 interface User {
     id: string;
     email: string;
@@ -7,15 +40,11 @@ interface User {
     nickname: string;
     avatar: string;
     role: string;
-}
-
-interface Interactions {
-    branchedBy: string[];
-    likedBy: string[];
-    sharedBy: string[];
-    bookmarkedBy: string[];
-    reportedBy: string[];
-    hiddenBy: string[];
+    likes: Like[];
+    shares: Share[];
+    bookmarks: Bookmark[];
+    reports: Report[];
+    hidden: Hidden[];
 }
 
 interface Permissions {
@@ -32,7 +61,11 @@ interface Post {
     updatedAt: Date;
     author: User;
     media: string[];
-    interactions: Interactions;
+    likes: Like[];
+    shares: Share[];
+    bookmarks: Bookmark[];
+    reports: Report[];
+    hidden: Hidden[];
 }
 interface Branch {
     projectId: string;
@@ -47,7 +80,11 @@ interface Branch {
     parentBranch: Branch;
     childBranches: Branch[];
     permissions: Permissions;
-    interactions: Interactions;
+    likes: Like[];
+    shares: Share[];
+    bookmarks: Bookmark[];
+    reports: Report[];
+    hidden: Hidden[];
 }
 interface Project {
     id: string

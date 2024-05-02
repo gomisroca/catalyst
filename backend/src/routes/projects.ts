@@ -2,7 +2,7 @@ const express = require('express');
 import { Request, Response } from 'express';
 const router = express.Router();
 
-import { Branch, Post, PrismaClient, Project } from "@prisma/client";
+import { Branch, Post, User, PrismaClient, Project } from "@prisma/client";
 import { verifyUser } from '../utils/auth';
 const prisma = new PrismaClient();
 import formidable from 'formidable';
@@ -29,19 +29,31 @@ router.get('/', async(req: Request, res: Response) => {
                 branches: {
                     include: {
                         author: true,
-                        interactions: true,
                         permissions: true,
+                        likes: true,
+                        shares: true,
+                        bookmarks: true,
+                        reports: true,
+                        hidden: true,
                         childBranches: {
                             include: {
-                                interactions: true,
                                 permissions: true,
+                                likes: true,
+                                shares: true,
+                                bookmarks: true,
+                                reports: true,
+                                hidden: true,
                             }
                         },
                         parentBranch: true,
                         posts: {
                             include: {
                                 author: true,
-                                interactions: true
+                                likes: true,
+                                shares: true,
+                                bookmarks: true,
+                                reports: true,
+                                hidden: true,
                             }
                         }
                     }
@@ -85,11 +97,14 @@ router.get('/:id', async(req: Request, res: Response) => {
                 branches: {
                     include: {
                         author: true,
-                        interactions: true,
                         permissions: true,
+                        likes: true,
+                        shares: true,
+                        bookmarks: true,
+                        reports: true,
+                        hidden: true,
                         childBranches: {
                             include: {
-                                interactions: true,
                                 permissions: true,
                             }
                         },
@@ -97,7 +112,11 @@ router.get('/:id', async(req: Request, res: Response) => {
                         posts: {
                             include: {
                                 author: true,
-                                interactions: true
+                                likes: true,
+                                shares: true,
+                                bookmarks: true,
+                                reports: true,
+                                hidden: true,
                             }
                         }
                     }
@@ -137,11 +156,14 @@ router.get('/:project/branch/:branch', async(req: Request, res: Response) => {
             },
             include: {
                 author: true,
-                interactions: true,
                 permissions: true,
+                likes: true,
+                shares: true,
+                bookmarks: true,
+                reports: true,
+                hidden: true,
                 childBranches: {
                     include: {
-                        interactions: true,
                         permissions: true,
                     }
                 },
@@ -149,11 +171,16 @@ router.get('/:project/branch/:branch', async(req: Request, res: Response) => {
                 posts: {
                     include: {
                         author: true,
-                        interactions: true
+                        likes: true,
+                        shares: true,
+                        bookmarks: true,
+                        reports: true,
+                        hidden: true,
                     }
                 }
             }
         })
+
         if (!branch){
             throw new Error('No project found')
         }
@@ -215,13 +242,8 @@ router.post('/', async(req: Request, res: Response) => {
                         branchId: branch.id
                     }
                 })
-                await prisma.interactions.create({
-                    data: {
-                        branchId: branch.id
-                    }
-                })
             }
-            const avatar = await uploadImage('projects', files.avatar[0], project.id);
+            const avatar = await uploadImage(`projects/${project.id}`, files.avatar[0], project.id);
             project = await prisma.project.update({
                 where: {
                     id: project.id
@@ -288,11 +310,6 @@ router.post('/:project/branch', async(req: Request, res: Response) => {
                 branchId: branch.id
             }
         })
-        await prisma.interactions.create({
-            data: {
-                branchId: branch.id
-            }
-        })
 
         return res.send(branch)
     }catch(err){
@@ -333,15 +350,10 @@ router.post('/:project/branch/:branch/post', async(req: Request, res: Response) 
                     authorId: user.id
                 }
             })
-            await prisma.interactions.create({
-                data: {
-                    postId: post.id
-                }
-            })
+
             let mediaArray = [];
-            console.log(files.media)
             for(const image of files.media){
-                const media = await uploadImage(`projects/${projectId}/posts`, image, uuidv4());
+                const media = await uploadImage(`projects/${projectId}/branches/${branchId}/posts`, image, uuidv4());
                 mediaArray.push(media)
             }
             post = await prisma.post.update({
@@ -354,6 +366,173 @@ router.post('/:project/branch/:branch/post', async(req: Request, res: Response) 
             })
             return res.send(post)
         })
+    }catch(err){
+        if(err){
+            res.status(500).send(err);
+        }else {
+            throw new Error("An unknown error occurred");
+        }
+    } finally {
+        await prisma.$disconnect();
+    }
+})
+
+/*
+POST - Add Post Interaction
+REQ - interaction
+RES - 200
+*/
+router.post('/posts/:post/interactions', async(req: Request, res: Response) => {
+    try{
+        const user = await verifyUser(req.header('authorization'));
+        if(!user){
+            throw new Error('No user found')
+        }
+        const { type }: { type: string} = req.body;
+
+        switch (type){
+            case 'like':
+                await prisma.like.create({
+                    data: {
+                        userId: user.id,
+                        postId: req.params.post,
+                    }
+                })
+                break;
+            case 'share':
+                await prisma.share.create({
+                    data: {
+                        userId: user.id,
+                        postId: req.params.post,
+                    }
+                })
+                break;
+            case 'bookmark':
+                await prisma.bookmark.create({
+                    data: {
+                        userId: user.id,
+                        postId: req.params.post,
+                    }
+                })
+                break;
+            case 'report':
+                await prisma.report.create({
+                    data: {
+                        userId: user.id,
+                        postId: req.params.post,
+                    }
+                })
+                break;
+            case 'hidden':
+                await prisma.hidden.create({
+                    data: {
+                        userId: user.id,
+                        postId: req.params.post,
+                    }
+                })
+                break;
+            default:
+                throw new Error('Something went wrong')
+
+        }
+        const post: Post | null = await prisma.post.findUnique({
+            where: {
+                id: req.params.post,
+            }, 
+            include: {
+                author: true,
+                likes: true,
+                shares: true,
+                bookmarks: true,
+                reports: true,
+                hidden: true,
+            }
+        })
+        res.send(post)
+    }catch(err){
+        if(err){
+            res.status(500).send(err);
+        }else {
+            throw new Error("An unknown error occurred");
+        }
+    } finally {
+        await prisma.$disconnect();
+    }
+})
+
+/*
+DELETE - Remove Post Interaction
+REQ - interaction
+RES - 200
+*/
+router.delete('/posts/:post/interactions', async(req: Request, res: Response) => {
+    try{
+        const user = await verifyUser(req.header('authorization'));
+        if(!user){
+            throw new Error('No user found')
+        }
+        const { type, id }: { type: string, id?: string } = req.body;
+        let interaction
+        switch (type){
+            case 'like':
+                interaction = await prisma.like.delete({
+                    where: {
+                        userId: user.id,
+                        postId: req.params.post,
+                    }
+                })
+                break;
+            case 'share':
+                interaction = await prisma.share.delete({
+                    where: {
+                        id: id,
+                        userId: user.id,
+                        postId: req.params.post,
+                    }
+                })
+                break;
+            case 'bookmark':
+                interaction = await prisma.bookmark.delete({
+                    where: {
+                        userId: user.id,
+                        postId: req.params.post,
+                    }
+                })
+                break;
+            case 'report':
+                interaction = await prisma.report.delete({
+                    where: {
+                        userId: user.id,
+                        postId: req.params.post,
+                    }
+                })
+                break;
+            case 'hidden':
+                interaction = await prisma.hidden.delete({
+                    where: {
+                        userId: user.id,
+                        postId: req.params.post,
+                    }
+                })
+                break;
+            default:
+                throw new Error('Something went wrong')
+
+        }
+        const post: Post | null = await prisma.post.findUnique({
+            where: {
+                id: req.params.post,
+            }, 
+            include: {
+                author: true,
+                likes: true,
+                shares: true,
+                bookmarks: true,
+                reports: true,
+                hidden: true,
+            }
+        })
+        res.send(post)
     }catch(err){
         if(err){
             res.status(500).send(err);

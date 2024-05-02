@@ -54,3 +54,30 @@ export async function createPost(accessToken: string, postData: FormData, branch
     })
     return res
 }
+
+interface InteractionData{
+    type: string;
+}
+export async function updateInteractions(accessToken: string, postId: string, data: InteractionData){
+    const res = await fetch(`${import.meta.env.VITE_BACKEND_ORIGIN}/projects/posts/${postId}/interactions`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${accessToken}`
+        },
+        body: JSON.stringify(data)
+    })
+    return res
+}
+
+export async function removeInteractions(accessToken: string, postId: string, data: InteractionData){
+    const res = await fetch(`${import.meta.env.VITE_BACKEND_ORIGIN}/projects/posts/${postId}/interactions`, {
+        method: 'DELETE',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${accessToken}`
+        },
+        body: JSON.stringify(data)
+    })
+    return res
+}

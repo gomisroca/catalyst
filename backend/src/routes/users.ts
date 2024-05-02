@@ -3,7 +3,7 @@ import { Request, Response } from 'express';
 const router = express.Router();
 import formidable from 'formidable';
 
-import { User, PrismaClient } from "@prisma/client";
+import { User, Report, PrismaClient, Like, Share, Bookmark, Hidden } from "@prisma/client";
 const prisma = new PrismaClient();
 
 const { FRONTEND_ORIGIN } = process.env;
@@ -17,11 +17,30 @@ const passportGoogle = require('../utils/google-oauth2');
 const passportFacebook = require('../utils/fb-oauth2');
 const passportDiscord = require('../utils/discord-oauth2');
 
+interface UserWithInteractions extends User {
+    likes: Like[];
+    shares: Share[];
+    bookmarks: Bookmark[],
+    reports: Report[],
+    hidden: Hidden[],
+}
+
 router.get('/discord', passportDiscord.authenticate('discord'));
 router.get('/discord/callback',
 passportDiscord.authenticate('discord', { session: true }),
   async(req, res) => {
-    const user: User | null  = await prisma.user.findUnique({ where: { id: req.user.id }})
+    const user: UserWithInteractions | null  = await prisma.user.findUnique({ 
+        where: { 
+            id: req.user.id 
+        },
+        include:{
+            likes: true,
+            shares: true,
+            bookmarks: true,
+            reports: true,
+            hidden: true,
+        }
+    })
 
     let access_token: string = jwt.sign(
         { 
@@ -30,7 +49,12 @@ passportDiscord.authenticate('discord', { session: true }),
             username: user.username, 
             nickname: user.nickname,
             avatar: user.avatar,
-            role: user.role
+            role: user.role,
+            likes: user.likes,
+            shares: user.shares,
+            bookmarks: user.bookmarks,
+            reports: user.reports,
+            hidden: user.hidden,
         },
         process.env.JWT_SECRET as jwt.Secret
     );
@@ -49,7 +73,18 @@ passportFacebook.authenticate('facebook', { session: true }),
             accessToken: req.query.code
         }
     })
-    const user = await prisma.user.findUnique({ where: { id: req.user.id }})
+    const user: UserWithInteractions | null  = await prisma.user.findUnique({ 
+        where: { 
+            id: req.user.id 
+        },
+        include:{
+            likes: true,
+            shares: true,
+            bookmarks: true,
+            reports: true,
+            hidden: true,
+        }
+    })
 
     let access_token: string = jwt.sign(
         { 
@@ -58,7 +93,12 @@ passportFacebook.authenticate('facebook', { session: true }),
             username: user.username, 
             nickname: user.nickname,
             avatar: user.avatar,
-            role: user.role
+            role: user.role,
+            likes: user.likes,
+            shares: user.shares,
+            bookmarks: user.bookmarks,
+            reports: user.reports,
+            hidden: user.hidden,
         },
         process.env.JWT_SECRET as jwt.Secret
     );
@@ -77,7 +117,18 @@ passportGoogle.authenticate('google', { session: true }),
             accessToken: req.query.code
         }
     })
-    const user = await prisma.user.findUnique({ where: { id: req.user.id }})
+    const user: UserWithInteractions | null  = await prisma.user.findUnique({ 
+        where: { 
+            id: req.user.id 
+        },
+        include:{
+            likes: true,
+            shares: true,
+            bookmarks: true,
+            reports: true,
+            hidden: true,
+        }
+    })
 
     let access_token: string = jwt.sign(
         { 
@@ -86,7 +137,12 @@ passportGoogle.authenticate('google', { session: true }),
             username: user.username, 
             nickname: user.nickname,
             avatar: user.avatar,
-            role: user.role
+            role: user.role,
+            likes: user.likes,
+            shares: user.shares,
+            bookmarks: user.bookmarks,
+            reports: user.reports,
+            hidden: user.hidden,
         },
         process.env.JWT_SECRET as jwt.Secret
     );
@@ -105,11 +161,19 @@ router.post('/sign-in', async(req: Request, res: Response) => {
         if(!(email && password)){
             throw new Error('Input fields missing')
         }
-        const existingUser: User | null = await prisma.user.findUnique({ 
-            where: {
-                email: email.toLowerCase(),
+        const existingUser: UserWithInteractions | null  = await prisma.user.findUnique({ 
+            where: { 
+                email: email
             },
+            include:{
+                likes: true,
+                shares: true,
+                bookmarks: true,
+                reports: true,
+                hidden: true,
+            }
         })
+
         let access_token: string;
         if (existingUser) {
             if(!existingUser.password){
@@ -126,17 +190,29 @@ router.post('/sign-in', async(req: Request, res: Response) => {
                     username: existingUser.username,
                     nickname: existingUser.nickname, 
                     avatar: existingUser.avatar,
-                    role: existingUser.role
+                    role: existingUser.role,
+                    likes: existingUser.likes,
+                    shares: existingUser.shares,
+                    bookmarks: existingUser.bookmarks,
+                    reports: existingUser.reports,
+                    hidden: existingUser.hidden,
                 },
                 process.env.JWT_SECRET as jwt.Secret
             );
         } else {
             let encryptedPassword: string = await bcrypt.hash(password, 10);
-            const newUser: User = await prisma.user.create({ 
+            const newUser: UserWithInteractions = await prisma.user.create({ 
                 data: { 
                     username: email.toLowerCase().split('@')[0],
                     email: email.toLowerCase(),
                     password: encryptedPassword,
+                },
+                include:{
+                    likes: true,
+                    shares: true,
+                    bookmarks: true,
+                    reports: true,
+                    hidden: true,
                 }
             }); 
             access_token = jwt.sign(
@@ -146,7 +222,12 @@ router.post('/sign-in', async(req: Request, res: Response) => {
                     username: newUser.username, 
                     nickname: newUser.nickname,
                     avatar: newUser.avatar,
-                    role: newUser.role  
+                    role: newUser.role,
+                    likes: newUser.likes,
+                    shares: newUser.shares,
+                    bookmarks: newUser.bookmarks,
+                    reports: newUser.reports,
+                    hidden: newUser.hidden,
                 },
                 process.env.JWT_SECRET as jwt.Secret
             );
@@ -206,7 +287,7 @@ router.post('/settings', async(req: Request, res: Response) => {
             const encryptedPassword: string = await bcrypt.hash(fields.password[0], 10);
             const avatar = await uploadImage('avatars', files.avatar[0], user.id)
 
-            const newUser = await prisma.user.update({
+            const newUser: UserWithInteractions = await prisma.user.update({
                 where: {
                     id: user.id
                 },
@@ -216,6 +297,13 @@ router.post('/settings', async(req: Request, res: Response) => {
                     email: fields.email[0] ? fields.email[0] : user.email,
                     avatar: avatar,
                     password: encryptedPassword
+                },
+                include: {
+                    likes: true,
+                    shares: true,
+                    bookmarks: true,
+                    reports: true,
+                    hidden: true,
                 }
             })
             let access_token = jwt.sign(
@@ -225,7 +313,12 @@ router.post('/settings', async(req: Request, res: Response) => {
                     username: newUser.username, 
                     nickname: newUser.nickname,
                     avatar: newUser.avatar,
-                    role: newUser.role  
+                    role: newUser.role,
+                    likes: newUser.likes,
+                    shares: newUser.shares,
+                    bookmarks: newUser.bookmarks,
+                    reports: newUser.reports,
+                    hidden: newUser.hidden,
                 },
                 process.env.JWT_SECRET as jwt.Secret
             );
