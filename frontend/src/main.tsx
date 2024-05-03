@@ -13,6 +13,7 @@ import JWTGet from './routes/JWTGet';
 import Sidebar from './components/ui/sidebar';
 import Project from './routes/project';
 import Branch from './routes/branch';
+import Profile from './components/user/profile-main';
 
 const router = createBrowserRouter([
   {
@@ -32,6 +33,10 @@ const router = createBrowserRouter([
         element: <Branch />
       }
     ]
+  },
+  {
+    path: "/profile/:userId",
+    element: <Profile />,
   }
 ]);
 

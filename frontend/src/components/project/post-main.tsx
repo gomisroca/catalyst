@@ -3,6 +3,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Dialog, DialogContent, DialogTrigger } from "../ui/dialog";
 import PostCarousel from "./post-carousel";
 import PostInteractions from "./post-interactions";
+import { Link } from "react-router-dom";
 
 export default function PostMain({ post }: { post: Post}){
     return(
@@ -15,12 +16,14 @@ export default function PostMain({ post }: { post: Post}){
                     <AvatarFallback>{post.author.username[0]}</AvatarFallback>
                 </Avatar>
                 <div>
-                    <CardTitle className="text-lg">
+                    <CardTitle className="text-lg gap-1 flex">
                         {post.author.nickname ?
                         <span>{post.author.nickname}</span>
                         :
                         <span>{post.author.username}</span>}
-                        <span className="text-gray-500">@{post.author.username}</span>
+                        <Link to={`/profile/${post.author.id}`}>
+                            <span className="text-gray-500 hover:text-gray-600 cursor-pointer">@{post.author.username}</span>
+                        </Link>
                     </CardTitle>
                     <CardDescription>
                         {`${new Date(post.updatedAt).toLocaleDateString()}`}

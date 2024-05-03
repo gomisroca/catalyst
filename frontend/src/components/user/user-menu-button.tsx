@@ -23,13 +23,16 @@ export default function UserMenuButton({ user }: { user: User}){
                                 </Avatar>
                             </Button>
                         </DropdownMenuTrigger>
-                        </TooltipTrigger>
+                    </TooltipTrigger>
                     <TooltipContent>
                     User Menu
                     </TooltipContent>
                 </Tooltip>
             </TooltipProvider>
             <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => window.location.href = `/profile/${user.id}`}>
+                   Profile
+                </DropdownMenuItem>
                 <DropdownMenuItem>
                     <DialogTrigger className="w-full text-start">
                         Settings
