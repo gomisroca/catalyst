@@ -2,11 +2,12 @@ import { Card, CardContent, CardDescription, CardFooter, CardTitle } from "@/com
 import { getBranch } from "@/lib/projects";
 import { MdKeyboardArrowRight } from "react-icons/md";
 import { useEffect, useState } from "react"
-import { Outlet, useNavigate, useParams } from "react-router-dom";
+import { Link, Outlet, useNavigate, useParams } from "react-router-dom";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useUser } from "@/contexts/user-provider";
 import CreatePostButton from "@/components/project/create-post-button";
 import PostMain from "@/components/project/post-main";
+import BranchInteractions from "@/components/project/branch-interactions";
 
 export default function Branch(){
     const { user } = useUser();
@@ -38,37 +39,40 @@ export default function Branch(){
         <>
         {branch &&
         <Card className="p-4 relative">
-            <CardTitle className="flex items-center ">
+            <CardTitle className="flex items-center">
                 {branch.name}
             </CardTitle>
             <CardDescription>{`${new Date(branch.updatedAt).toLocaleDateString()}`}</CardDescription>
-            <div className="absolute right-4 top-4">
-                {branch.parentBranch && 
-                <div className="text-gray-500 flex gap-1 items-center justify-end">
-                    {branch.parentBranch.name}
-                    <MdKeyboardArrowRight className="mt-1"/>
-                </div>}
-                <div className="flex gap-1 items-center justify-end">
-                    {branch.name}
-                    {branch.childBranches.length > 0 && <MdKeyboardArrowRight className="mt-1"/>}
-                </div>
-                {branch.childBranches && branch.childBranches.length > 0 &&
+            <div className="absolute right-4 top-4 flex gap-20 items-start">
+                <BranchInteractions branch={branch} />
                 <div>
-                    <Select onValueChange={e => setSelectedBranch(e)} defaultValue={'null'}>
-                        <SelectTrigger>
-                            <SelectValue placeholder="Child Branches" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value={'null'}>--</SelectItem>
-                            {branch.childBranches.map(branch =>
-                            branch.permissions.private ?
-                                user && (branch.author.id == user.id) &&
-                                <SelectItem value={branch.id}>{branch.name}</SelectItem>
-                            :
-                            <SelectItem value={branch.id}>{branch.name}</SelectItem>)}
-                        </SelectContent>
-                    </Select>
-                </div>}
+                    {branch.parentBranch && 
+                    <Link className="text-gray-500 flex gap-1 items-center justify-end hover:text-gray-600" to={`/${projectId}/${branch.parentBranch.id}`}>
+                        {branch.parentBranch.name}
+                        <MdKeyboardArrowRight className="mt-1"/>
+                    </Link>}
+                    <div className="flex gap-1 items-center justify-end">
+                        {branch.name}
+                        {branch.childBranches.length > 0 && <MdKeyboardArrowRight className="mt-1"/>}
+                    </div>
+                    {branch.childBranches && branch.childBranches.length > 0 &&
+                    <div>
+                        <Select onValueChange={e => setSelectedBranch(e)} defaultValue={'null'}>
+                            <SelectTrigger>
+                                <SelectValue placeholder="Child Branches" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value={'null'}>--</SelectItem>
+                                {branch.childBranches.map(branch =>
+                                branch.permissions.private ?
+                                    user && (branch.author.id == user.id) &&
+                                    <SelectItem value={branch.id}>{branch.name}</SelectItem>
+                                :
+                                <SelectItem value={branch.id}>{branch.name}</SelectItem>)}
+                            </SelectContent>
+                        </Select>
+                    </div>}
+                </div>
             </div>
             <CardContent className="p-4">
                 {branch.description}

@@ -58,7 +58,7 @@ export async function createPost(accessToken: string, postData: FormData, branch
 interface InteractionData{
     type: string;
 }
-export async function updateInteractions(accessToken: string, postId: string, data: InteractionData){
+export async function updatePostInteractions(accessToken: string, postId: string, data: InteractionData){
     const res = await fetch(`${import.meta.env.VITE_BACKEND_ORIGIN}/projects/post/${postId}/interactions`, {
         method: 'POST',
         headers: {
@@ -70,8 +70,32 @@ export async function updateInteractions(accessToken: string, postId: string, da
     return res
 }
 
-export async function removeInteractions(accessToken: string, postId: string, data: InteractionData){
+export async function removePostInteractions(accessToken: string, postId: string, data: InteractionData){
     const res = await fetch(`${import.meta.env.VITE_BACKEND_ORIGIN}/projects/post/${postId}/interactions`, {
+        method: 'DELETE',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${accessToken}`
+        },
+        body: JSON.stringify(data)
+    })
+    return res
+}
+
+export async function updateBranchInteractions(accessToken: string, branchId: string, data: InteractionData){
+    const res = await fetch(`${import.meta.env.VITE_BACKEND_ORIGIN}/projects/branch/${branchId}/interactions`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${accessToken}`
+        },
+        body: JSON.stringify(data)
+    })
+    return res
+}
+
+export async function removeBranchInteractions(accessToken: string, branchId: string, data: InteractionData){
+    const res = await fetch(`${import.meta.env.VITE_BACKEND_ORIGIN}/projects/branch/${branchId}/interactions`, {
         method: 'DELETE',
         headers: {
             'Content-Type': 'application/json',
