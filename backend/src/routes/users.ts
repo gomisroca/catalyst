@@ -3,7 +3,7 @@ import { Request, Response } from 'express';
 const router = express.Router();
 import formidable from 'formidable';
 
-import { User, Report, PrismaClient, Like, Share, Bookmark, Hidden } from "@prisma/client";
+import { User, PrismaClient, BranchInteraction, PostInteraction } from "@prisma/client";
 const prisma = new PrismaClient();
 
 const { FRONTEND_ORIGIN } = process.env;
@@ -18,11 +18,8 @@ const passportFacebook = require('../utils/fb-oauth2');
 const passportDiscord = require('../utils/discord-oauth2');
 
 interface UserWithInteractions extends User {
-    likes: Like[];
-    shares: Share[];
-    bookmarks: Bookmark[],
-    reports: Report[],
-    hidden: Hidden[],
+    postInteractions: PostInteraction[];
+    branchInteractions: BranchInteraction[];
 }
 
 router.get('/discord', passportDiscord.authenticate('discord'));
@@ -34,11 +31,16 @@ passportDiscord.authenticate('discord', { session: true }),
             id: req.user.id 
         },
         include:{
-            likes: true,
-            shares: true,
-            bookmarks: true,
-            reports: true,
-            hidden: true,
+            postInteractions: {
+                include: {
+                    post: true,
+                }
+            },
+            branchInteractions: {
+                include: {
+                    branch: true,
+                }
+            },
         }
     })
 
@@ -50,11 +52,8 @@ passportDiscord.authenticate('discord', { session: true }),
             nickname: user.nickname,
             avatar: user.avatar,
             role: user.role,
-            likes: user.likes,
-            shares: user.shares,
-            bookmarks: user.bookmarks,
-            reports: user.reports,
-            hidden: user.hidden,
+            postInteractions: user.postInteractions,
+            branchInteractions: user.branchInteractions,
         },
         process.env.JWT_SECRET as jwt.Secret
     );
@@ -78,11 +77,16 @@ passportFacebook.authenticate('facebook', { session: true }),
             id: req.user.id 
         },
         include:{
-            likes: true,
-            shares: true,
-            bookmarks: true,
-            reports: true,
-            hidden: true,
+            postInteractions: {
+                include: {
+                    post: true,
+                }
+            },
+            branchInteractions: {
+                include: {
+                    branch: true,
+                }
+            },
         }
     })
 
@@ -94,11 +98,8 @@ passportFacebook.authenticate('facebook', { session: true }),
             nickname: user.nickname,
             avatar: user.avatar,
             role: user.role,
-            likes: user.likes,
-            shares: user.shares,
-            bookmarks: user.bookmarks,
-            reports: user.reports,
-            hidden: user.hidden,
+            postInteractions: user.postInteractions,
+            branchInteractions: user.branchInteractions,
         },
         process.env.JWT_SECRET as jwt.Secret
     );
@@ -122,11 +123,16 @@ passportGoogle.authenticate('google', { session: true }),
             id: req.user.id 
         },
         include:{
-            likes: true,
-            shares: true,
-            bookmarks: true,
-            reports: true,
-            hidden: true,
+            postInteractions: {
+                include: {
+                    post: true,
+                }
+            },
+            branchInteractions: {
+                include: {
+                    branch: true,
+                }
+            },
         }
     })
 
@@ -138,11 +144,8 @@ passportGoogle.authenticate('google', { session: true }),
             nickname: user.nickname,
             avatar: user.avatar,
             role: user.role,
-            likes: user.likes,
-            shares: user.shares,
-            bookmarks: user.bookmarks,
-            reports: user.reports,
-            hidden: user.hidden,
+            postInteractions: user.postInteractions,
+            branchInteractions: user.branchInteractions,
         },
         process.env.JWT_SECRET as jwt.Secret
     );
@@ -166,11 +169,16 @@ router.post('/sign-in', async(req: Request, res: Response) => {
                 email: email
             },
             include:{
-                likes: true,
-                shares: true,
-                bookmarks: true,
-                reports: true,
-                hidden: true,
+                postInteractions: {
+                    include: {
+                        post: true,
+                    }
+                },
+                branchInteractions: {
+                    include: {
+                        branch: true,
+                    }
+                },
             }
         })
 
@@ -191,11 +199,8 @@ router.post('/sign-in', async(req: Request, res: Response) => {
                     nickname: existingUser.nickname, 
                     avatar: existingUser.avatar,
                     role: existingUser.role,
-                    likes: existingUser.likes,
-                    shares: existingUser.shares,
-                    bookmarks: existingUser.bookmarks,
-                    reports: existingUser.reports,
-                    hidden: existingUser.hidden,
+                    postInteractions: existingUser.postInteractions,
+                    branchInteractions: existingUser.branchInteractions,
                 },
                 process.env.JWT_SECRET as jwt.Secret
             );
@@ -208,11 +213,16 @@ router.post('/sign-in', async(req: Request, res: Response) => {
                     password: encryptedPassword,
                 },
                 include:{
-                    likes: true,
-                    shares: true,
-                    bookmarks: true,
-                    reports: true,
-                    hidden: true,
+                    postInteractions: {
+                        include: {
+                            post: true,
+                        }
+                    },
+                    branchInteractions: {
+                        include: {
+                            branch: true,
+                        }
+                    },
                 }
             }); 
             access_token = jwt.sign(
@@ -223,11 +233,8 @@ router.post('/sign-in', async(req: Request, res: Response) => {
                     nickname: newUser.nickname,
                     avatar: newUser.avatar,
                     role: newUser.role,
-                    likes: newUser.likes,
-                    shares: newUser.shares,
-                    bookmarks: newUser.bookmarks,
-                    reports: newUser.reports,
-                    hidden: newUser.hidden,
+                    postInteractions: newUser.postInteractions,
+                    branchInteractions: newUser.branchInteractions,
                 },
                 process.env.JWT_SECRET as jwt.Secret
             );
@@ -245,7 +252,7 @@ router.post('/sign-in', async(req: Request, res: Response) => {
 })
 
 /*
-GET - User Info
+GET - Logged User Info
 REQ - email, password
 RES - 200 - User Data
 */
@@ -299,11 +306,16 @@ router.post('/settings', async(req: Request, res: Response) => {
                     password: encryptedPassword
                 },
                 include: {
-                    likes: true,
-                    shares: true,
-                    bookmarks: true,
-                    reports: true,
-                    hidden: true,
+                    postInteractions: {
+                        include: {
+                            post: true,
+                        }
+                    },
+                    branchInteractions: {
+                        include: {
+                            branch: true,
+                        }
+                    },
                 }
             })
             let access_token = jwt.sign(
@@ -314,16 +326,55 @@ router.post('/settings', async(req: Request, res: Response) => {
                     nickname: newUser.nickname,
                     avatar: newUser.avatar,
                     role: newUser.role,
-                    likes: newUser.likes,
-                    shares: newUser.shares,
-                    bookmarks: newUser.bookmarks,
-                    reports: newUser.reports,
-                    hidden: newUser.hidden,
+                    postInteractions: newUser.postInteractions,
+                    branchInteractions: newUser.branchInteractions
                 },
                 process.env.JWT_SECRET as jwt.Secret
             );
             res.send({access_token})
         })
+    }catch(err){
+        if(err){
+            res.status(500).send(err);
+        }else {
+            throw new Error("An unknown error occurred");
+        }
+    } finally {
+        await prisma.$disconnect();
+    }
+})
+
+/*
+GET - Specific User Info
+REQ - email, password
+RES - 200 - User Data
+*/
+router.get('/:id', async(req: Request, res: Response) => {
+    try{
+        const user: User | null = await prisma.user.findUnique({
+            where: {
+                id: req.params.id,
+            }, 
+            include: {
+                projects: true,
+                branches: true,
+                posts: true,
+                postInteractions: {
+                    include: {
+                        post: true,
+                    }
+                },
+                branchInteractions: {
+                    include: {
+                        branch: true,
+                    }
+                },
+            }
+        })
+        if (!user){
+            throw new Error('No user found')
+        }
+        return res.send(user);
     }catch(err){
         if(err){
             res.status(500).send(err);

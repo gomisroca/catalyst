@@ -30,30 +30,30 @@ router.get('/', async(req: Request, res: Response) => {
                     include: {
                         author: true,
                         permissions: true,
-                        likes: true,
-                        shares: true,
-                        bookmarks: true,
-                        reports: true,
-                        hidden: true,
+                        interactions: {
+                            include: {
+                                user: true,
+                            }
+                        },
                         childBranches: {
                             include: {
                                 permissions: true,
-                                likes: true,
-                                shares: true,
-                                bookmarks: true,
-                                reports: true,
-                                hidden: true,
+                                interactions: {
+                                    include: {
+                                        user: true,
+                                    }
+                                },
                             }
                         },
                         parentBranch: true,
                         posts: {
                             include: {
                                 author: true,
-                                likes: true,
-                                shares: true,
-                                bookmarks: true,
-                                reports: true,
-                                hidden: true,
+                                interactions: {
+                                    include: {
+                                        user: true,
+                                    }
+                                },
                             }
                         }
                     }
@@ -98,25 +98,30 @@ router.get('/:id', async(req: Request, res: Response) => {
                     include: {
                         author: true,
                         permissions: true,
-                        likes: true,
-                        shares: true,
-                        bookmarks: true,
-                        reports: true,
-                        hidden: true,
+                        interactions: {
+                            include: {
+                                user: true,
+                            }
+                        },
                         childBranches: {
                             include: {
                                 permissions: true,
+                                interactions: {
+                                    include: {
+                                        user: true,
+                                    }
+                                },
                             }
                         },
                         parentBranch: true,
                         posts: {
                             include: {
                                 author: true,
-                                likes: true,
-                                shares: true,
-                                bookmarks: true,
-                                reports: true,
-                                hidden: true,
+                                interactions: {
+                                    include: {
+                                        user: true,
+                                    }
+                                },
                             }
                         }
                     }
@@ -157,25 +162,30 @@ router.get('/branch/:branch', async(req: Request, res: Response) => {
             include: {
                 author: true,
                 permissions: true,
-                likes: true,
-                shares: true,
-                bookmarks: true,
-                reports: true,
-                hidden: true,
+                interactions: {
+                    include: {
+                        user: true,
+                    }
+                },
                 childBranches: {
                     include: {
                         permissions: true,
+                        interactions: {
+                            include: {
+                                user: true,
+                            }
+                        },
                     }
                 },
                 parentBranch: true,
                 posts: {
                     include: {
                         author: true,
-                        likes: true,
-                        shares: true,
-                        bookmarks: true,
-                        reports: true,
-                        hidden: true,
+                        interactions: {
+                            include: {
+                                user: true,
+                            }
+                        },
                     }
                 }
             }
@@ -384,6 +394,192 @@ router.post('/branch/:branch/post', async(req: Request, res: Response) => {
 })
 
 /*
+POST - Add Branch Interaction
+REQ - interaction
+RES - 200
+*/
+router.post('/branch/:branch/interactions', async(req: Request, res: Response) => {
+    try{
+        const user = await verifyUser(req.header('authorization'));
+        if(!user){
+            throw new Error('No user found')
+        }
+        const { type }: { type: string} = req.body;
+
+        switch (type){
+            case 'like':
+                await prisma.branchInteraction.create({
+                    data: {
+                        type: 'LIKE',
+                        userId: user.id,
+                        branchId: req.params.branch,
+                    }
+                })
+                break;
+            case 'share':
+                await prisma.branchInteraction.create({
+                    data: {
+                        type: 'SHARE',
+                        userId: user.id,
+                        branchId: req.params.branch,
+                    }
+                })
+                break;
+            case 'bookmark':
+                await prisma.branchInteraction.create({
+                    data: {
+                        type: 'BOOKMARK',
+                        userId: user.id,
+                        branchId: req.params.branch,
+                    }
+                })
+                break;
+            case 'report':
+                await prisma.branchInteraction.create({
+                    data: {
+                        type: 'REPORT',
+                        userId: user.id,
+                        branchId: req.params.branch,
+                    }
+                })
+                break;
+            case 'hidden':
+                await prisma.branchInteraction.create({
+                    data: {
+                        type: 'HIDE',
+                        userId: user.id,
+                        branchId: req.params.branch,
+                    }
+                })
+                break;
+            default:
+                throw new Error('Something went wrong')
+
+        }
+        const branch: Branch | null = await prisma.branch.findUnique({
+            where: {
+                id: req.params.branch,
+            }, 
+            include: {
+                author: true,
+                interactions: {
+                    include: {
+                        user: true,
+                    }
+                },
+            }
+        })
+        res.send(branch)
+    }catch(err){
+        if(err){
+            res.status(500).send(err);
+        }else {
+            throw new Error("An unknown error occurred");
+        }
+    } finally {
+        await prisma.$disconnect();
+    }
+})
+
+/*
+DELETE - Remove Post Interaction
+REQ - interaction
+RES - 200
+*/
+router.delete('/branch/:branch/interactions', async(req: Request, res: Response) => {
+    try{
+        const user = await verifyUser(req.header('authorization'));
+        if(!user){
+            throw new Error('No user found')
+        }
+        const { type, id }: { type: string, id?: string } = req.body;
+        let interaction;
+        switch (type){
+            case 'like':
+                interaction = await prisma.branchInteraction.delete({
+                    where: {
+                        interactionId: {
+                            type: 'LIKE',
+                            userId: user.id,
+                            branchId: req.params.branch,
+                        }
+                    }
+                })
+                break;
+            case 'share':
+                interaction = await prisma.branchInteraction.delete({
+                    where: {
+                        interactionId: {
+                            type: 'SHARE',
+                            userId: user.id,
+                            branchId: req.params.branch,
+                        }
+                    }
+                })
+                break;
+            case 'bookmark':
+                interaction = await prisma.branchInteraction.delete({
+                    where: {
+                        interactionId: {
+                            type: 'BOOKMARK',
+                            userId: user.id,
+                            branchId: req.params.branch,
+                        }
+                    }
+                })
+                break;
+            case 'report':
+                interaction = await prisma.branchInteraction.delete({
+                    where: {
+                        interactionId: {
+                            type: 'REPORT',
+                            userId: user.id,
+                            branchId: req.params.branch,
+                        }
+                    }
+                })
+                break;
+            case 'hidden':
+                interaction = await prisma.branchInteraction.delete({
+                    where: {
+                        interactionId: {
+                            type: 'HIDE',
+                            userId: user.id,
+                            branchId: req.params.branch,
+                        }
+                    }
+                })
+                break;
+            default:
+                throw new Error('Something went wrong')
+
+        }
+        const branch: Branch | null = await prisma.branch.findUnique({
+            where: {
+                id: req.params.branch,
+            }, 
+            include: {
+                author: true,
+                interactions: {
+                    include: {
+                        user: true,
+                    }
+                },
+            }
+        })
+        res.send(branch)
+    }catch(err){
+        if(err){
+            res.status(500).send(err);
+        }else {
+            throw new Error("An unknown error occurred");
+        }
+    } finally {
+        await prisma.$disconnect();
+    }
+})
+
+/*
 POST - Add Post Interaction
 REQ - interaction
 RES - 200
@@ -398,40 +594,45 @@ router.post('/post/:post/interactions', async(req: Request, res: Response) => {
 
         switch (type){
             case 'like':
-                await prisma.like.create({
+                await prisma.postInteraction.create({
                     data: {
+                        type: 'LIKE',
                         userId: user.id,
                         postId: req.params.post,
                     }
                 })
                 break;
             case 'share':
-                await prisma.share.create({
+                await prisma.postInteraction.create({
                     data: {
+                        type: 'SHARE',
                         userId: user.id,
                         postId: req.params.post,
                     }
                 })
                 break;
             case 'bookmark':
-                await prisma.bookmark.create({
+                await prisma.postInteraction.create({
                     data: {
+                        type: 'BOOKMARK',
                         userId: user.id,
                         postId: req.params.post,
                     }
                 })
                 break;
             case 'report':
-                await prisma.report.create({
+                await prisma.postInteraction.create({
                     data: {
+                        type: 'REPORT',
                         userId: user.id,
                         postId: req.params.post,
                     }
                 })
                 break;
             case 'hidden':
-                await prisma.hidden.create({
+                await prisma.postInteraction.create({
                     data: {
+                        type: 'HIDE',
                         userId: user.id,
                         postId: req.params.post,
                     }
@@ -447,11 +648,11 @@ router.post('/post/:post/interactions', async(req: Request, res: Response) => {
             }, 
             include: {
                 author: true,
-                likes: true,
-                shares: true,
-                bookmarks: true,
-                reports: true,
-                hidden: true,
+                interactions: {
+                    include: {
+                        user: true,
+                    }
+                },
             }
         })
         res.send(post)
@@ -481,43 +682,57 @@ router.delete('/post/:post/interactions', async(req: Request, res: Response) => 
         let interaction
         switch (type){
             case 'like':
-                interaction = await prisma.like.delete({
+                interaction = await prisma.postInteraction.delete({
                     where: {
-                        userId: user.id,
-                        postId: req.params.post,
+                        interactionId: {
+                            type: 'LIKE',
+                            userId: user.id,
+                            postId: req.params.post,
+                        }
                     }
                 })
                 break;
             case 'share':
-                interaction = await prisma.share.delete({
+                interaction = await prisma.postInteraction.delete({
                     where: {
-                        id: id,
-                        userId: user.id,
-                        postId: req.params.post,
+                        interactionId: {
+                            type: 'SHARE',
+                            userId: user.id,
+                            postId: req.params.post,
+                        }
                     }
                 })
                 break;
             case 'bookmark':
-                interaction = await prisma.bookmark.delete({
+                interaction = await prisma.postInteraction.delete({
                     where: {
-                        userId: user.id,
-                        postId: req.params.post,
+                        interactionId: {
+                            type: 'BOOKMARK',
+                            userId: user.id,
+                            postId: req.params.post,
+                        }
                     }
                 })
                 break;
             case 'report':
-                interaction = await prisma.report.delete({
+                interaction = await prisma.postInteraction.delete({
                     where: {
-                        userId: user.id,
-                        postId: req.params.post,
+                        interactionId: {
+                            type: 'REPORT',
+                            userId: user.id,
+                            postId: req.params.post,
+                        }
                     }
                 })
                 break;
             case 'hidden':
-                interaction = await prisma.hidden.delete({
+                interaction = await prisma.postInteraction.delete({
                     where: {
-                        userId: user.id,
-                        postId: req.params.post,
+                        interactionId: {
+                            type: 'HIDE',
+                            userId: user.id,
+                            postId: req.params.post,
+                        }
                     }
                 })
                 break;
@@ -531,11 +746,11 @@ router.delete('/post/:post/interactions', async(req: Request, res: Response) => 
             }, 
             include: {
                 author: true,
-                likes: true,
-                shares: true,
-                bookmarks: true,
-                reports: true,
-                hidden: true,
+                interactions: {
+                    include: {
+                        user: true,
+                    }
+                },
             }
         })
         res.send(post)

@@ -1,33 +1,14 @@
 /// <reference types="vite/client" />
 
-interface Like {
-    id: string;
-    userId: string;
-    postId?: string;
-    branchId?: string;
-}
-interface Share {
-    id: string;
-    userId: string;
-    postId?: string;
-    branchId?: string;
-}
-
-interface Bookmark {
-    id: string;
-    userId: string;
-    postId?: string;
-    branchId?: string;
-}
-
-interface Report {
-    id: string;
-    userId: string;
-    postId?: string;
-    branchId?: string;
-}
-
-interface Hidden {
+enum InteractionType {
+    LIKE = 'LIKE',
+    SHARE = 'SHARE',
+    BOOKMARK = 'BOOKMARK',
+    REPORT = 'REPORT',
+    HIDE = 'HIDE'
+  }
+interface Interaction {
+    type: InteractionType,
     id: string;
     userId: string;
     postId?: string;
@@ -40,11 +21,11 @@ interface User {
     nickname: string;
     avatar: string;
     role: string;
-    likes: Like[];
-    shares: Share[];
-    bookmarks: Bookmark[];
-    reports: Report[];
-    hidden: Hidden[];
+    postInteractions: Interaction[];
+    branchInteractions: Interaction[];
+    projects: Project[];
+    branches: Branch[];
+    posts: Post[];
 }
 
 interface Permissions {
@@ -61,11 +42,7 @@ interface Post {
     updatedAt: Date;
     author: User;
     media: string[];
-    likes: Like[];
-    shares: Share[];
-    bookmarks: Bookmark[];
-    reports: Report[];
-    hidden: Hidden[];
+    interactions: Interaction[];
 }
 interface Branch {
     projectId: string;
@@ -80,11 +57,7 @@ interface Branch {
     parentBranch: Branch;
     childBranches: Branch[];
     permissions: Permissions;
-    likes: Like[];
-    shares: Share[];
-    bookmarks: Bookmark[];
-    reports: Report[];
-    hidden: Hidden[];
+    interactions: Interaction[];
 }
 interface Project {
     id: string
