@@ -10,6 +10,10 @@ interface JWTUser {
     role: string;
     postInteractions: Interaction[];
     branchInteractions: Interaction[];
+    followedBy: string[];
+    projects: Project[];
+    branches: Branch[];
+    posts: Post[];
 }
 
 type UserProviderState = {

@@ -8,6 +8,8 @@ enum InteractionType {
     HIDE = 'HIDE'
   }
 interface Interaction {
+    createdAt: string;
+    updatedAt: string;
     type: InteractionType,
     id: string;
     userId: string;
@@ -26,6 +28,7 @@ interface User {
     projects: Project[];
     branches: Branch[];
     posts: Post[];
+    followedBy: string[];
 }
 
 interface Permissions {
@@ -38,19 +41,21 @@ interface Permissions {
 interface Post {
     id: string
     content: string;
-    createdAt: Date;
-    updatedAt: Date;
+    createdAt: string;
+    updatedAt: string;
     author: User;
     media: string[];
+    branch: Branch;
     interactions: Interaction[];
 }
 interface Branch {
+    project: Project;
     projectId: string;
     id: string
     name: string;
     description: string;
-    createdAt: Date;
-    updatedAt: Date;
+    createdAt: string;
+    updatedAt: string;
     author: User;
     default: boolean;
     posts: Post[];
@@ -64,8 +69,8 @@ interface Project {
     name: string;
     description: string;
     avatar: string;
-    createdAt: Date;
-    updatedAt: Date;
+    createdAt: string;
+    updatedAt: string;
     author: User;
     branches: Branch[];
     permissions: Permissions;
