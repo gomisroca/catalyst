@@ -62,6 +62,7 @@ model User {
   projects           Project[]
   postInteractions   PostInteraction[]
   branchInteractions BranchInteraction[]
+  followedBy         String[]
 }
 
 model Google {
