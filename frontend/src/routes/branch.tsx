@@ -39,10 +39,18 @@ export default function Branch(){
         <>
         {branch &&
         <Card className="p-4 relative">
-            <CardTitle className="flex items-center">
+            <CardDescription className="px-4">
+                {branch.author.nickname || branch.author.username}
+                <Link to={`/profile/${branch.author.id}`} className="hover:text-gray-500">
+                    @{branch.author.username}
+                </Link>
+            </CardDescription>
+            <CardTitle className="flex items-center px-4">
                 {branch.name}
             </CardTitle>
-            <CardDescription>{`${new Date(branch.updatedAt).toLocaleDateString()}`}</CardDescription>
+            <CardDescription className="px-4">
+                {`${new Date(branch.updatedAt).toLocaleDateString()}`}
+            </CardDescription>
             <div className="md:absolute md:right-4 top-4 flex gap-2 items-start md:items-end flex-col">
                 <BranchInteractions branch={branch} />
                 <div className="hidden md:flex flex-col">

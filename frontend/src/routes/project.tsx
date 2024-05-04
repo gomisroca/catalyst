@@ -2,7 +2,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent, CardDescription, CardFooter, CardTitle } from "@/components/ui/card";
 import { getProject } from "@/lib/projects";
 import { useEffect, useState } from "react"
-import { Outlet, useNavigate, useParams } from "react-router-dom";
+import { Link, Outlet, useNavigate, useParams } from "react-router-dom";
 import { useUser } from "@/contexts/user-provider";
 import CreateBranchButton from "@/components/project/create-branch-button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -38,12 +38,18 @@ export default function Project(){
         <div className="flex flex-col gap-2 w-full">
         {project &&
          <Card className="p-4 w-full">
-            <div className="flex gap-2 items-center">
+            <div className="flex gap-2 items-center px-4">
                 <Avatar className="rounded-md">
                     <AvatarImage className="rounded-sm" src={`${import.meta.env.VITE_BACKEND_ORIGIN}/${project.avatar}`} />
                     <AvatarFallback>{project.name[0]}</AvatarFallback>
                 </Avatar>
                 <div>
+                    <CardDescription>
+                        {project.author.nickname || project.author.username}
+                        <Link to={`/profile/${project.author.id}`} className="hover:text-gray-500">
+                            @{project.author.username}
+                        </Link>
+                    </CardDescription>
                     <CardTitle>
                         {project.name}
                         {/* <BsActivity />  if project is in top % of recent activity (posts, branches in last 7 days) */}
