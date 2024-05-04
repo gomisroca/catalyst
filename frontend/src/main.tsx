@@ -44,12 +44,14 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <UserProvider>
       <ThemeProvider defaultTheme="dark" storageKey="catalyst-theme">
+        <div className='bg-gradient min-h-screen'>
         <Navmenu />
         <Sidebar />
-        <div className='p-2 md:p-10 lg:p-20 flex items-center justify-center bg-gradient'>
+        <div className='p-2 md:p-10 lg:p-20 flex items-center justify-center'>
           <RouterProvider router={router} />
+        </div>
         </div>
       </ThemeProvider>
     </UserProvider>
-  </React.StrictMode>,
+  </React.StrictMode>
 )

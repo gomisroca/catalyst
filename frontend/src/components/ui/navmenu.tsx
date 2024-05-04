@@ -30,7 +30,7 @@ export default function Navmenu(){
                 <TooltipProvider>
                     <Tooltip>
                         <TooltipTrigger asChild>
-                            <Button className="w-[40px]" size='icon'>
+                            <Button className="w-[40px]" size='icon' variant={"outline"}>
                                 <Home className="w-[40px]" onClick={() => window.location.href = '/'} />
                             </Button>
                         </TooltipTrigger>
@@ -55,7 +55,7 @@ export default function Navmenu(){
                         <Tooltip>
                             <TooltipTrigger asChild>
                                 <DialogTrigger asChild>
-                                    <Button size="icon">
+                                    <Button size="icon" variant={"outline"}>
                                         <FiFolderPlus />
                                     </Button>
                                 </DialogTrigger>
