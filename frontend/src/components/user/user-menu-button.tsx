@@ -33,11 +33,11 @@ export default function UserMenuButton({ user }: { user: User}){
                 <DropdownMenuItem onClick={() => window.location.href = `/profile/${user.id}`}>
                    Profile
                 </DropdownMenuItem>
-                <DropdownMenuItem>
-                    <DialogTrigger className="w-full text-start">
+                <DialogTrigger asChild>
+                    <DropdownMenuItem>
                         Settings
-                    </DialogTrigger>
-                </DropdownMenuItem>
+                    </DropdownMenuItem>
+                </DialogTrigger>
                 <DropdownMenuItem onClick={() => signOut()}>
                     Sign Out
                 </DropdownMenuItem>

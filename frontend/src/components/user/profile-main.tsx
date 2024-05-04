@@ -44,19 +44,21 @@ export default function Profile(){
     return (
         <>
             {profile &&
-            <Card className="p-4 w-5/6">
-                <div className="flex gap-2 items-center">
+            <Card className="p-4 w-full">
+                <div className="flex gap-2 items-center p-4">
                 <Avatar className="rounded-md">
                     <AvatarImage className="rounded-sm" src={`${import.meta.env.VITE_BACKEND_ORIGIN}/${profile.avatar}`} />
                     <AvatarFallback>{profile.username[0]}</AvatarFallback>
                 </Avatar>
                 <div>
                     <CardTitle className="text-lg gap-1 flex items-center">
+                        <div className="max-w-[200px] text-ellipsis overflow-hidden text-nowrap gap-[2px] flex">
                         {profile.nickname ?
                         <span>{profile.nickname}</span>
                         :
                         <span>{profile.username}</span>}
                         <span className="text-gray-500">@{profile.username}</span>
+                        </div>
                         {user?.id == userId ?
                         <span className="text-sm">This is you!</span>
                         : user && profile?.followedBy && profile?.followedBy.filter(x => x == user.id).length > 0 ?
@@ -105,7 +107,7 @@ export default function Profile(){
                     </CardDescription>
                 </div>
             </div>
-            <CardContent className="p-4">
+            <CardContent className="p-0 xl:p-4">
                 <ProfileTimeline profile={profile} />
                 {/* OUTLET
                 Here the timeline of last activity '/'

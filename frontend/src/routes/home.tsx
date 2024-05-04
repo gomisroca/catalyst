@@ -19,7 +19,7 @@ export default function Home(){
         }
     }, [projects])
     return(
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-4 w-5/6">
         {projects && projects.map(project => 
             project.permissions.private ?
                 user && (project.author.id == user.id) &&

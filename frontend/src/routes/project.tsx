@@ -60,6 +60,8 @@ export default function Project(){
                 {project.description}
             </CardContent>
             <CardFooter className="flex flex-col gap-2">
+                {project.branches.length > 0 ?
+                <>
                 <span className="text-lg">Branches</span>
                 <Select onValueChange={e => setSelectedBranch(e)} value={selectedBranch}>
                     <SelectTrigger className="w-[280px]">
@@ -75,6 +77,9 @@ export default function Project(){
                         <SelectItem value={branch.id}>{branch.name}</SelectItem>)}
                     </SelectContent>
                 </Select>
+                </>
+                :
+                <span>This project has no branches yet.</span>}
                 {user && (project.author.id == user.id || project.permissions.allowBranch) &&
                 <CreateBranchButton project={project} />}
             </CardFooter>

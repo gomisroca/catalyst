@@ -65,14 +65,14 @@ export default function ProfileTimeline({ profile }: { profile: User }){
         <div className="flex flex-col gap-2">
             {timeline && timeline.map(obj =>
             (obj.type == 'LIKE' || obj.type == 'SHARE') ?
-                <Card className="p-2 bg-secondary/20 border-none">
+                <Card className="px-0 pt-2 bg-secondary/20 border-none">
                     {obj.type == 'LIKE' &&
                     <>
                     <CardDescription className="flex items-center gap-1 mx-6">
                         <Star size={"15px"} />
                         {profile.nickname || profile.username} liked a {obj.branchId ? 'branch' : 'post'}
                     </CardDescription>
-                    <CardContent className="mt-2">
+                    <CardContent className="p-2">
                         {obj.branchId && obj.branch ?
                         <>
                         <Link to={`/${obj.branch.projectId}/${obj.branch.id}/`}>
@@ -92,7 +92,7 @@ export default function ProfileTimeline({ profile }: { profile: User }){
                         <Forward size={"15px"} />
                         {profile.nickname || profile.username} shared a {obj.branchId ? 'branch' : 'post'}
                     </CardDescription>
-                    <CardContent className="mt-2">
+                    <CardContent className="p-2">
                         {obj.branchId && obj.branch ?
                             <TimelineBranchCard branch={obj.branch} />
                         : obj.postId && obj.post ?
@@ -103,34 +103,34 @@ export default function ProfileTimeline({ profile }: { profile: User }){
                 </Card>
                 :
                 obj.content ?
-                <Card className="p-2 bg-secondary/20 border-none">
+                <Card className="px-0 pt-2 bg-secondary/20 border-none">
                     <CardDescription className="flex items-center gap-1 mx-6">
                         <FaRegFileAlt size={"15px"} />
                         {profile.nickname || profile.username} posted
                     </CardDescription>
-                    <CardContent className="mt-2">
+                    <CardContent className="p-2">
                        <TimelinePostCard post={obj as Post} />
                     </CardContent>
                 </Card>
                 :
                 obj.projectId ?
-                <Card className="p-2 bg-secondary/20 border-none">
+                <Card className="px-0 pt-2 bg-secondary/20 border-none">
                     <CardDescription className="flex items-center gap-1 mx-6">
                         <AiOutlineBranches size={"15px"} />
                         {profile.nickname || profile.username} created a branch
                     </CardDescription>
-                    <CardContent className="mt-2">
+                    <CardContent className="p-2">
                        <TimelineBranchCard branch={obj as Branch} />
                     </CardContent>
                 </Card>
                 : 
                 obj.name && !obj.projectId ?
-                <Card className="p-2 bg-secondary/20 border-none">
+                <Card className="px-0 pt-2 bg-secondary/20 border-none">
                     <CardDescription className="flex items-center gap-1 mx-6">
                         <FiFolderPlus size={"15px"} />
                         {profile.nickname || profile.username} created a project
                     </CardDescription>
-                    <CardContent className="mt-2">
+                    <CardContent className="p-2">
                        <TimelineProjectCard project={obj as Project} />
                     </CardContent>
                 </Card>

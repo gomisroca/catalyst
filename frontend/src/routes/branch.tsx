@@ -43,9 +43,9 @@ export default function Branch(){
                 {branch.name}
             </CardTitle>
             <CardDescription>{`${new Date(branch.updatedAt).toLocaleDateString()}`}</CardDescription>
-            <div className="absolute right-4 top-4 flex gap-20 items-start">
+            <div className="md:absolute md:right-4 top-4 flex gap-2 items-start md:items-end flex-col">
                 <BranchInteractions branch={branch} />
-                <div>
+                <div className="hidden md:flex flex-col">
                     {branch.parentBranch && 
                     <Link className="text-gray-500 flex gap-1 items-center justify-end hover:text-gray-600" to={`/${projectId}/${branch.parentBranch.id}`}>
                         {branch.parentBranch.name}

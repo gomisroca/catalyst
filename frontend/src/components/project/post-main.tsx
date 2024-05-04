@@ -34,11 +34,11 @@ export default function PostMain({ post }: { post: Post}){
                 {post.content}
             </CardContent>
             {post.media &&
-            <CardFooter className="gap-2">
+            <CardFooter className="gap-2 grid grid-cols-2 lg:grid-cols-5 px-0 pt-2 pb-4">
                 {post.media.map(media =>
                 <Dialog>
                     <DialogTrigger>
-                        <div className="rounded-md w-[150px] h-[100px] overflow-hidden items-center flex">
+                        <div className="rounded-md w-full lg:w-[150px] xl:w-[200px] 2xl:w-[300px] h-[80px] lg:h-[100px] 2xl:h-[125px] overflow-hidden items-center flex">
                             <img className="rounded-md self-center" src={`${import.meta.env.VITE_BACKEND_ORIGIN}/${media}`} />
                         </div>
                     </DialogTrigger>
