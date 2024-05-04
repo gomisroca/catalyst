@@ -11,6 +11,10 @@ import { FaRegFileAlt } from "react-icons/fa";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../ui/tooltip";
 import ProfileTimeline from "./profile-timeline";
 import { IoMdHeartDislike, IoMdHeartEmpty } from "react-icons/io";
+import { Dialog, DialogContent, DialogTrigger } from "../ui/dialog";
+import TimelineBranchCard from "./timeline-branch-card";
+import TimelineProjectCard from "./timeline-project-card";
+import TimelinePostCard from "./timeline-post-card";
 
 export default function Profile(){
     const { user } = useUser()
@@ -62,48 +66,99 @@ export default function Profile(){
                         {user?.id == userId ?
                         <span className="text-sm">This is you!</span>
                         : user && profile?.followedBy && profile?.followedBy.filter(x => x == user.id).length > 0 ?
-                            <IoMdHeartDislike className="hover:text-gray-500 cursor-pointer" onClick={() => unfollow(user.id, profile.id)} />
+                        <TooltipProvider>
+                            <Tooltip>
+                                <TooltipTrigger>
+                                    <IoMdHeartDislike className="hover:text-gray-500 cursor-pointer" onClick={() => unfollow(user.id, profile.id)} />
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                    Unfollow
+                                </TooltipContent>
+                            </Tooltip>
+                        </TooltipProvider>
                         : user ?
-                            <IoMdHeartEmpty className="hover:text-gray-500 cursor-pointer" onClick={() => follow(user.id, profile.id)} />
+                        <TooltipProvider>
+                            <Tooltip>
+                                <TooltipTrigger>
+                                    <IoMdHeartEmpty className="hover:text-gray-500 cursor-pointer" onClick={() => follow(user.id, profile.id)} />
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                    Follow
+                                </TooltipContent>
+                            </Tooltip>
+                        </TooltipProvider>
                         : null}
                     </CardTitle>
                     <CardDescription className="flex gap-2">
-                        <TooltipProvider>
-                            <Tooltip>
-                                <TooltipTrigger>
-                                    <Button variant="outline" className="flex gap-1 items-center" size="sm" >
-                                        <FiFolderPlus /> {profile.projects.length}
-                                    </Button>
-                                </TooltipTrigger>
-                                <TooltipContent>
+                        <Dialog>
+                            <TooltipProvider>
+                                <Tooltip>
+                                    <TooltipTrigger>
+                                        <DialogTrigger asChild>
+                                            <Button variant="outline" className="flex gap-1 items-center" size="sm" >
+                                                <FiFolderPlus /> {profile.projects.length}
+                                            </Button>
+                                        </DialogTrigger>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
                                     See Projects
-                                </TooltipContent>
-                            </Tooltip>
-                        </TooltipProvider>
-                        <TooltipProvider>
-                            <Tooltip>
-                                <TooltipTrigger>
-                                    <Button variant="outline" className="flex gap-1 items-center" size="sm">
-                                        <AiOutlineBranches /> {profile.branches.length}
-                                    </Button>
-                                </TooltipTrigger>
-                                <TooltipContent>
+                                    </TooltipContent>
+                                </Tooltip>
+                            </TooltipProvider>
+                            <DialogContent className="max-w-none w-5/6 max-h-3/4 overflow-y-scroll rounded-md px-1 pb-1 pt-10">
+                                {profile.projects.length > 0 ?
+                                profile.projects.map(project => 
+                                    <TimelineProjectCard project={project} />
+                                )
+                                : <span className="m-auto pb-10">This user hasn't created any projects yet.</span>}
+                            </DialogContent>
+                        </Dialog>
+                        <Dialog>
+                            <TooltipProvider>
+                                <Tooltip>
+                                    <TooltipTrigger>
+                                        <DialogTrigger asChild>
+                                            <Button variant="outline" className="flex gap-1 items-center" size="sm">
+                                                <AiOutlineBranches /> {profile.branches.length}
+                                            </Button>
+                                        </DialogTrigger>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
                                     See Branches
-                                </TooltipContent>
-                            </Tooltip>
-                        </TooltipProvider>
-                        <TooltipProvider>
-                            <Tooltip>
-                                <TooltipTrigger>
-                                    <Button variant="outline" className="flex gap-1 items-center" size="sm">
-                                        <FaRegFileAlt /> {profile.posts.length}
-                                    </Button>
-                                </TooltipTrigger>
-                                <TooltipContent>
+                                    </TooltipContent>
+                                </Tooltip>
+                            </TooltipProvider>
+                            <DialogContent className="max-w-none w-5/6 max-h-3/4 overflow-y-scroll rounded-md px-1 pb-1 pt-10">
+                                {profile.branches.length > 0 ? 
+                                profile.branches.map(branch => 
+                                    <TimelineBranchCard branch={branch} />
+                                )
+                                : <span className="m-auto pb-10">This user hasn't created any branches yet.</span>}
+                            </DialogContent>
+                        </Dialog>
+                        <Dialog>
+                            <TooltipProvider>
+                                <Tooltip>
+                                    <TooltipTrigger>
+                                        <DialogTrigger asChild>
+                                            <Button variant="outline" className="flex gap-1 items-center" size="sm">
+                                                <FaRegFileAlt /> {profile.posts.length}
+                                            </Button>
+                                        </DialogTrigger>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
                                     See Posts
-                                </TooltipContent>
-                            </Tooltip>
-                        </TooltipProvider>
+                                    </TooltipContent>
+                                </Tooltip>
+                            </TooltipProvider>
+                            <DialogContent className="max-w-none w-5/6 max-h-3/4 overflow-y-scroll rounded-md px-1 pb-1 pt-10">
+                                {profile.posts.length > 0 ?
+                                profile.posts.map(post => 
+                                    <TimelinePostCard post={post} />
+                                )
+                                : <span className="m-auto pb-10">This user hasn't posted anything yet.</span>}
+                            </DialogContent>
+                        </Dialog>
                     </CardDescription>
                 </div>
             </div>
