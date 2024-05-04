@@ -19,7 +19,7 @@ export function ModeToggle() {
         <Tooltip>
           <TooltipTrigger asChild>
             <DropdownMenuTrigger asChild>
-              <Button className="cursor-pointer w-[40px]" variant="outline" size="icon">
+              <Button className="cursor-pointer w-[40px]" size="icon">
                   {theme == 'light' ?
                   <Sun className="w-[40px] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
                   :

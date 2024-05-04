@@ -12,7 +12,7 @@ export default function SignInButton(){
                 <Tooltip>
                     <TooltipTrigger asChild>
                         <DialogTrigger className="w-full">
-                            <Button className="cursor-pointer" variant="outline" size="icon" asChild>
+                            <Button className="cursor-pointer" size="icon" asChild>
                                 <UserRound />
                             </Button>
                         </DialogTrigger>

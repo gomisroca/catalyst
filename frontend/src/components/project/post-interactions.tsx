@@ -17,7 +17,6 @@ export default function PostInteractions({ post }: { post: Post }){
     const [hidden, setHidden] = useState(post.interactions.filter(int => int.type == 'HIDE') || []);
 
     useEffect(() => {
-        console.log(post)
         setLikes(post.interactions.filter(int => int.type == 'LIKE'));
         setShares(post.interactions.filter(int => int.type == 'SHARE'));
         setBookmarks(post.interactions.filter(int => int.type == 'BOOKMARK'));
