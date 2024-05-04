@@ -17,6 +17,9 @@ const passportGoogle = require('../utils/google-oauth2');
 const passportFacebook = require('../utils/fb-oauth2');
 const passportDiscord = require('../utils/discord-oauth2');
 
+const NodeCache = require("node-cache");
+const usersCache = new NodeCache({ stdTTL: 60 * 5 });
+
 interface UserWithInteractions extends User {
     postInteractions: PostInteraction[];
     branchInteractions: BranchInteraction[];
@@ -30,17 +33,9 @@ passportDiscord.authenticate('discord', { session: true }),
         where: { 
             id: req.user.id 
         },
-        include:{
-            postInteractions: {
-                include: {
-                    post: true,
-                }
-            },
-            branchInteractions: {
-                include: {
-                    branch: true,
-                }
-            },
+        include: {
+            postInteractions: true,
+            branchInteractions: true,
         }
     })
 
@@ -54,9 +49,11 @@ passportDiscord.authenticate('discord', { session: true }),
             role: user.role,
             postInteractions: user.postInteractions,
             branchInteractions: user.branchInteractions,
+            followedBy: user.followedBy,
         },
         process.env.JWT_SECRET as jwt.Secret
     );
+    console.log(access_token)
     res.redirect(FRONTEND_ORIGIN + '/jwt?code=' + access_token);
 });
 
@@ -76,17 +73,9 @@ passportFacebook.authenticate('facebook', { session: true }),
         where: { 
             id: req.user.id 
         },
-        include:{
-            postInteractions: {
-                include: {
-                    post: true,
-                }
-            },
-            branchInteractions: {
-                include: {
-                    branch: true,
-                }
-            },
+        include: {
+            postInteractions: true,
+            branchInteractions: true,
         }
     })
 
@@ -100,6 +89,7 @@ passportFacebook.authenticate('facebook', { session: true }),
             role: user.role,
             postInteractions: user.postInteractions,
             branchInteractions: user.branchInteractions,
+            followedBy: user.followedBy,
         },
         process.env.JWT_SECRET as jwt.Secret
     );
@@ -122,17 +112,9 @@ passportGoogle.authenticate('google', { session: true }),
         where: { 
             id: req.user.id 
         },
-        include:{
-            postInteractions: {
-                include: {
-                    post: true,
-                }
-            },
-            branchInteractions: {
-                include: {
-                    branch: true,
-                }
-            },
+        include: {
+            postInteractions: true,
+            branchInteractions: true,
         }
     })
 
@@ -146,6 +128,7 @@ passportGoogle.authenticate('google', { session: true }),
             role: user.role,
             postInteractions: user.postInteractions,
             branchInteractions: user.branchInteractions,
+            followedBy: user.followedBy,
         },
         process.env.JWT_SECRET as jwt.Secret
     );
@@ -168,17 +151,9 @@ router.post('/sign-in', async(req: Request, res: Response) => {
             where: { 
                 email: email
             },
-            include:{
-                postInteractions: {
-                    include: {
-                        post: true,
-                    }
-                },
-                branchInteractions: {
-                    include: {
-                        branch: true,
-                    }
-                },
+            include: {
+                postInteractions: true,
+                branchInteractions: true,
             }
         })
 
@@ -201,6 +176,7 @@ router.post('/sign-in', async(req: Request, res: Response) => {
                     role: existingUser.role,
                     postInteractions: existingUser.postInteractions,
                     branchInteractions: existingUser.branchInteractions,
+                    followedBy: existingUser.followedBy,
                 },
                 process.env.JWT_SECRET as jwt.Secret
             );
@@ -212,17 +188,9 @@ router.post('/sign-in', async(req: Request, res: Response) => {
                     email: email.toLowerCase(),
                     password: encryptedPassword,
                 },
-                include:{
-                    postInteractions: {
-                        include: {
-                            post: true,
-                        }
-                    },
-                    branchInteractions: {
-                        include: {
-                            branch: true,
-                        }
-                    },
+                include: {
+                    postInteractions: true,
+                    branchInteractions: true,
                 }
             }); 
             access_token = jwt.sign(
@@ -235,6 +203,7 @@ router.post('/sign-in', async(req: Request, res: Response) => {
                     role: newUser.role,
                     postInteractions: newUser.postInteractions,
                     branchInteractions: newUser.branchInteractions,
+                    followedBy: newUser.followedBy,
                 },
                 process.env.JWT_SECRET as jwt.Secret
             );
@@ -306,16 +275,8 @@ router.post('/settings', async(req: Request, res: Response) => {
                     password: encryptedPassword
                 },
                 include: {
-                    postInteractions: {
-                        include: {
-                            post: true,
-                        }
-                    },
-                    branchInteractions: {
-                        include: {
-                            branch: true,
-                        }
-                    },
+                    postInteractions: true,
+                    branchInteractions: true,
                 }
             })
             let access_token = jwt.sign(
@@ -327,7 +288,8 @@ router.post('/settings', async(req: Request, res: Response) => {
                     avatar: newUser.avatar,
                     role: newUser.role,
                     postInteractions: newUser.postInteractions,
-                    branchInteractions: newUser.branchInteractions
+                    branchInteractions: newUser.branchInteractions,
+                    followedBy: newUser.followedBy
                 },
                 process.env.JWT_SECRET as jwt.Secret
             );
@@ -351,22 +313,72 @@ RES - 200 - User Data
 */
 router.get('/:id', async(req: Request, res: Response) => {
     try{
+        // if(usersCache.has(req.params.id)){
+        //     return res.send(usersCache.get(req.params.id))
+        // }
         const user: User | null = await prisma.user.findUnique({
             where: {
                 id: req.params.id,
             }, 
             include: {
-                projects: true,
-                branches: true,
-                posts: true,
+                projects: {
+                    include: {
+                        author: true,
+                        permissions: true,
+                    }
+                },
+                branches: {
+                    include: {
+                        author: true,
+                        permissions: true,
+                        project: true,
+                        interactions: {
+                            include: {
+                                user: true,
+                            }
+                        },
+                    }
+                },
+                posts: {
+                    include: {
+                        author: true,
+                        branch: true,
+                        interactions: {
+                            include: {
+                                user: true,
+                            }
+                        },
+                    }
+                },
                 postInteractions: {
                     include: {
-                        post: true,
+                        post: {
+                            include: {
+                                author: true,
+                                branch: true,
+                                interactions: {
+                                    include: {
+                                        user: true,
+                                    }
+                                },
+                            }
+                        }
                     }
                 },
                 branchInteractions: {
                     include: {
-                        branch: true,
+                        branch: {
+                            include: {
+                                author: true,
+                                project: true,
+                                permissions: true,
+                                interactions: {
+                                    include: {
+                                        user: true,
+                                    }
+                                },
+                            }
+                        }
                     }
                 },
             }
@@ -374,7 +386,229 @@ router.get('/:id', async(req: Request, res: Response) => {
         if (!user){
             throw new Error('No user found')
         }
+        // usersCache.set(req.params.id, user);
         return res.send(user);
+    }catch(err){
+        if(err){
+            res.status(500).send(err);
+        }else {
+            throw new Error("An unknown error occurred");
+        }
+    } finally {
+        await prisma.$disconnect();
+    }
+})
+
+/*
+POST - Follow User
+REQ - userId
+RES - 200 - User Data
+*/
+router.post('/:id/follow', async(req: Request, res: Response) => {
+    try{
+        let user: User | null = await prisma.user.findUnique({
+            where: {
+                id: req.params.id,
+            }
+        })
+        let profile: User | null = await prisma.user.findUnique({
+            where: {
+                id: req.body.profileId,
+            }
+        })
+        if (!user || !profile){
+            throw new Error('No user found')
+        }
+
+        profile = await prisma.user.update({
+            where: {
+                id: profile.id
+            },
+            data: {
+                followedBy:{
+                    push: user.id
+                }
+            }
+        })
+
+        profile = await prisma.user.findUnique({
+            where: {
+                id: profile.id,
+            }, 
+            include: {
+                projects: {
+                    include: {
+                        author: true,
+                        permissions: true,
+                    }
+                },
+                branches: {
+                    include: {
+                        author: true,
+                        permissions: true,
+                        project: true,
+                        interactions: {
+                            include: {
+                                user: true,
+                            }
+                        },
+                    }
+                },
+                posts: {
+                    include: {
+                        author: true,
+                        branch: true,
+                        interactions: {
+                            include: {
+                                user: true,
+                            }
+                        },
+                    }
+                },
+                postInteractions: {
+                    include: {
+                        post: {
+                            include: {
+                                author: true,
+                                branch: true,
+                                interactions: {
+                                    include: {
+                                        user: true,
+                                    }
+                                },
+                            }
+                        }
+                    }
+                },
+                branchInteractions: {
+                    include: {
+                        branch: {
+                            include: {
+                                author: true,
+                                project: true,
+                                permissions: true,
+                                interactions: {
+                                    include: {
+                                        user: true,
+                                    }
+                                },
+                            }
+                        }
+                    }
+                },
+            }
+        })
+        return res.send(profile);
+    }catch(err){
+        if(err){
+            res.status(500).send(err);
+        }else {
+            throw new Error("An unknown error occurred");
+        }
+    } finally {
+        await prisma.$disconnect();
+    }
+})
+
+/*
+POST - Unfollow User
+REQ - userId
+RES - 200 - User Data
+*/
+router.post('/:id/unfollow', async(req: Request, res: Response) => {
+    try{
+        let user: User | null = await prisma.user.findUnique({
+            where: {
+                id: req.params.id,
+            }
+        })
+        let profile: User | null = await prisma.user.findUnique({
+            where: {
+                id: req.body.profileId,
+            }
+        })
+        if (!user || !profile){
+            throw new Error('No user found')
+        }
+        const removedProfileArray = profile.followedBy.filter(e => e !== user.id);
+
+        profile = await prisma.user.update({
+            where: {
+                id: profile.id
+            },
+            data: {
+                followedBy: removedProfileArray
+            }
+        })
+
+        profile = await prisma.user.findUnique({
+            where: {
+                id: profile.id,
+            }, 
+            include: {
+                projects: {
+                    include: {
+                        author: true,
+                        permissions: true,
+                    }
+                },
+                branches: {
+                    include: {
+                        author: true,
+                        permissions: true,
+                        project: true,
+                        interactions: {
+                            include: {
+                                user: true,
+                            }
+                        },
+                    }
+                },
+                posts: {
+                    include: {
+                        author: true,
+                        branch: true,
+                        interactions: {
+                            include: {
+                                user: true,
+                            }
+                        },
+                    }
+                },
+                postInteractions: {
+                    include: {
+                        post: {
+                            include: {
+                                author: true,
+                                branch: true,
+                                interactions: {
+                                    include: {
+                                        user: true,
+                                    }
+                                },
+                            }
+                        }
+                    }
+                },
+                branchInteractions: {
+                    include: {
+                        branch: {
+                            include: {
+                                author: true,
+                                project: true,
+                                permissions: true,
+                                interactions: {
+                                    include: {
+                                        user: true,
+                                    }
+                                },
+                            }
+                        }
+                    }
+                },
+            }
+        })
+        return res.send(profile);
     }catch(err){
         if(err){
             res.status(500).send(err);
