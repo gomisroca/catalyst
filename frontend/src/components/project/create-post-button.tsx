@@ -3,10 +3,17 @@ import { FiPlus } from "react-icons/fi";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { PostUploadForm } from "./post-upload-form";
+import { useState } from "react";
 
 export default function CreatePostButton({ branch }: { branch: Branch }){
+    const [open, setOpen] = useState(false);
+
+    const handleSubmitSuccess = () => {
+        setOpen(false)
+    }
+
     return( 
-        <Dialog>
+        <Dialog open={open} onOpenChange={setOpen}>
             <TooltipProvider>
                 <Tooltip>
                     <TooltipTrigger>
@@ -22,7 +29,7 @@ export default function CreatePostButton({ branch }: { branch: Branch }){
                 </Tooltip>
             </TooltipProvider>
             <DialogContent className="w-5/6 rounded-md">
-                <PostUploadForm  branch={branch} />
+                <PostUploadForm onSubmitSuccess={handleSubmitSuccess} branch={branch} />
             </DialogContent>
         </Dialog>
     )

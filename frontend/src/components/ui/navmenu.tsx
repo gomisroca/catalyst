@@ -19,9 +19,15 @@ import { ProjectUploadForm } from "../project/project-upload-form"
 import UserMenuButton from "../user/user-menu-button"
 import SignInButton from "../user/signin-button"
 import { Home } from "lucide-react"
+import { useState } from "react"
 
 export default function Navmenu(){
     const { user } = useUser();
+    const [open, setOpen] = useState(false);
+
+    const handleSubmitSuccess = () => {
+        setOpen(false)
+    }
 
     return(
         <>
@@ -50,7 +56,7 @@ export default function Navmenu(){
                     </DialogContent>
                 </Dialog>
                 {user &&
-                <Dialog>
+                <Dialog open={open} onOpenChange={setOpen}>
                     <TooltipProvider>
                         <Tooltip>
                             <TooltipTrigger asChild>
@@ -66,7 +72,7 @@ export default function Navmenu(){
                         </Tooltip>
                     </TooltipProvider>
                     <DialogContent className="w-5/6 rounded-md">
-                        <ProjectUploadForm />
+                        <ProjectUploadForm onSubmitSuccess={handleSubmitSuccess} />
                     </DialogContent>
                 </Dialog>}
             </div>

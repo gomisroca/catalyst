@@ -18,13 +18,14 @@ import { useState } from "react";
 import { Textarea } from "../ui/textarea";
 
 
-export function PostUploadForm({ branch }: { branch: Branch }) {
+export function PostUploadForm({ branch, onSubmitSuccess }: { branch: Branch, onSubmitSuccess: () => void }) {
     const accessToken = Cookies.get('__catalyst__jwt');
     const [failState, setFailState] = useState<string>();
+    const [successState, setSuccessState] = useState<string>();
 
     const formSchema = z.object({
         content: z.string(),
-        media: z.array(z.any()).max(5),
+        media: z.array(z.any()).max(5).optional(),
     })
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
@@ -32,18 +33,23 @@ export function PostUploadForm({ branch }: { branch: Branch }) {
             content: '',
         },
     });
-
+    
     async function onSubmit(values: z.infer<typeof formSchema>) {
         console.log(values)
         const data = new FormData();
         data.append('content', values.content);
-        Array.from(values.media).map((file) => data.append('media', file));
+        if(values.media){
+            Array.from(values.media).map((file) => data.append('media', file));
+        }
         console.log(data)
         if(accessToken){
             const res = await createPost(accessToken, data, branch)
             if(!res.ok){
                 const fail = await res.json();
                 setFailState(fail)
+            }else{
+                setSuccessState('Posted!')
+                setTimeout(() => onSubmitSuccess(), 2000)
             }
         } else{
             setFailState('Must be logged in.')
@@ -92,6 +98,8 @@ export function PostUploadForm({ branch }: { branch: Branch }) {
                 <Button type="submit" className="mt-4">Submit</Button>
                 {failState &&
                 <div className="text-destructive m-auto">{failState}</div>}
+                {successState &&
+                <div className="m-auto">{successState}</div>}
             </form>
         </Form>
     )

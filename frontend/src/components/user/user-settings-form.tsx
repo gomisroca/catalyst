@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { useUser } from "@/contexts/user-provider"
+import { useState } from "react";
 
 const formSchema = z.object({
     username: z.string(),
@@ -54,6 +55,8 @@ const formSchema = z.object({
 export function UserSettingsForm() {
     const { user } = useUser();
     const accessToken = Cookies.get('__catalyst__jwt');
+    const [failState, setFailState] = useState<string>();
+    const [successState, setSuccessState] = useState<string>();
 
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
@@ -80,7 +83,11 @@ export function UserSettingsForm() {
             },
             body: data
         })
-        if(res.ok){
+        if(!res.ok){
+            const fail = await res.json();
+            setFailState(fail)
+        }else{
+            setSuccessState('Posted!')
             const data = await res.json();
             Cookies.set('__catalyst__jwt', data.access_token);
             window.location.href = '/';
@@ -165,6 +172,10 @@ export function UserSettingsForm() {
                 )}
                 />
                 <Button type="submit">Submit</Button>
+                {failState &&
+                <div className="text-destructive m-auto">{failState}</div>}
+                {successState &&
+                <div className="m-auto">{successState}</div>}
             </form>
         </Form>
        

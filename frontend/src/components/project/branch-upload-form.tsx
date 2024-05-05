@@ -27,10 +27,11 @@ interface BranchData {
     permissions: string[];
 }
 
-export function BranchUploadForm({ project }: { project: Project }) {
+export function BranchUploadForm({ project, onSubmitSuccess }: { project: Project, onSubmitSuccess: () => void }) {
     const { user } = useUser();
     const accessToken = Cookies.get('__catalyst__jwt');
-    const [failState, setFailState] = useState<string>()
+    const [failState, setFailState] = useState<string>();
+    const [successState, setSuccessState] = useState<string>();
     
     const permissions = [
         {id: 'private', label: 'Private'}, 
@@ -68,6 +69,9 @@ export function BranchUploadForm({ project }: { project: Project }) {
             if(!res.ok){
                 const fail = await res.json();
                 setFailState(fail)
+            } else {
+                setSuccessState('Branch created!')
+                setTimeout(() => onSubmitSuccess(), 2000)
             }
         } else{
             setFailState('Must be logged in.')
@@ -176,6 +180,8 @@ export function BranchUploadForm({ project }: { project: Project }) {
                 <Button type="submit" className="mt-4">Submit</Button>
                 {failState &&
                 <div className="text-destructive m-auto">{failState}</div>}
+                {successState &&
+                <div className="m-auto">{successState}</div>}
             </form>
         </Form>
     )

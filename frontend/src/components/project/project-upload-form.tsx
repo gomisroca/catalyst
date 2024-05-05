@@ -18,16 +18,18 @@ import { useState } from "react";
 import { createProject } from "@/lib/projects";
 
 const formSchema = z.object({
-    name: z.string(),
-    description: z.string(),
+    name: z.string().min(1),
+    description: z.string().min(1),
     avatar: z.any(),
     branchName: z.string().optional(),
     branchDescription: z.string().optional(),
 })
 
-export function ProjectUploadForm() {
+export function ProjectUploadForm({onSubmitSuccess}: { onSubmitSuccess: () => void }) {
     const accessToken = Cookies.get('__catalyst__jwt');
-    const [branchFields, setBranchFields] = useState<boolean>(false)
+    const [branchFields, setBranchFields] = useState<boolean>(false);
+    const [failState, setFailState] = useState<string>();
+    const [successState, setSuccessState] = useState<string>();
 
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
@@ -48,7 +50,15 @@ export function ProjectUploadForm() {
         }
         if(accessToken){
             const res = await createProject(accessToken, data);
-            console.log(res)
+            if(!res.ok){
+                const fail = await res.json();
+                setFailState(fail)
+            }else{
+                setSuccessState('Project created!')
+                setTimeout(() => onSubmitSuccess(), 2000)
+            }
+        } else{
+            setFailState('Must be logged in.')
         }
     }
     return (
@@ -140,6 +150,10 @@ export function ProjectUploadForm() {
                 />
                 </>}
                 <Button type="submit" className="mt-4">Submit</Button>
+                {failState &&
+                <div className="text-destructive m-auto">{failState}</div>}
+                {successState &&
+                <div className="m-auto">{successState}</div>}
             </form>
         </Form>
        
