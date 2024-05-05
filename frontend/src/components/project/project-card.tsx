@@ -13,6 +13,12 @@ export function ProjectCard({ project }: { project: Project }) {
                         <AvatarFallback>{project.name[0]}</AvatarFallback>
                     </Avatar>
                     <div>
+                        <CardDescription>
+                            {project.author.nickname || project.author.username}
+                            <Link to={`/profile/${project.author.id}`} className="hover:text-gray-500">
+                                @{project.author.username}
+                            </Link>
+                        </CardDescription>
                         <CardTitle>
                             {project.name}
                         </CardTitle>
