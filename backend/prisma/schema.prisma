@@ -152,4 +152,6 @@ model Project {
   avatar      String?
   branches    Branch[]
   permissions Permissions?
+  activity    Int          @default(0)
+  popularity  Int          @default(0)
 }
