@@ -344,7 +344,7 @@ router.post('/branch/:branch/post', async(req: Request, res: Response) => {
         if(!user){
             throw new Error('No user found')
         }
-        const branch: Branch | null = await prisma.branch.findUnique({
+        let branch: Branch | null = await prisma.branch.findUnique({
             where: {
                 id: req.params.branch
             }
@@ -366,20 +366,27 @@ router.post('/branch/:branch/post', async(req: Request, res: Response) => {
                     authorId: user.id
                 }
             })
-
-            let mediaArray = [];
-            for(const image of files.media){
-                const media = await uploadImage(`projects/${branch.projectId}/branches/${branch.id}/posts`, image, uuidv4());
-                mediaArray.push(media)
+            if(files.media){
+                let mediaArray = [];
+                for(const image of files.media){
+                    const media = await uploadImage(`projects/${branch.projectId}/branches/${branch.id}/posts`, image, uuidv4());
+                    mediaArray.push(media)
+                }
+                post = await prisma.post.update({
+                    where: {
+                        id: post.id
+                    },
+                    data: {
+                        media: mediaArray,
+                    }
+                })
             }
-            post = await prisma.post.update({
+            branch = await prisma.branch.findUnique({
                 where: {
-                    id: post.id
-                },
-                data: {
-                    media: mediaArray,
+                    id: req.params.branch
                 }
             })
+            projectsCache.set(branch.id, branch, 60)
             return res.send(post)
         })
     }catch(err){
