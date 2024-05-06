@@ -63,6 +63,10 @@ interface Branch {
     childBranches: Branch[];
     permissions: Permissions;
     interactions: Interaction[];
+    popularity: number;
+    activity: number;
+    trendingActivity: boolean;
+    trendingPopularity: boolean;
 }
 interface Project {
     id: string
@@ -74,4 +78,8 @@ interface Project {
     author: User;
     branches: Branch[];
     permissions: Permissions;
+    popularity: number;
+    activity: number;
+    trendingActivity: boolean;
+    trendingPopularity: boolean;
 }

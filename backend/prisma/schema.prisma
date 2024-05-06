@@ -121,37 +121,41 @@ model Post {
 }
 
 model Branch {
-  id             String              @id @default(uuid())
-  createdAt      DateTime            @default(now())
-  updatedAt      DateTime            @updatedAt
-  author         User                @relation("author", fields: [authorId], references: [id])
-  authorId       String
-  description    String
-  posts          Post[]
-  default        Boolean             @default(false)
-  parentBranch   Branch?             @relation("ParentChildrenBranch", fields: [parentBranchId], references: [id])
-  parentBranchId String?
-  childBranches  Branch[]            @relation("ParentChildrenBranch")
-  permissions    Permissions?
-  activity       Int                 @default(0)
-  popularity     Int                 @default(0)
-  project        Project             @relation(fields: [projectId], references: [id])
-  projectId      String
-  name           String
-  interactions   BranchInteraction[]
+  id                 String              @id @default(uuid())
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+  author             User                @relation("author", fields: [authorId], references: [id])
+  authorId           String
+  description        String
+  posts              Post[]
+  default            Boolean             @default(false)
+  parentBranch       Branch?             @relation("ParentChildrenBranch", fields: [parentBranchId], references: [id])
+  parentBranchId     String?
+  childBranches      Branch[]            @relation("ParentChildrenBranch")
+  permissions        Permissions?
+  activity           Int                 @default(0)
+  popularity         Int                 @default(0)
+  trendingActivity   Boolean             @default(false)
+  trendingPopularity Boolean             @default(false)
+  project            Project             @relation(fields: [projectId], references: [id])
+  projectId          String
+  name               String
+  interactions       BranchInteraction[]
 }
 
 model Project {
-  id          String       @id @default(uuid())
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
-  author      User         @relation(fields: [authorId], references: [id])
-  authorId    String
-  name        String
-  description String
-  avatar      String?
-  branches    Branch[]
-  permissions Permissions?
-  activity    Int          @default(0)
-  popularity  Int          @default(0)
+  id                 String       @id @default(uuid())
+  createdAt          DateTime     @default(now())
+  updatedAt          DateTime     @updatedAt
+  author             User         @relation(fields: [authorId], references: [id])
+  authorId           String
+  name               String
+  description        String
+  avatar             String?
+  branches           Branch[]
+  permissions        Permissions?
+  activity           Int          @default(0)
+  popularity         Int          @default(0)
+  trendingActivity   Boolean      @default(false)
+  trendingPopularity Boolean      @default(false)
 }
