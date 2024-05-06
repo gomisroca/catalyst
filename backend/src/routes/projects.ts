@@ -7,7 +7,7 @@ import { verifyUser } from '../utils/auth';
 const prisma = new PrismaClient();
 import formidable from 'formidable';
 import { uploadImage } from '../utils/upload-image';
-import { activityPerBranch, getTrending, popularityPerBranch } from '../utils/metrics';
+import { setMetrics} from '../utils/metrics';
 const { v4: uuidv4 } = require('uuid');
 
 const NodeCache = require("node-cache");
@@ -69,101 +69,8 @@ router.get('/', async(req: Request, res: Response) => {
         if (!projects){
             throw new Error('No projects found')
         }
-        let branchesActivity = [];
-        let branchesPopularity = [];
-        let projectActivity = [];
-        let projectPopularity = [];
-        for(const project of projects as ProjectWithBranches[]){
-            const activity = activityPerBranch(project.branches as Branch[])
-            const popularity = popularityPerBranch(project.branches as Branch[])
-
-            for(const branchActivity of activity){
-                branchesActivity.push({branchId: branchActivity.branchId, activity: branchActivity.activityLastWeek})
-                await prisma.branch.update({
-                    where: { 
-                        id: branchActivity.branchId
-                    },
-                    data: {
-                        activity: branchActivity.activityLastWeek,
-                    }
-                })
-            }
-            for(const branchPopularity of popularity){
-                branchesPopularity.push({branchId: branchPopularity.branchId, popularity: branchPopularity.interactionsLastWeek})
-                await prisma.branch.update({
-                    where: { 
-                        id: branchPopularity.branchId
-                    },
-                    data: {
-                        popularity: branchPopularity.interactionsLastWeek,
-                    }
-                })
-            }
-
-            const totalActivity = activity.reduce((total, branch) => {
-                return total + branch.activityLastWeek;
-            }, 0);
-            projectActivity.push({projectId: project.id, activity: totalActivity})
-            const totalPopularity = popularity.reduce((total, branch) => {
-                return total + branch.interactionsLastWeek;
-            }, 0);
-            projectPopularity.push({projectId: project.id, popularity: totalPopularity})
-
-            await prisma.project.update({
-                where: { 
-                    id: project.id
-                },
-                data: {
-                    activity: totalActivity,
-                    popularity: totalPopularity
-                }
-            })
-        }
-        const mostActiveBranches = getTrending(branchesActivity, 'activity');
-        for(const branch of mostActiveBranches){
-            await prisma.branch.update({
-                where: {
-                    id: branch.branchId
-                },
-                data: { 
-                    trendingActivity: true,
-                }
-            })
-        }
-        const mostPopularBranches = getTrending(branchesPopularity, 'popularity');
-        console.log(mostPopularBranches)
-        for(const branch of mostPopularBranches){
-            await prisma.branch.update({
-                where: {
-                    id: branch.branchId
-                },
-                data: { 
-                    trendingPopularity: true,
-                }
-            })
-        }
-        const mostActiveProjects = getTrending(projectActivity, 'activity');
-        for(const project of mostActiveProjects){
-            await prisma.project.update({
-                where: {
-                    id: project.projectId
-                },
-                data: { 
-                    trendingActivity: true,
-                }
-            })
-        }
-        const mostPopularProjects = getTrending(projectPopularity, 'popularity');
-        for(const project of mostPopularProjects){
-            await prisma.project.update({
-                where: {
-                    id: project.projectId
-                },
-                data: { 
-                    trendingPopularity: true,
-                }
-            })
-        }
+        
+        await setMetrics(projects)
 
         projects = await prisma.project.findMany({
             include:{
@@ -204,7 +111,7 @@ router.get('/', async(req: Request, res: Response) => {
             }
         })
 
-        // projectsCache.set('projects', projects)
+        projectsCache.set('projects', projects)
         return res.send(projects);
     }catch(err){
         if(err){
