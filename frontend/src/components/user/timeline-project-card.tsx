@@ -1,6 +1,8 @@
 import { Link } from "react-router-dom";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { Card, CardContent, CardDescription, CardTitle } from "../ui/card";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../ui/tooltip";
+import { BsActivity, BsFire } from "react-icons/bs";
 
 export default function TimelineProjectCard({ project } : { project: Project}){
     return (
@@ -24,10 +26,32 @@ export default function TimelineProjectCard({ project } : { project: Project}){
                             </span>}
                         </Link>
                     </CardDescription>
-                    <CardTitle>
+                    <CardTitle className="flex gap-2">
                         <Link to={`/${project.id}/`}>
                             {project.name} 
                         </Link>
+                        {project.trendingActivity && 
+                        <TooltipProvider>
+                            <Tooltip>
+                                <TooltipTrigger>
+                                    <BsActivity className="text-green-500" />
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                    Active
+                                </TooltipContent>
+                            </Tooltip>
+                        </TooltipProvider>}
+                        {project.trendingPopularity && 
+                        <TooltipProvider>
+                            <Tooltip>
+                                <TooltipTrigger>
+                                    <BsFire className="text-orange-500" />
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                    Popular
+                                </TooltipContent>
+                            </Tooltip>
+                        </TooltipProvider>}
                     </CardTitle>
                     <CardDescription>
                         {`${new Date(project.updatedAt).toLocaleDateString()}`}

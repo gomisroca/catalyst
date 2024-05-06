@@ -6,6 +6,8 @@ import { Link, Outlet, useNavigate, useParams } from "react-router-dom";
 import { useUser } from "@/contexts/user-provider";
 import CreateBranchButton from "@/components/project/create-branch-button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { BsActivity, BsFire } from "react-icons/bs";
 // import { BsFire, BsActivity } from 'react-icons/bs';
 
 export default function Project(){
@@ -13,10 +15,13 @@ export default function Project(){
 
     const { projectId } = useParams();
     const [project, setProject] = useState<Project>();
+    const [branches, setBranches] = useState<Branch[]>();
 
     async function fetchProject(projectId: string){
         const proj: Project = await getProject(projectId);
         setProject(proj)
+        const sortedBranches = proj.branches.sort((a, b) => (b.popularity + b.activity) - (a.popularity + a.activity))
+        setBranches(sortedBranches)
     }
 
     useEffect(() => {
@@ -50,12 +55,30 @@ export default function Project(){
                             @{project.author.username}
                         </Link>
                     </CardDescription>
-                    <CardTitle>
+                    <CardTitle className="flex gap-2">
                         {project.name}
-                        {/* <BsActivity />  if project is in top % of recent activity (posts, branches in last 7 days) */}
-                        {/* <BsFire />  if project is in top % of recent popularity (positive interactions minus negative interactions in last 7 days) */}
-                        
-                        {/* On the top right, buttons to share, bookmark if allowed */}
+                        {project.trendingActivity && 
+                        <TooltipProvider>
+                            <Tooltip>
+                                <TooltipTrigger>
+                                    <BsActivity className="text-green-500" />
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                    Active
+                                </TooltipContent>
+                            </Tooltip>
+                        </TooltipProvider>}
+                        {project.trendingPopularity && 
+                        <TooltipProvider>
+                            <Tooltip>
+                                <TooltipTrigger>
+                                    <BsFire className="text-orange-500" />
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                    Popular
+                                </TooltipContent>
+                            </Tooltip>
+                        </TooltipProvider>}
                     </CardTitle>
                     <CardDescription>
                         {`${new Date(project.updatedAt).toLocaleDateString()}`}
@@ -66,7 +89,7 @@ export default function Project(){
                 {project.description}
             </CardContent>
             <CardFooter className="flex flex-col gap-2">
-                {project.branches.length > 0 ?
+                {branches && branches.length > 0 ?
                 <>
                 <span className="text-lg">Branches</span>
                 <Select onValueChange={e => setSelectedBranch(e)} value={selectedBranch}>
@@ -75,7 +98,7 @@ export default function Project(){
                     </SelectTrigger>
                     <SelectContent>
                         <SelectItem className="hidden" value={'null'}>--</SelectItem>
-                        {project.branches && project.branches.map(branch =>
+                        {branches && branches.map(branch =>
                         branch.permissions.private ?
                             user && (branch.author.id == user.id) &&
                             <SelectItem value={branch.id}>{branch.name}</SelectItem>

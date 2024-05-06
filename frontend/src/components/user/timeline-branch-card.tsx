@@ -2,6 +2,8 @@ import { Link } from "react-router-dom";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { Card, CardContent, CardDescription, CardTitle } from "../ui/card";
 import BranchInteractions from "../project/branch-interactions";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../ui/tooltip";
+import { BsActivity, BsFire } from "react-icons/bs";
 
 export default function TimelineBranchCard({ branch } : { branch: Branch}){
     return (
@@ -31,10 +33,32 @@ export default function TimelineBranchCard({ branch } : { branch: Branch}){
                             {branch.project.name}
                         </Link>
                     </CardDescription>
-                    <CardTitle>
+                    <CardTitle className="flex gap-2">
                         <Link to={`/${branch.project.id}/${branch.id}/`}>
                             {branch.name} 
                         </Link>
+                        {branch.trendingActivity && 
+                        <TooltipProvider>
+                            <Tooltip>
+                                <TooltipTrigger>
+                                    <BsActivity className="text-green-500" />
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                    Active
+                                </TooltipContent>
+                            </Tooltip>
+                        </TooltipProvider>}
+                        {branch.trendingPopularity && 
+                        <TooltipProvider>
+                            <Tooltip>
+                                <TooltipTrigger>
+                                    <BsFire className="text-orange-500" />
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                    Popular
+                                </TooltipContent>
+                            </Tooltip>
+                        </TooltipProvider>}
                     </CardTitle>
                     <CardDescription>
                         {`${new Date(branch.updatedAt).toLocaleDateString()}`}

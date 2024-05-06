@@ -1,6 +1,8 @@
 import { Link } from "react-router-dom";
-import { Card, CardContent, CardDescription, CardFooter, CardTitle } from "../ui/card";
+import { Card, CardContent, CardDescription, CardTitle } from "../ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
+import { BsFire, BsActivity } from 'react-icons/bs';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../ui/tooltip";
 
 export function ProjectCard({ project }: { project: Project }) {
     return (
@@ -19,8 +21,30 @@ export function ProjectCard({ project }: { project: Project }) {
                                 @{project.author.username}
                             </Link>
                         </CardDescription>
-                        <CardTitle>
+                        <CardTitle className="flex gap-2">
                             {project.name}
+                            {project.trendingActivity && 
+                            <TooltipProvider>
+                                <Tooltip>
+                                    <TooltipTrigger>
+                                        <BsActivity className="text-green-500" />
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                        Active
+                                    </TooltipContent>
+                                </Tooltip>
+                            </TooltipProvider>}
+                            {project.trendingPopularity && 
+                            <TooltipProvider>
+                                <Tooltip>
+                                    <TooltipTrigger>
+                                        <BsFire className="text-orange-500" />
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                        Popular
+                                    </TooltipContent>
+                                </Tooltip>
+                            </TooltipProvider>}
                         </CardTitle>
                         <CardDescription>
                             {`${new Date(project.updatedAt).toLocaleDateString()}`}
@@ -30,9 +54,6 @@ export function ProjectCard({ project }: { project: Project }) {
                 <CardContent className="p-4">
                     {project.description}
                 </CardContent>
-                <CardFooter>
-                    Metrics here
-                </CardFooter>
             </Card>
         </Link>
     </>

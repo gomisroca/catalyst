@@ -1,4 +1,4 @@
-import { Card, CardContent, CardDescription, CardFooter, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardTitle } from "@/components/ui/card";
 import { getBranch } from "@/lib/projects";
 import { MdKeyboardArrowRight } from "react-icons/md";
 import { useEffect, useState } from "react"
@@ -8,6 +8,8 @@ import { useUser } from "@/contexts/user-provider";
 import CreatePostButton from "@/components/project/create-post-button";
 import PostMain from "@/components/project/post-main";
 import BranchInteractions from "@/components/project/branch-interactions";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { BsActivity, BsFire } from "react-icons/bs";
 
 export default function Branch(){
     const { user } = useUser();
@@ -45,8 +47,30 @@ export default function Branch(){
                     @{branch.author.username}
                 </Link>
             </CardDescription>
-            <CardTitle className="flex items-center px-4">
+            <CardTitle className="flex items-center px-4 gap-2">
                 {branch.name}
+                {branch.trendingActivity && 
+                <TooltipProvider>
+                    <Tooltip>
+                        <TooltipTrigger>
+                            <BsActivity className="text-green-500" />
+                        </TooltipTrigger>
+                        <TooltipContent>
+                            Active
+                        </TooltipContent>
+                    </Tooltip>
+                </TooltipProvider>}
+                {branch.trendingPopularity && 
+                <TooltipProvider>
+                    <Tooltip>
+                        <TooltipTrigger>
+                            <BsFire className="text-orange-500" />
+                        </TooltipTrigger>
+                        <TooltipContent>
+                            Popular
+                        </TooltipContent>
+                    </Tooltip>
+                </TooltipProvider>}
             </CardTitle>
             <CardDescription className="px-4">
                 {`${new Date(branch.updatedAt).toLocaleDateString()}`}
@@ -92,9 +116,6 @@ export default function Branch(){
                 )}
                 </div>
             </CardContent>
-            <CardFooter>
-                Metrics here
-            </CardFooter>
             <Outlet />
         </Card>}
         </>
