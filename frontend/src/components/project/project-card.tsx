@@ -47,7 +47,7 @@ export function ProjectCard({ project }: { project: Project }) {
                             </TooltipProvider>}
                         </CardTitle>
                         <CardDescription>
-                            {`${new Date(project.updatedAt).toLocaleDateString()}`}
+                            {`${new Date(project.createdAt).toLocaleDateString()}`}
                         </CardDescription>
                     </div>
                 </div>
