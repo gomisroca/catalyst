@@ -40,12 +40,11 @@ function activityPerBranch(branches) {
 function getTrending(data, type){
     if (type == 'activity'){
         const sortedData = data.map(item => item.activity).sort((a, b) => a - b);
-        const median = sortedData[Math.floor(sortedData.length / 2)];
-        
+        const median = Math.floor(sortedData.length / 2);
         return data.filter(item => item.activity >= median);
     } else if (type == 'popularity'){
         const sortedData = data.map(item => item.popularity).sort((a, b) => a - b);
-        const median = sortedData[Math.floor(sortedData.length / 2)];
+        const median = Math.floor(sortedData.length / 2);
         return data.filter(item => item.popularity >= median);
     }
 }
