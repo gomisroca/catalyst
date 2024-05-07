@@ -10,11 +10,20 @@ import PostMain from "@/components/project/post-main";
 import BranchInteractions from "@/components/project/branch-interactions";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { BsActivity, BsFire } from "react-icons/bs";
+import PaginationWrapper from "@/components/pagination-wrapper";
 
 export default function Branch(){
     const { user } = useUser();
     const { projectId, branchId } = useParams();
     const [branch, setBranch] = useState<Branch>();
+    const [paginatedPosts, setPaginatedPosts] = useState<Post[]>();
+    const [page, setPage] = useState<number>(1);
+    const pageCount = 4;
+
+    const handlePageChange = (page: number) => {
+        console.log(page);
+        setPage(page);
+    }
 
     async function fetchBranch(branchId: string){
         const fetchedBranch: Branch = await getBranch(branchId);
@@ -28,6 +37,18 @@ export default function Branch(){
         }
     }, [projectId, branchId])
     
+    useEffect(() => {
+        function paginate(posts: Post[]){
+            const paginated = posts.slice((page - 1) * pageCount, (page) * pageCount)
+            setPaginatedPosts(paginated);
+        }
+
+        if(branch && branch.posts){
+            paginate(branch.posts)
+        }
+    }, [branch, page])
+
+
     const navigate = useNavigate();
     const [selectedBranch, setSelectedBranch] = useState<string>();
     useEffect(() => {
@@ -42,7 +63,7 @@ export default function Branch(){
         {branch &&
         <Card className="p-4 relative">
             <CardDescription className="px-4">
-                {branch.author.nickname || branch.author.username}
+                {branch.author && (branch.author.nickname || branch.author.username)}
                 <Link to={`/profile/${branch.author.id}`} className="hover:text-gray-500">
                     @{branch.author.username}
                 </Link>
@@ -109,9 +130,16 @@ export default function Branch(){
             <CardContent className="p-4">
                 {branch.description}
                 <div className="flex flex-col gap-1 mt-8">
-                {user && (branch.author.id == user.id || branch.permissions.allowCollaborate) &&
-                <CreatePostButton branch={branch} />}
-                {branch.posts && branch.posts.map(post => 
+                    <div className="flex flex-col lg:flex-row items-center gap-1 lg:gap-0">
+                        {user && (branch.author.id == user.id || branch.permissions.allowCollaborate) &&
+                        <CreatePostButton branch={branch} />}
+
+                        {branch.posts && (branch.posts.length > pageCount) &&
+                        <div className="lg:absolute right-0 left-0">
+                        <PaginationWrapper onPageChange={handlePageChange} page={page} data={branch.posts} />
+                        </div>}
+                    </div>
+                {paginatedPosts && paginatedPosts.map(post => 
                     <PostMain post={post} />
                 )}
                 </div>

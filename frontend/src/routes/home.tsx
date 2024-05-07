@@ -1,32 +1,46 @@
+import PaginationWrapper from "@/components/pagination-wrapper";
 import { ProjectCard } from "@/components/project/project-card";
-import { useUser } from "@/contexts/user-provider";
 import { getProjects } from "@/lib/projects";
 import { useEffect, useState } from "react";
 
 export default function Home(){
     const [projects, setProjects] = useState<Project[]>();
-    const { user } = useUser();
+    const [paginatedProjects, setPaginatedProjects] = useState<Project[]>();
+    const [page, setPage] = useState<number>(1);
+    const pageCount = 2;
 
     async function fetchProjects(){
         const projs: Project[] = await getProjects();
-        console.log(projs)
+        // const filteredProjects = projs.filter(proj =>  proj.permissions.private == false);
         setProjects(projs)
     }
 
     useEffect(() => {
-        if(!projects){
-            fetchProjects()
+        fetchProjects();
+    }, [])
+    
+    const handlePageChange = (page: number) => {
+        setPage(page)
+    }
+
+    useEffect(() => {
+        function paginate(projects: Project[]){
+            const paginated = projects.slice((page - 1) * pageCount, (page) * pageCount)
+            setPaginatedProjects(paginated);
         }
-    }, [projects])
+
+        if(projects){
+            paginate(projects)
+        }
+    }, [projects, page])
+
     return(
         <div className="flex flex-col gap-4 w-5/6">
-        {projects && projects.map(project => 
-            project.permissions.private ?
-                user && (project.author.id == user.id) &&
-                    <ProjectCard project={project} />
-            :
-            <ProjectCard project={project} />
-        )}
+            {projects && (projects.length > pageCount) &&
+            <PaginationWrapper onPageChange={handlePageChange} page={page} data={projects} />}
+            {paginatedProjects && paginatedProjects.map(project => 
+                <ProjectCard project={project} />
+            )}
         </div>
     )
 }
