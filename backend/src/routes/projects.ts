@@ -12,12 +12,7 @@ const { v4: uuidv4 } = require('uuid');
 
 const NodeCache = require("node-cache");
 const projectsCache = new NodeCache({ stdTTL: 60 * 5 });
-interface BranchWithPosts extends Branch{
-    posts: Post[]
-}
-interface ProjectWithBranches extends Project{
-    branches: BranchWithPosts[]
-}
+
 /*
 GET - Get All Projects
 REQ - null

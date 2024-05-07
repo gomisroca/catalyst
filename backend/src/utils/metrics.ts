@@ -125,7 +125,6 @@ export async function setMetrics(projects){
         })
     }
     const mostPopularBranches = getTrending(branchesPopularity, 'popularity');
-    console.log(mostPopularBranches)
     for(const branch of mostPopularBranches){
         await prisma.branch.update({
             where: {
