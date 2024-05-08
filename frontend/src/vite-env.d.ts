@@ -13,6 +13,7 @@ interface Interaction {
     type: InteractionType,
     id: string;
     userId: string;
+    user: User;
     postId?: string;
     branchId?: string;
 }
