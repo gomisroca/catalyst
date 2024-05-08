@@ -7,7 +7,6 @@ import { Link } from "react-router-dom";
 
 export default function PostMain({ post }: { post: Post}){
     return(
-        // Need to fix media and carousel for mobile!
         <>
         <Card className="p-4">
             <div className="flex gap-2 items-center">

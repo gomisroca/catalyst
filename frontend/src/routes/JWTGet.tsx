@@ -18,7 +18,6 @@ export default function JWTGet() {
 
     useEffect(() => {
         checkToken();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     return (
