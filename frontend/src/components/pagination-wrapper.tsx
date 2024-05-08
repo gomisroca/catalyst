@@ -8,9 +8,7 @@ PaginationNext,
 PaginationPrevious,
 } from "@/components/ui/pagination"
 
-export default function PaginationWrapper({ page, data, onPageChange }: { page: number; data: unknown[], onPageChange: (page: number) => void }){
-    const pageCount = 2;
-    console.log(Math.ceil(data!.length / pageCount))
+export default function PaginationWrapper({ page, pageCount, data, onPageChange }: { page: number; pageCount: number; data: unknown[], onPageChange: (page: number) => void }){
     return(
         <Card className="w-fit mx-auto">
             <CardContent className="p-0">

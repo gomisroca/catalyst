@@ -8,6 +8,7 @@ import { FaRegFileAlt } from "react-icons/fa";
 import { AiOutlineBranches } from "react-icons/ai";
 import TimelineProjectCard from "./timeline-project-card";
 import { FiFolderPlus } from "react-icons/fi";
+import PaginationWrapper from "../pagination-wrapper";
 
 interface InteractionOrProjectOrBranchOrPost{
     createdAt?: string;
@@ -37,7 +38,24 @@ interface InteractionOrProjectOrBranchOrPost{
 
 export default function ProfileTimeline({ profile }: { profile: User }){
     const [timeline, setTimeline] = useState<(InteractionOrProjectOrBranchOrPost)[]>();
-    
+    const [paginatedTimeline, setPaginatedTimeline] = useState<InteractionOrProjectOrBranchOrPost[]>();
+    const [page, setPage] = useState<number>(1);
+    const pageCount = 5;
+
+    const handlePageChange = (page: number) => {
+        setPage(page);
+    }
+    useEffect(() => {
+        function paginate(timeline: InteractionOrProjectOrBranchOrPost[]){
+            const paginated = timeline.slice((page - 1) * pageCount, (page) * pageCount)
+            setPaginatedTimeline(paginated);
+        }
+
+        if(timeline){
+            paginate(timeline)
+        }
+    }, [timeline, page])
+
     function createTimeline(profile: User): void {
         const unsortedTimeline = [
             ...profile.postInteractions, 
@@ -45,13 +63,13 @@ export default function ProfileTimeline({ profile }: { profile: User }){
             ...profile.projects, 
             ...profile.branches, 
             ...profile.posts];
-        const sortedTimeline = unsortedTimeline.sort((a, b) => {
+        const sortedTimeline: InteractionOrProjectOrBranchOrPost[] = unsortedTimeline.sort((a, b) => {
             const dateA = a.updatedAt || a.createdAt;
             const dateB = b.updatedAt || b.createdAt;
             return dateB.localeCompare(dateA);
         });
-        console.log(sortedTimeline)
-        setTimeline(sortedTimeline);
+        const filteredTimeline = sortedTimeline.filter(obj => obj.type == 'LIKE' || obj.type == 'SHARE' || obj.content || obj.projectId || (obj.name && !obj.projectId));
+        setTimeline(filteredTimeline);
     }
     
     useEffect(() => {
@@ -63,7 +81,9 @@ export default function ProfileTimeline({ profile }: { profile: User }){
 
     return (
         <div className="flex flex-col gap-2">
-            {timeline && timeline.map(obj =>
+            {timeline && (timeline.length > pageCount) &&
+            <PaginationWrapper onPageChange={handlePageChange} page={page} pageCount={pageCount} data={timeline} />}
+            {paginatedTimeline && paginatedTimeline.map(obj =>
             (obj.type == 'LIKE' || obj.type == 'SHARE') ?
                 <Card className="px-0 pt-2 bg-secondary/20 border-none">
                     {obj.type == 'LIKE' &&

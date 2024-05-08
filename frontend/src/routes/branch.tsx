@@ -18,10 +18,9 @@ export default function Branch(){
     const [branch, setBranch] = useState<Branch>();
     const [paginatedPosts, setPaginatedPosts] = useState<Post[]>();
     const [page, setPage] = useState<number>(1);
-    const pageCount = 4;
+    const pageCount = 5;
 
     const handlePageChange = (page: number) => {
-        console.log(page);
         setPage(page);
     }
 
@@ -136,7 +135,7 @@ export default function Branch(){
 
                         {branch.posts && (branch.posts.length > pageCount) &&
                         <div className="lg:absolute right-0 left-0">
-                        <PaginationWrapper onPageChange={handlePageChange} page={page} data={branch.posts} />
+                        <PaginationWrapper onPageChange={handlePageChange} page={page}  pageCount={pageCount} data={branch.posts} />
                         </div>}
                     </div>
                 {paginatedPosts && paginatedPosts.map(post => 

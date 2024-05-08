@@ -7,12 +7,12 @@ export default function Home(){
     const [projects, setProjects] = useState<Project[]>();
     const [paginatedProjects, setPaginatedProjects] = useState<Project[]>();
     const [page, setPage] = useState<number>(1);
-    const pageCount = 2;
+    const pageCount = 5;
 
     async function fetchProjects(){
         const projs: Project[] = await getProjects();
-        // const filteredProjects = projs.filter(proj =>  proj.permissions.private == false);
-        setProjects(projs)
+        const filteredProjects = projs.filter(proj =>  proj.permissions.private == false);
+        setProjects(filteredProjects);
     }
 
     useEffect(() => {
@@ -37,7 +37,7 @@ export default function Home(){
     return(
         <div className="flex flex-col gap-4 w-5/6">
             {projects && (projects.length > pageCount) &&
-            <PaginationWrapper onPageChange={handlePageChange} page={page} data={projects} />}
+            <PaginationWrapper onPageChange={handlePageChange} page={page} pageCount={pageCount} data={projects} />}
             {paginatedProjects && paginatedProjects.map(project => 
                 <ProjectCard project={project} />
             )}
