@@ -61,13 +61,13 @@ export default function Branch(){
         <>
         {branch &&
         <Card className="p-4 relative">
-            <CardDescription className="px-4">
+            <CardDescription className="md:px-4">
                 {branch.author && (branch.author.nickname || branch.author.username)}
                 <Link to={`/profile/${branch.author.id}`} className="hover:text-gray-500">
                     @{branch.author.username}
                 </Link>
             </CardDescription>
-            <CardTitle className="flex items-center px-4 gap-2">
+            <CardTitle className="flex items-center gap-2 md:px-4">
                 {branch.name}
                 {branch.trendingActivity && 
                 <TooltipProvider>
@@ -92,7 +92,7 @@ export default function Branch(){
                     </Tooltip>
                 </TooltipProvider>}
             </CardTitle>
-            <CardDescription className="px-4">
+            <CardDescription className="mb-1 md:px-4">
                 {`${new Date(branch.updatedAt).toLocaleDateString()}`}
             </CardDescription>
             <div className="md:absolute md:right-4 top-4 flex gap-2 items-start md:items-end flex-col">
@@ -126,7 +126,7 @@ export default function Branch(){
                     </div>}
                 </div>
             </div>
-            <CardContent className="p-4">
+            <CardContent className="py-4 px-0 md:px-4">
                 {branch.description}
                 <div className="flex flex-col gap-1 mt-8">
                     <div className="flex flex-col lg:flex-row items-center gap-1 lg:gap-0">
