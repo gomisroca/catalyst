@@ -91,12 +91,14 @@ export default function Project(){
             <CardFooter className="flex flex-col gap-2">
                 {branches && branches.length > 0 ?
                 <>
-                <span className="text-lg">Branches</span>
+                <span className="text-lg ">Branches</span>
                 <Select onValueChange={e => setSelectedBranch(e)} value={selectedBranch}>
                     <SelectTrigger className="w-[280px]">
                         <SelectValue placeholder="Select a branch" />
                     </SelectTrigger>
                     <SelectContent>
+                        {user && (project.author.id == user.id || project.permissions.allowBranch) &&
+                        <CreateBranchButton project={project} />}
                         <SelectItem className="hidden" value={'null'}>--</SelectItem>
                         {branches && branches.map(branch =>
                         branch.permissions.private ?
@@ -109,8 +111,7 @@ export default function Project(){
                 </>
                 :
                 <span>This project has no branches yet.</span>}
-                {user && (project.author.id == user.id || project.permissions.allowBranch) &&
-                <CreateBranchButton project={project} />}
+                
             </CardFooter>
         </Card>}
         <Outlet />

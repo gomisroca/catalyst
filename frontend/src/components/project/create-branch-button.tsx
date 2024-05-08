@@ -16,9 +16,9 @@ export default function CreateBranchButton({ project }: { project: Project }){
         <Dialog open={open} onOpenChange={setOpen}>
             <TooltipProvider>
                 <Tooltip>
-                    <TooltipTrigger>
-                        <DialogTrigger asChild>
-                            <Button variant='outline' className="flex items-center">
+                    <TooltipTrigger className="w-full">
+                        <DialogTrigger asChild className="w-full">
+                            <Button variant='outline' className="flex items-center w-full mb-2">
                                 <FiPlus className="mr-2 h-4 w-4" /> Add Branch
                             </Button>
                         </DialogTrigger>
