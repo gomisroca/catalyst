@@ -119,7 +119,7 @@ export default function Branch(){
                                 <SelectItem value={'null'}>--</SelectItem>
                                 {branch.childBranches.map(branch =>
                                 branch.permissions.private ?
-                                    user && (branch.author.id == user.id) &&
+                                    user && (branch.author.id == user.id || branch.permissions.allowUsers.includes(user.id)) &&
                                     <SelectItem value={branch.id}>{branch.name}</SelectItem>
                                 :
                                 <SelectItem value={branch.id}>{branch.name}</SelectItem>)}

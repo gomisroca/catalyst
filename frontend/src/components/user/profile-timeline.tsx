@@ -71,7 +71,9 @@ export default function ProfileTimeline({ profile }: { profile: User }){
                 const dateB = b.updatedAt || b.createdAt;
                 return dateB.localeCompare(dateA);
             });
-            const filteredTimeline = sortedTimeline.filter(obj => obj.type == 'LIKE' || obj.type == 'SHARE' || obj.content || (obj.projectId && obj.permissions?.private == false) || (obj.name && !obj.projectId && obj.permissions?.private == false));
+            const filteredTimeline = sortedTimeline.filter(obj => obj.type == 'LIKE' || obj.type == 'SHARE' || obj.content || 
+            (obj.projectId && (obj.permissions?.private == false || user && (obj.author?.id == user.id || obj.permissions?.allowUsers.includes(user.id)) ) ) || 
+            (obj.name && !obj.projectId && (obj.permissions?.private == false || user && (obj.author?.id == user.id || obj.permissions?.allowUsers.includes(user.id)) ) ) );
             setTimeline(filteredTimeline);
         }
 

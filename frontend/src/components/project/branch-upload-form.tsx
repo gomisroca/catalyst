@@ -123,7 +123,7 @@ export function BranchUploadForm({ project, onSubmitSuccess }: { project: Projec
                                 <SelectItem value={'none'}>None</SelectItem>
                                 {project.branches.map(branch =>
                                     branch.permissions.private ?
-                                        user && (branch.author.id == user.id) &&
+                                        user && (branch.author.id == user.id || branch.permissions.allowUsers.includes(user.id)) &&
                                         <SelectItem value={branch.id}>{branch.name}</SelectItem>
                                     :
                                     <SelectItem value={branch.id}>{branch.name}</SelectItem>
