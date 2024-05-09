@@ -9,6 +9,7 @@ import { AiOutlineBranches } from "react-icons/ai";
 import TimelineProjectCard from "./timeline-project-card";
 import { FiFolderPlus } from "react-icons/fi";
 import PaginationWrapper from "../pagination-wrapper";
+import { useUser } from "@/contexts/user-provider";
 
 interface InteractionOrProjectOrBranchOrPost{
     createdAt?: string;
@@ -37,6 +38,7 @@ interface InteractionOrProjectOrBranchOrPost{
 }
 
 export default function ProfileTimeline({ profile }: { profile: User }){
+    const { user } = useUser();
     const [timeline, setTimeline] = useState<(InteractionOrProjectOrBranchOrPost)[]>();
     const [paginatedTimeline, setPaginatedTimeline] = useState<InteractionOrProjectOrBranchOrPost[]>();
     const [page, setPage] = useState<number>(1);
@@ -55,29 +57,29 @@ export default function ProfileTimeline({ profile }: { profile: User }){
             paginate(timeline)
         }
     }, [timeline, page])
-
-    function createTimeline(profile: User): void {
-        const unsortedTimeline = [
-            ...profile.postInteractions, 
-            ...profile.branchInteractions, 
-            ...profile.projects, 
-            ...profile.branches, 
-            ...profile.posts];
-        const sortedTimeline: InteractionOrProjectOrBranchOrPost[] = unsortedTimeline.sort((a, b) => {
-            const dateA = a.updatedAt || a.createdAt;
-            const dateB = b.updatedAt || b.createdAt;
-            return dateB.localeCompare(dateA);
-        });
-        const filteredTimeline = sortedTimeline.filter(obj => obj.type == 'LIKE' || obj.type == 'SHARE' || obj.content || obj.projectId || (obj.name && !obj.projectId));
-        setTimeline(filteredTimeline);
-    }
     
     useEffect(() => {
+        function createTimeline(profile: User): void {
+            const unsortedTimeline = [
+                ...profile.postInteractions, 
+                ...profile.branchInteractions, 
+                ...profile.projects, 
+                ...profile.branches, 
+                ...profile.posts];
+            const sortedTimeline: InteractionOrProjectOrBranchOrPost[] = unsortedTimeline.sort((a, b) => {
+                const dateA = a.updatedAt || a.createdAt;
+                const dateB = b.updatedAt || b.createdAt;
+                return dateB.localeCompare(dateA);
+            });
+            const filteredTimeline = sortedTimeline.filter(obj => obj.type == 'LIKE' || obj.type == 'SHARE' || obj.content || (obj.projectId && obj.permissions?.private == false) || (obj.name && !obj.projectId && obj.permissions?.private == false));
+            setTimeline(filteredTimeline);
+        }
+
         if(profile){
             console.log(profile)
             createTimeline(profile)
         }
-    }, [profile])
+    }, [profile, user])
 
     return (
         <div className="flex flex-col gap-2">
