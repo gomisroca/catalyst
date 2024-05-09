@@ -8,6 +8,8 @@ import { useUser } from "@/contexts/user-provider";
 import { useEffect, useState } from "react";
 import { Button } from "../ui/button";
 import { Eye } from "lucide-react";
+import { BsQuestion } from "react-icons/bs";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../ui/tooltip";
 
 export default function PostMain({ post }: { post: Post}){
     const { user } = useUser();
@@ -24,11 +26,21 @@ export default function PostMain({ post }: { post: Post}){
         <>
         <Card className="p-4 relative">
             {hidePost &&
-            <div className="z-10 flex items-center justify-center absolute w-11/12 h-5/6 rounded-md">
+            <div className="z-10 flex items-center justify-center absolute w-11/12 h-5/6 rounded-md gap-1">
                 <Button size={"lg"} onClick={() => setHidePost(false)}>
                     <Eye />
                     Show Post
                 </Button>
+                <TooltipProvider>
+                    <Tooltip>
+                        <TooltipTrigger>
+                            <BsQuestion className="w-5 h-5"/>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                            You either hid or reported this post.
+                        </TooltipContent>
+                    </Tooltip>
+                </TooltipProvider>
             </div>}
             <div className={hidePost ? "blur-md flex gap-2 items-center" : "flex gap-2 items-center"}>
                 <Avatar className="rounded-md">
