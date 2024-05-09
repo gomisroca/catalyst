@@ -28,7 +28,6 @@ export default function Branch(){
     useEffect(() => {
         async function fetchBranch(branchId: string){
             const fetchedBranch: Branch = await getBranch(branchId);
-            console.log(fetchedBranch)
             setBranch(fetchedBranch)    
             const sortedPosts = fetchedBranch.posts.sort((a, b) => b.createdAt.localeCompare(a.createdAt))
             setPosts(sortedPosts);
@@ -133,7 +132,7 @@ export default function Branch(){
                 {branch.description}
                 <div className="flex flex-col gap-1 mt-8">
                     <div className="flex flex-col lg:flex-row items-center gap-1 lg:gap-0">
-                        {user && (branch.author.id == user.id || branch.permissions.allowCollaborate) &&
+                        {user && (branch.author.id == user.id || (branch.permissions.allowCollaborate && branch.project.permissions.allowCollaborate)) &&
                         <CreatePostButton branch={branch} />}
 
                         {branch.posts && (branch.posts.length > pageCount) &&
@@ -142,7 +141,7 @@ export default function Branch(){
                         </div>}
                     </div>
                 {paginatedPosts && paginatedPosts.map(post => 
-                    <PostMain post={post} />
+                    <PostMain post={post} branch={branch} />
                 )}
                 </div>
             </CardContent>

@@ -7,7 +7,7 @@ import { removePostInteractions, updatePostInteractions } from "@/lib/projects";
 import { useEffect, useState } from "react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../ui/dropdown-menu";
 
-export default function PostInteractions({ post }: { post: Post }){
+export default function PostInteractions({ post, branch }: { post: Post, branch: Branch }){
     const { user } = useUser();
     const accessToken = Cookies.get('__catalyst__jwt');
     const [likes, setLikes] = useState(post.interactions.filter(int => int.type == 'LIKE') || []);
@@ -79,6 +79,7 @@ export default function PostInteractions({ post }: { post: Post }){
                     </TooltipContent>
                 </Tooltip>
             </TooltipProvider>
+            {branch.permissions.allowShare && branch.project.permissions.allowShare &&
             <TooltipProvider>
                 <Tooltip>
                     <TooltipTrigger asChild>
@@ -97,7 +98,7 @@ export default function PostInteractions({ post }: { post: Post }){
                         Share
                     </TooltipContent>
                 </Tooltip>
-            </TooltipProvider>
+            </TooltipProvider>}
             <TooltipProvider>
                 <Tooltip>
                     <TooltipTrigger asChild>

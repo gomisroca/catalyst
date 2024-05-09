@@ -79,6 +79,7 @@ export default function BranchInteractions({ branch }: { branch: Branch }){
                     </TooltipContent>
                 </Tooltip>
             </TooltipProvider>
+            {branch.permissions.allowShare && branch.project.permissions.allowShare &&
             <TooltipProvider>
                 <Tooltip>
                     <TooltipTrigger asChild>
@@ -97,7 +98,7 @@ export default function BranchInteractions({ branch }: { branch: Branch }){
                         Share
                     </TooltipContent>
                 </Tooltip>
-            </TooltipProvider>
+            </TooltipProvider>}
             <TooltipProvider>
                 <Tooltip>
                     <TooltipTrigger asChild>

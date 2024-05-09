@@ -14,6 +14,7 @@ import { Eye } from "lucide-react";
 export default function TimelinePostCard({ post } : { post: Post}){
     const { user } = useUser();
     const [hidePost, setHidePost] = useState(false);
+    
     useEffect(() => {
         if(
         user && 
@@ -22,6 +23,7 @@ export default function TimelinePostCard({ post } : { post: Post}){
             setHidePost(true)
         }
     }, [user, post])
+
     return (
         <Card className="p-4 relative">
             {hidePost &&
@@ -88,7 +90,7 @@ export default function TimelinePostCard({ post } : { post: Post}){
                 )}
             </CardFooter>}
             <div className={hidePost ? "blur-md" : ''}>
-                <PostInteractions post={post} />
+                <PostInteractions post={post} branch={post.branch} />
             </div>
         </Card>
     )

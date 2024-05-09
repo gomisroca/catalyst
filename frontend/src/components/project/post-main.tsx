@@ -11,9 +11,10 @@ import { Eye } from "lucide-react";
 import { BsQuestion } from "react-icons/bs";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../ui/tooltip";
 
-export default function PostMain({ post }: { post: Post}){
+export default function PostMain({ post, branch }: { post: Post, branch: Branch}){
     const { user } = useUser();
     const [hidePost, setHidePost] = useState(false);
+    
     useEffect(() => {
         if(
         user && 
@@ -22,6 +23,7 @@ export default function PostMain({ post }: { post: Post}){
             setHidePost(true)
         }
     }, [user, post])
+
     return(
         <>
         <Card className="p-4 relative">
@@ -81,7 +83,7 @@ export default function PostMain({ post }: { post: Post}){
                 )}
             </CardFooter>}
             <div className={hidePost ? 'blur-md' : ''}>
-            <PostInteractions post={post} />
+            <PostInteractions post={post} branch={branch} />
             </div>
         </Card>
         </>

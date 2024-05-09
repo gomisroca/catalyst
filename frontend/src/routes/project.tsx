@@ -114,6 +114,7 @@ export default function Project(){
                         <CreateBranchButton project={project} />}
                         <SelectItem className="hidden" value={'null'}>--</SelectItem>
                         {branches && branches.map(branch =>
+                        branch.permissions.allowBranch &&
                         <SelectItem value={branch.id}>{branch.name}</SelectItem>)}
                     </SelectContent>
                 </Select>

@@ -313,9 +313,9 @@ RES - 200 - User Data
 */
 router.get('/:id', async(req: Request, res: Response) => {
     try{
-        // if(usersCache.has(req.params.id)){
-        //     return res.send(usersCache.get(req.params.id))
-        // }
+        if(usersCache.has(req.params.id)){
+            return res.send(usersCache.get(req.params.id))
+        }
         const user: User | null = await prisma.user.findUnique({
             where: {
                 id: req.params.id,
@@ -331,7 +331,11 @@ router.get('/:id', async(req: Request, res: Response) => {
                     include: {
                         author: true,
                         permissions: true,
-                        project: true,
+                        project: {
+                            include:{
+                                permissions: true,
+                            }
+                        },
                         interactions: {
                             include: {
                                 user: true,
@@ -342,7 +346,16 @@ router.get('/:id', async(req: Request, res: Response) => {
                 posts: {
                     include: {
                         author: true,
-                        branch: true,
+                        branch: {
+                            include: {
+                                permissions: true,
+                                project: {
+                                    include: {
+                                        permissions: true,
+                                    }
+                                }
+                            }
+                        },
                         interactions: {
                             include: {
                                 user: true,
@@ -355,7 +368,16 @@ router.get('/:id', async(req: Request, res: Response) => {
                         post: {
                             include: {
                                 author: true,
-                                branch: true,
+                                branch: {
+                                    include: {
+                                        permissions: true,
+                                        project: {
+                                            include: {
+                                                permissions: true,
+                                            }
+                                        }
+                                    }
+                                },
                                 interactions: {
                                     include: {
                                         user: true,
@@ -370,7 +392,11 @@ router.get('/:id', async(req: Request, res: Response) => {
                         branch: {
                             include: {
                                 author: true,
-                                project: true,
+                                project: {
+                                    include: {
+                                        permissions: true,
+                                    }
+                                },
                                 permissions: true,
                                 interactions: {
                                     include: {
@@ -386,7 +412,7 @@ router.get('/:id', async(req: Request, res: Response) => {
         if (!user){
             throw new Error('No user found')
         }
-        // usersCache.set(req.params.id, user);
+        usersCache.set(req.params.id, user);
         return res.send(user);
     }catch(err){
         if(err){

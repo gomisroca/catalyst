@@ -230,6 +230,11 @@ router.get('/branch/:branch', async(req: Request, res: Response) => {
                             }
                         },
                     }
+                },
+                project:{
+                    include: {
+                        permissions: true,
+                    }
                 }
             }
         })
