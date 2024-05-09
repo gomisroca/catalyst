@@ -8,7 +8,6 @@ import CreateBranchButton from "@/components/project/create-branch-button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { BsActivity, BsFire } from "react-icons/bs";
-// import { BsFire, BsActivity } from 'react-icons/bs';
 
 export default function Project(){
     const { user } = useUser();
@@ -17,18 +16,32 @@ export default function Project(){
     const [project, setProject] = useState<Project>();
     const [branches, setBranches] = useState<Branch[]>();
 
-    async function fetchProject(projectId: string){
-        const proj: Project = await getProject(projectId);
-        setProject(proj)
-        const sortedBranches = proj.branches.sort((a, b) => (b.popularity + b.activity) - (a.popularity + a.activity))
-        setBranches(sortedBranches)
-    }
-
     useEffect(() => {
+        async function fetchProject(projectId: string){
+            const proj: Project = await getProject(projectId);
+            setProject(proj)
+            // Most popular and active branches at the top
+            const sortedBranches = proj.branches.sort((a, b) => (b.popularity + b.activity) - (a.popularity + a.activity))
+            // Then we check that the branches are public or the user is the author
+            const publicBranches = sortedBranches.filter(branch => (branch.permissions.private == false || user && (branch.author.id == user.id)))
+            // If there's a user, of all public or owned branches, we check if the user has reported or hidden them
+            if(user){
+                for(const branch of publicBranches){
+                    if (branch.interactions.filter(int => (int.type == 'REPORT' || int.type == 'HIDE') && int.user.id == user.id).length > 0){
+                        const index = publicBranches.indexOf(branch)
+                        if (index > -1) {
+                            publicBranches.splice(index, 1);
+                        }
+                    }
+                }
+            }
+            setBranches(publicBranches)
+        }
+
         if(projectId){
             fetchProject(projectId)
         }
-    }, [projectId])
+    }, [projectId, user])
 
     const navigate = useNavigate();
     const [selectedBranch, setSelectedBranch] = useState<string>();
@@ -101,16 +114,15 @@ export default function Project(){
                         <CreateBranchButton project={project} />}
                         <SelectItem className="hidden" value={'null'}>--</SelectItem>
                         {branches && branches.map(branch =>
-                        branch.permissions.private ?
-                            user && (branch.author.id == user.id) &&
-                            <SelectItem value={branch.id}>{branch.name}</SelectItem>
-                        :
                         <SelectItem value={branch.id}>{branch.name}</SelectItem>)}
                     </SelectContent>
                 </Select>
                 </>
                 :
-                <span>This project has no branches yet.</span>}
+                <>
+                <span>This project has no branches yet.</span>
+                <CreateBranchButton project={project} />
+                </>}
                 
             </CardFooter>
         </Card>}

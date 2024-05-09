@@ -16,6 +16,7 @@ export default function Branch(){
     const { user } = useUser();
     const { projectId, branchId } = useParams();
     const [branch, setBranch] = useState<Branch>();
+    const [posts, setPosts] = useState<Post[]>();
     const [paginatedPosts, setPaginatedPosts] = useState<Post[]>();
     const [page, setPage] = useState<number>(1);
     const pageCount = 5;
@@ -24,17 +25,19 @@ export default function Branch(){
         setPage(page);
     }
 
-    async function fetchBranch(branchId: string){
-        const fetchedBranch: Branch = await getBranch(branchId);
-        console.log(fetchedBranch)
-        setBranch(fetchedBranch)
-    }
-
     useEffect(() => {
+        async function fetchBranch(branchId: string){
+            const fetchedBranch: Branch = await getBranch(branchId);
+            console.log(fetchedBranch)
+            setBranch(fetchedBranch)    
+            const sortedPosts = fetchedBranch.posts.sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+            setPosts(sortedPosts);
+        }
+
         if(projectId && branchId){
             fetchBranch(branchId)
         }
-    }, [projectId, branchId])
+    }, [user, projectId, branchId])
     
     useEffect(() => {
         function paginate(posts: Post[]){
@@ -42,10 +45,10 @@ export default function Branch(){
             setPaginatedPosts(paginated);
         }
 
-        if(branch && branch.posts){
-            paginate(branch.posts)
+        if(branch && posts){
+            paginate(posts)
         }
-    }, [branch, page])
+    }, [branch, posts, page])
 
 
     const navigate = useNavigate();
