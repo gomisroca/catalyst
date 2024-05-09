@@ -3,12 +3,45 @@ import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { Card, CardContent, CardDescription, CardTitle } from "../ui/card";
 import BranchInteractions from "../project/branch-interactions";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../ui/tooltip";
-import { BsActivity, BsFire } from "react-icons/bs";
+import { BsActivity, BsFire, BsQuestion } from "react-icons/bs";
+import { Button } from "../ui/button";
+import { Eye } from "lucide-react";
+import { useEffect, useState } from "react";
+import { useUser } from "@/contexts/user-provider";
 
 export default function TimelineBranchCard({ branch } : { branch: Branch}){
+    const { user } = useUser();
+    const [hideBranch, setHideBranch] = useState(false);
+
+    useEffect(() => {
+        if(
+        user && 
+        (branch.interactions.filter(int => (int.type == 'REPORT' || int.type == 'HIDE') && 
+        int.user.id == user.id).length > 0)){
+            setHideBranch(true)
+        }
+    }, [user, branch])
+
     return (
         <Card className="p-4 relative">
-            <div className="flex gap-2 items-center">
+            {hideBranch &&
+            <div className="z-10 flex items-center justify-center absolute w-11/12 h-5/6 rounded-md gap-1">
+                <Button size={"lg"} onClick={() => setHideBranch(false)}>
+                    <Eye />
+                    Show Branch
+                </Button>
+                <TooltipProvider>
+                    <Tooltip>
+                        <TooltipTrigger>
+                            <BsQuestion className="w-5 h-5"/>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                            You hid or reported this branch.
+                        </TooltipContent>
+                    </Tooltip>
+                </TooltipProvider>
+            </div>}
+            <div className={hideBranch ? "blur-md flex gap-2 items-center" : "flex gap-2 items-center"}>
                 <Avatar className="rounded-md">
                     <AvatarImage className="rounded-sm" src={`${import.meta.env.VITE_BACKEND_ORIGIN}/${branch.project.avatar}`} />
                     <AvatarFallback>{branch.author.username[0]}</AvatarFallback>
@@ -65,10 +98,12 @@ export default function TimelineBranchCard({ branch } : { branch: Branch}){
                     </CardDescription>
                 </div>
             </div>
-            <CardContent className="p-4">
+            <CardContent className={hideBranch ? "blur-md p-4" : "p-4"}>
                 {branch.description}
             </CardContent>
-            <BranchInteractions branch={branch} />
+            <div className={hideBranch ? "blur-md": ''}>
+                <BranchInteractions branch={branch} />
+            </div>
         </Card>
     )
 }
