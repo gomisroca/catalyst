@@ -37,7 +37,7 @@ export default function PostMain({ post }: { post: Post}){
                             <BsQuestion className="w-5 h-5"/>
                         </TooltipTrigger>
                         <TooltipContent>
-                            You either hid or reported this post.
+                            You hid or reported this post.
                         </TooltipContent>
                     </Tooltip>
                 </TooltipProvider>
