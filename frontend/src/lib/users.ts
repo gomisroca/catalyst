@@ -30,3 +30,14 @@ export async function followUser(userId: string, profileId: string): Promise<Use
     });
     return res.json() as Promise<User>;
 }
+
+export async function getUserFollows(accessToken: string): Promise<User[]> {
+    const res = await fetch(`${import.meta.env.VITE_BACKEND_ORIGIN}/users/follows`, {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${accessToken}`
+        }
+    });
+    return res.json() as Promise<User[]>;
+}

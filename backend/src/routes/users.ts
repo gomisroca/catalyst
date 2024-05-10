@@ -307,6 +307,37 @@ router.post('/settings', async(req: Request, res: Response) => {
 })
 
 /*
+POST - Get User Follows
+REQ - 
+RES - 200 - Multiple User Data
+*/
+router.get('/follows', async(req: Request, res: Response) => {
+    try{
+        const user = await verifyUser(req.header('authorization'));
+        if (!user){
+            throw new Error('No user found')
+        }
+        const follows: User[] | null = await prisma.user.findMany({
+            where: {
+                followedBy: {
+                    has: user.id
+                }
+            }
+        })
+
+        return res.send(follows);
+    }catch(err){
+        if(err){
+            res.status(500).send(err);
+        }else {
+            throw new Error("An unknown error occurred");
+        }
+    } finally {
+        await prisma.$disconnect();
+    }
+})
+
+/*
 GET - Specific User Info
 REQ - email, password
 RES - 200 - User Data
@@ -645,6 +676,5 @@ router.post('/:id/unfollow', async(req: Request, res: Response) => {
         await prisma.$disconnect();
     }
 })
-
 
 module.exports = router;
