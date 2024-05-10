@@ -34,7 +34,7 @@ interface User {
 
 interface Permissions {
     private: boolean;
-    allowUsers: string[];
+    allowedUsers: string[];
     allowCollaborate: boolean;
     allowBranch: boolean;
     allowShare: boolean;
