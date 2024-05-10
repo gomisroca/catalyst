@@ -17,7 +17,7 @@ export default function Home(){
         async function fetchProjects(){
             const projs: Project[] = await getProjects();
             const filteredProjects = projs.filter(proj =>  proj.permissions.private == false || 
-                user && (proj.author.id == user.id || proj.permissions.allowUsers.includes(user.id)) );
+                user && (proj.author.id == user.id || proj.permissions.allowedUsers.includes(user.id)) );
             setProjects(filteredProjects);
         }
         fetchProjects();

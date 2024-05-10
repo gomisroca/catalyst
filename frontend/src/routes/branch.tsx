@@ -28,7 +28,8 @@ export default function Branch(){
     useEffect(() => {
         async function fetchBranch(branchId: string){
             const fetchedBranch: Branch = await getBranch(branchId);
-            setBranch(fetchedBranch)    
+            setBranch(fetchedBranch)
+            console.log(fetchedBranch)
             const sortedPosts = fetchedBranch.posts.sort((a, b) => b.createdAt.localeCompare(a.createdAt))
             setPosts(sortedPosts);
         }
@@ -119,7 +120,7 @@ export default function Branch(){
                                 <SelectItem value={'null'}>--</SelectItem>
                                 {branch.childBranches.map(branch =>
                                 branch.permissions.private ?
-                                    user && (branch.author.id == user.id || branch.permissions.allowUsers.includes(user.id)) &&
+                                    user && (branch.author.id == user.id || branch.permissions.allowedUsers.includes(user.id)) &&
                                     <SelectItem value={branch.id}>{branch.name}</SelectItem>
                                 :
                                 <SelectItem value={branch.id}>{branch.name}</SelectItem>)}

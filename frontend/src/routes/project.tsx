@@ -20,10 +20,11 @@ export default function Project(){
         async function fetchProject(projectId: string){
             const proj: Project = await getProject(projectId);
             setProject(proj)
+            console.log(proj)
             // Most popular and active branches at the top
             const sortedBranches = proj.branches.sort((a, b) => (b.popularity + b.activity) - (a.popularity + a.activity))
             // Then we check that the branches are public or the user is the author
-            const publicBranches = sortedBranches.filter(branch => branch.permissions.private == false || user && (branch.author.id == user.id || branch.permissions.allowUsers.includes(user.id)) )
+            const publicBranches = sortedBranches.filter(branch => branch.permissions.private == false || user && (branch.author.id == user.id || branch.permissions.allowedUsers.includes(user.id)) )
             // If there's a user, of all public or owned branches, we check if the user has reported or hidden them
             if(user){
                 for(const branch of publicBranches){
