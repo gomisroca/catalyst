@@ -31,6 +31,7 @@
     "@types/jsonwebtoken": "^9.0.6",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
+    "cmdk": "^1.0.0",
     "embla-carousel-react": "^8.0.2",
     "js-cookie": "^3.0.5",
     "localforage": "^1.10.0",
