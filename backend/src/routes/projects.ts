@@ -280,9 +280,16 @@ router.post('/', async(req: Request, res: Response) => {
                     authorId: user.id
                 }
             })
+            const permissions = fields.permissions[0].split(',');
+            const allowedUsers = fields.allowedUsers[0].split(',');
             await prisma.permissions.create({
                 data: {
-                    projectId: project.id
+                    projectId: project.id,
+                    allowBranch: permissions.includes('allowBranch'),
+                    allowCollaborate: permissions.includes('allowCollaborate'),
+                    allowShare: permissions.includes('allowShare'),
+                    private: permissions.includes('private'),
+                    allowedUsers: allowedUsers.length > 0 ? allowedUsers : undefined,
                 }
             })
             if(fields.branchName){
@@ -297,7 +304,12 @@ router.post('/', async(req: Request, res: Response) => {
                 })
                 await prisma.permissions.create({
                     data: {
-                        branchId: branch.id
+                        branchId: branch.id,
+                        allowBranch: permissions.includes('allowBranch'),
+                        allowCollaborate: permissions.includes('allowCollaborate'),
+                        allowShare: permissions.includes('allowShare'),
+                        private: permissions.includes('private'),
+                        allowedUsers: allowedUsers.length > 0 ? allowedUsers : undefined,
                     }
                 })
             }
@@ -328,6 +340,10 @@ POST - Create Branch
 REQ - name, description, parentBranch, permissions, projectId
 RES - 200 - Project Data
 */
+interface allowedUser {
+    label: string,
+    value: string
+}
 router.post('/:project/branch', async(req: Request, res: Response) => {
     try{
         const user = await verifyUser(req.header('authorization'));
@@ -335,8 +351,8 @@ router.post('/:project/branch', async(req: Request, res: Response) => {
             throw new Error('No user found')
         }
 
-        const { projectId, name, description, parentBranch, permissions }: 
-        { projectId: string; name: string; description: string; parentBranch: string; permissions: string[]; } = req.body;
+        const { projectId, name, description, parentBranch, permissions, allowedUsers }: 
+        { projectId: string; name: string; description: string; parentBranch: string; permissions: string[]; allowedUsers: allowedUser[] | undefined } = req.body;
         if(!(projectId && name && description && parentBranch && permissions)){
             throw new Error('Invalid inputs')
         }
@@ -362,6 +378,7 @@ router.post('/:project/branch', async(req: Request, res: Response) => {
         await prisma.permissions.create({
             data: {
                 private: permissions.includes('private'),
+                allowedUsers: allowedUsers ? allowedUsers.map(user => user.value) : undefined,
                 allowCollaborate: permissions.includes('allowCollaborate'),
                 allowBranch: permissions.includes('allowBranch'),
                 allowShare: permissions.includes('allowShare'),
