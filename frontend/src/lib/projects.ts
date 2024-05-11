@@ -24,6 +24,16 @@ export async function createProject(accessToken: string, projectData: FormData){
     return res
 }
 
+export async function updateProject(accessToken: string, projectData: FormData, projectId: string){
+    const res = await fetch(`${import.meta.env.VITE_BACKEND_ORIGIN}/projects/${projectId}/`, {
+        method: 'POST',
+        headers: {
+            'Authorization': `Bearer ${accessToken}`
+        },
+        body: projectData
+    })
+    return res
+}
 interface BranchData {
     name: string;
     description: string;
