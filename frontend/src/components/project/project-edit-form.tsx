@@ -22,7 +22,7 @@ import { Checkbox } from "../ui/checkbox";
 const formSchema = z.object({
     name: z.string().min(1),
     description: z.string().min(1),
-    avatar: z.any(),
+    avatar: z.any().optional(),
     permissions: z.array(z.string()),
     allowedUsers: z.array(z.any()).optional(),
 })
