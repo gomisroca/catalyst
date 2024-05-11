@@ -31,9 +31,9 @@ export function ProjectEditForm({ project, onSubmitSuccess }: { project: Project
     const accessToken = Cookies.get('__catalyst__jwt');
     const [failState, setFailState] = useState<string>();
     const [successState, setSuccessState] = useState<string>();
-    const [usePrivate, setUsePrivate] = useState<boolean>(false);
     const [follows, setFollows] = useState<Option[]>([]);
     const trueKeys: string[] = Object.keys(project.permissions).filter(key => project.permissions[key as keyof Permissions] == true);
+    const [usePrivate, setUsePrivate] = useState<boolean>(trueKeys.includes('private'));
 
     useEffect(() => {
         async function getFollows(accessToken: string){
