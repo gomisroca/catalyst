@@ -2,7 +2,7 @@ const express = require('express');
 import { Request, Response } from 'express';
 const router = express.Router();
 
-import { Branch, Post, PrismaClient, Project } from "@prisma/client";
+import { Branch, Permissions, Post, PrismaClient, Project } from "@prisma/client";
 import { verifyUser } from '../utils/auth';
 const prisma = new PrismaClient();
 import formidable from 'formidable';
@@ -188,6 +188,76 @@ router.get('/:id', async(req: Request, res: Response) => {
 })
 
 /*
+POST - Update Project
+REQ - name, description, avatar, permissions
+RES - 200 - Project Data
+*/
+router.post('/:id', async(req: Request, res: Response) => {
+    try{
+        const user = await verifyUser(req.header('authorization'));
+        if(!user){
+            throw new Error('No user found')
+        }
+
+        const form = formidable({});
+        form.parse(req, async(err, fields, files) => {
+            if(err){
+                throw new Error(err)
+            }
+            const currentProject: Project | null = await prisma.project.findUnique({ where: { id: req.params.id }});
+            let project: Project = await prisma.project.update({
+                where: {
+                    id: req.params.id,
+                },
+                data: {
+                    name: fields.name[0] ? fields.name[0] : currentProject.name,
+                    description: fields.description[0] ? fields.description[0] : currentProject.description,
+
+                }
+            })
+            const permissions = fields.permissions[0].split(',');
+            let allowedUsers = [];
+            if(fields.allowedUsers && fields.allowedUsers.length > 0){
+                allowedUsers = fields.allowedUsers[0].split(',');
+            }
+            const currentPermissions: Permissions | null = await prisma.permissions.findUnique({ where: { projectId: project.id }});
+            await prisma.permissions.update({
+                where: {
+                    projectId: project.id,
+                },
+                data: {
+                    allowBranch: permissions.includes('allowBranch'),
+                    allowCollaborate: permissions.includes('allowCollaborate'),
+                    allowShare: permissions.includes('allowShare'),
+                    private: permissions.includes('private'),
+                    allowedUsers: allowedUsers.length > 0 ? allowedUsers : currentPermissions?.allowedUsers,
+                }
+            })
+            if(files && files.avatar){
+                const avatar = await uploadImage(`projects/${project.id}`, files.avatar[0], project.id);
+                project = await prisma.project.update({
+                    where: {
+                        id: project.id
+                    },
+                    data: {
+                        avatar: avatar,
+                    }
+                })
+            }
+            return res.send(project)
+        })
+    }catch(err){
+        if(err){
+            res.status(500).send(err);
+        }else {
+            throw new Error("An unknown error occurred");
+        }
+    } finally {
+        await prisma.$disconnect();
+    }
+})
+
+/*
 GET - Get Specific Branch
 REQ - null
 RES - 200 - Branch Data
@@ -256,8 +326,64 @@ router.get('/branch/:branch', async(req: Request, res: Response) => {
 })
 
 /*
+POST - Update Branch
+REQ - name, description, parentBranch?, permissions, projectId
+RES - 200 - Branch Data
+*/
+router.post('/branch/:branch', async(req: Request, res: Response) => {
+    try{
+        const user = await verifyUser(req.header('authorization'));
+        if(!user){
+            throw new Error('No user found')
+        }
+
+        const { name, description, parentBranch, permissions, allowedUsers }: 
+        { name: string; description: string; parentBranch: string; permissions: string[]; allowedUsers: allowedUser[] | undefined } = req.body;
+        if(!(name && description && parentBranch && permissions)){
+            throw new Error('Invalid inputs')
+        }
+
+        const currentBranch = await prisma.branch.findUnique({ where: { id: req.params.branch } });
+        const branch: Branch = await prisma.branch.update({
+            where: {
+                id: req.params.branch
+            },
+            data: {
+                name: name ? name : currentBranch.name,
+                description: description ? description : currentBranch.description,
+                parentBranchId: parentBranch == 'none' ? null : parentBranch,
+            }
+        })
+
+        const currentPermissions = await prisma.permissions.findUnique({ where: { branchId: req.params.branch } });
+        await prisma.permissions.update({
+            where: {
+                branchId: req.params.branch
+            },
+            data: {
+                private: permissions.includes('private'),
+                allowedUsers: allowedUsers ? allowedUsers.map(user => user.value) : currentPermissions.allowedUsers,
+                allowCollaborate: permissions.includes('allowCollaborate'),
+                allowBranch: permissions.includes('allowBranch'),
+                allowShare: permissions.includes('allowShare'),
+            }
+        })
+
+        return res.send(branch)
+    }catch(err){
+        if(err){
+            res.status(500).send(err);
+        }else {
+            throw new Error("An unknown error occurred");
+        }
+    } finally {
+        await prisma.$disconnect();
+    }
+})
+
+/*
 POST - Create Project
-REQ - name, description, avatar, branchName?, branchDescription?
+REQ - name, description, avatar, permissions, branchName?, branchDescription?
 RES - 200 - Project Data
 */
 router.post('/', async(req: Request, res: Response) => {
@@ -337,7 +463,7 @@ router.post('/', async(req: Request, res: Response) => {
 
 /*
 POST - Create Branch
-REQ - name, description, parentBranch, permissions, projectId
+REQ - name, description, parentBranch?, permissions, projectId
 RES - 200 - Project Data
 */
 interface allowedUser {

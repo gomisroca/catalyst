@@ -38,12 +38,23 @@ interface BranchData {
     name: string;
     description: string;
     parentBranch: string;
-    projectId: string;
+    projectId: string | undefined;
     permissions: string[];
 }
 export async function createBranch(accessToken: string, branchData: BranchData, projectId: string){
-    console.log(projectId)
     const res = await fetch(`${import.meta.env.VITE_BACKEND_ORIGIN}/projects/${projectId}/branch`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${accessToken}`
+        },
+        body: JSON.stringify(branchData)
+    })
+    return res
+}
+
+export async function updateBranch(accessToken: string, branchData: BranchData, branchId: string){
+    const res = await fetch(`${import.meta.env.VITE_BACKEND_ORIGIN}/branch/${branchId}/`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
