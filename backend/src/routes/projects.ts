@@ -337,9 +337,9 @@ router.post('/branch/:branch', async(req: Request, res: Response) => {
             throw new Error('No user found')
         }
 
-        const { name, description, parentBranch, permissions, allowedUsers }: 
-        { name: string; description: string; parentBranch: string; permissions: string[]; allowedUsers: allowedUser[] | undefined } = req.body;
-        if(!(name && description && parentBranch && permissions)){
+        const { name, description, permissions, allowedUsers }: 
+        { name: string; description: string; permissions: string[]; allowedUsers: allowedUser[] | undefined } = req.body;
+        if(!(name && description && permissions)){
             throw new Error('Invalid inputs')
         }
 
@@ -351,10 +351,9 @@ router.post('/branch/:branch', async(req: Request, res: Response) => {
             data: {
                 name: name ? name : currentBranch.name,
                 description: description ? description : currentBranch.description,
-                parentBranchId: parentBranch == 'none' ? null : parentBranch,
             }
         })
-
+        
         const currentPermissions = await prisma.permissions.findUnique({ where: { branchId: req.params.branch } });
         await prisma.permissions.update({
             where: {
