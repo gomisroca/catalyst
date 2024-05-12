@@ -11,8 +11,18 @@ import BranchInteractions from "@/components/project/branch-interactions";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { BsActivity, BsFire } from "react-icons/bs";
 import PaginationWrapper from "@/components/pagination-wrapper";
+import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Pencil } from "lucide-react";
+import { BranchEditForm } from "@/components/project/branch-edit-form";
 
 export default function Branch(){
+    const [open, setOpen] = useState(false);
+
+    const handleSubmitSuccess = () => {
+        setOpen(false)
+    }
+    
     const { user } = useUser();
     const { projectId, branchId } = useParams();
     const [branch, setBranch] = useState<Branch>();
@@ -94,6 +104,26 @@ export default function Branch(){
                         </TooltipContent>
                     </Tooltip>
                 </TooltipProvider>}
+                {user && user.id == branch.author.id &&
+                <Dialog open={open} onOpenChange={setOpen}>
+                    <TooltipProvider>
+                        <Tooltip>
+                            <TooltipTrigger className="w-16">
+                                <DialogTrigger asChild>
+                                    <Button variant='outline'>
+                                        <Pencil className="h-4 w-4" />
+                                    </Button>
+                                </DialogTrigger>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                                Edit Project
+                            </TooltipContent>
+                        </Tooltip>
+                    </TooltipProvider>
+                    <DialogContent className="w-5/6 rounded-md">
+                        <BranchEditForm onSubmitSuccess={handleSubmitSuccess} branch={branch} />
+                    </DialogContent>
+                </Dialog>}
             </CardTitle>
             <CardDescription className="mb-1 md:px-4">
                 {`${new Date(branch.updatedAt).toLocaleDateString()}`}

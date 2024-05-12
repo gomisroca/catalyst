@@ -8,8 +8,18 @@ import CreateBranchButton from "@/components/project/create-branch-button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { BsActivity, BsFire } from "react-icons/bs";
+import { Button } from "@/components/ui/button";
+import { Pencil } from "lucide-react";
+import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import { ProjectEditForm } from "@/components/project/project-edit-form";
 
 export default function Project(){
+    const [open, setOpen] = useState(false);
+
+    const handleSubmitSuccess = () => {
+        setOpen(false)
+    }
+
     const { user } = useUser();
 
     const { projectId } = useParams();
@@ -93,6 +103,26 @@ export default function Project(){
                                 </TooltipContent>
                             </Tooltip>
                         </TooltipProvider>}
+                        {user && user.id == project.author.id &&
+                        <Dialog open={open} onOpenChange={setOpen}>
+                            <TooltipProvider>
+                                <Tooltip>
+                                    <TooltipTrigger className="w-16">
+                                        <DialogTrigger asChild>
+                                            <Button variant='outline'>
+                                                <Pencil className="h-4 w-4" />
+                                            </Button>
+                                        </DialogTrigger>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                        Edit Project
+                                    </TooltipContent>
+                                </Tooltip>
+                            </TooltipProvider>
+                            <DialogContent className="w-5/6 rounded-md">
+                                <ProjectEditForm onSubmitSuccess={handleSubmitSuccess} project={project} />
+                            </DialogContent>
+                        </Dialog>}
                     </CardTitle>
                     <CardDescription>
                         {`${new Date(project.updatedAt).toLocaleDateString()}`}
