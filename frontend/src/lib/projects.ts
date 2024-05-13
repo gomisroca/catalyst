@@ -80,6 +80,16 @@ export async function createPost(accessToken: string, postData: FormData, branch
     return res
 }
 
+export async function updatePost(accessToken: string, postData: FormData, postId: string){
+    const res = await fetch(`${import.meta.env.VITE_BACKEND_ORIGIN}/projects/post/${postId}/`, {
+        method: 'POST',
+        headers: {
+            'Authorization': `Bearer ${accessToken}`
+        },
+        body: postData
+    })
+    return res
+}
 interface InteractionData{
     type: string;
 }

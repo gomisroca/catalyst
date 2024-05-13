@@ -189,7 +189,7 @@ router.get('/:id', async(req: Request, res: Response) => {
 
 /*
 POST - Update Project
-REQ - name, description, avatar, permissions
+REQ - name, description, avatar?, permissions
 RES - 200 - Project Data
 */
 router.post('/:id', async(req: Request, res: Response) => {
@@ -327,7 +327,7 @@ router.get('/branch/:branch', async(req: Request, res: Response) => {
 
 /*
 POST - Update Branch
-REQ - name, description, parentBranch?, permissions, projectId
+REQ - name, description, permissions, projectId
 RES - 200 - Branch Data
 */
 router.post('/branch/:branch', async(req: Request, res: Response) => {
@@ -525,7 +525,7 @@ router.post('/:project/branch', async(req: Request, res: Response) => {
 
 /*
 POST - Create Post
-REQ - content, media
+REQ - content, media?
 RES - 200 - Post Data
 */
 router.post('/branch/:branch/post', async(req: Request, res: Response) => {
@@ -556,7 +556,7 @@ router.post('/branch/:branch/post', async(req: Request, res: Response) => {
                     authorId: user.id
                 }
             })
-            if(files.media){
+            if(files && files.media){
                 let mediaArray = [];
                 for(const image of files.media){
                     const media = await uploadImage(`projects/${branch.projectId}/branches/${branch.id}/posts`, image, uuidv4());
@@ -574,6 +574,41 @@ router.post('/branch/:branch/post', async(req: Request, res: Response) => {
             branch = await prisma.branch.findUnique({
                 where: {
                     id: req.params.branch
+                },
+                include: {
+                    author: true,
+                    permissions: true,
+                    interactions: {
+                        include: {
+                            user: true,
+                        }
+                    },
+                    childBranches: {
+                        include: {
+                            permissions: true,
+                            interactions: {
+                                include: {
+                                    user: true,
+                                }
+                            },
+                        }
+                    },
+                    parentBranch: true,
+                    posts: {
+                        include: {
+                            author: true,
+                            interactions: {
+                                include: {
+                                    user: true,
+                                }
+                            },
+                        }
+                    },
+                    project:{
+                        include: {
+                            permissions: true,
+                        }
+                    }
                 }
             })
             projectsCache.set(branch.id, branch, 60)
@@ -765,6 +800,109 @@ router.delete('/branch/:branch/interactions', async(req: Request, res: Response)
             }
         })
         res.send(branch)
+    }catch(err){
+        if(err){
+            res.status(500).send(err);
+        }else {
+            throw new Error("An unknown error occurred");
+        }
+    } finally {
+        await prisma.$disconnect();
+    }
+})
+
+/*
+POST - Update Post
+REQ - content, media?
+RES - 200
+*/
+interface PostWithBranch extends Post{
+    branch: Branch
+}
+router.post('/post/:post/', async(req: Request, res: Response) => {
+    try{
+        const user = await verifyUser(req.header('authorization'));
+        if(!user){
+            throw new Error('No user found')
+        }
+        const form = formidable({});
+        form.parse(req, async(err, fields, files) => {
+            if(err){
+                throw new Error(err)
+            }
+
+            const post: PostWithBranch = await prisma.post.update({
+                where: {
+                    id: req.params.post
+                },
+                data: {
+                    content: fields.content[0],
+                },
+                include:{
+                    branch: true
+                }
+            })
+
+            if(files.media){
+                let mediaArray = [];
+                for(const image of files.media){
+                    const media = await uploadImage(`projects/${post.branch.projectId}/branches/${post.branch.id}/posts`, image, uuidv4());
+                    mediaArray.push(media)
+                }
+                await prisma.post.update({
+                    where: {
+                        id: post.id
+                    },
+                    data: {
+                        media: mediaArray,
+                    }
+                })
+            }
+
+            const branch = await prisma.branch.findUnique({
+                where: {
+                    id: post.branch.id
+                },
+                include: {
+                    author: true,
+                    permissions: true,
+                    interactions: {
+                        include: {
+                            user: true,
+                        }
+                    },
+                    childBranches: {
+                        include: {
+                            permissions: true,
+                            interactions: {
+                                include: {
+                                    user: true,
+                                }
+                            },
+                        }
+                    },
+                    parentBranch: true,
+                    posts: {
+                        include: {
+                            author: true,
+                            interactions: {
+                                include: {
+                                    user: true,
+                                }
+                            },
+                        }
+                    },
+                    project:{
+                        include: {
+                            permissions: true,
+                        }
+                    }
+                }
+            })
+            projectsCache.set(branch.id, branch, 60)
+            return res.send(post)
+        })
+
     }catch(err){
         if(err){
             res.status(500).send(err);
