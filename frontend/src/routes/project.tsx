@@ -107,9 +107,9 @@ export default function Project(){
                         <Dialog open={open} onOpenChange={setOpen}>
                             <TooltipProvider>
                                 <Tooltip>
-                                    <TooltipTrigger className="w-16">
+                                    <TooltipTrigger asChild>
                                         <DialogTrigger asChild>
-                                            <Button variant='outline'>
+                                            <Button variant='outline' size="icon">
                                                 <Pencil className="h-4 w-4" />
                                             </Button>
                                         </DialogTrigger>
@@ -124,8 +124,28 @@ export default function Project(){
                             </DialogContent>
                         </Dialog>}
                     </CardTitle>
-                    <CardDescription>
-                        {`${new Date(project.updatedAt).toLocaleDateString()}`}
+                    <CardDescription className="flex gap-1">
+                        <TooltipProvider>
+                            <Tooltip>
+                                <TooltipTrigger className="cursor-default">
+                                    {`${new Date(project.createdAt).toLocaleDateString()}`} 
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                    Created
+                                </TooltipContent>
+                            </Tooltip>
+                        </TooltipProvider>
+                        • 
+                        <TooltipProvider>
+                            <Tooltip>
+                                <TooltipTrigger className="cursor-default">
+                                    {`${new Date(project.updatedAt).toLocaleDateString()}`}
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                    Updated
+                                </TooltipContent>
+                            </Tooltip>
+                        </TooltipProvider>
                     </CardDescription>
                 </div>
             </div>

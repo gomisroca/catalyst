@@ -108,9 +108,9 @@ export default function Branch(){
                 <Dialog open={open} onOpenChange={setOpen}>
                     <TooltipProvider>
                         <Tooltip>
-                            <TooltipTrigger className="w-16">
+                            <TooltipTrigger asChild>
                                 <DialogTrigger asChild>
-                                    <Button variant='outline'>
+                                    <Button variant='outline' size="icon">
                                         <Pencil className="h-4 w-4" />
                                     </Button>
                                 </DialogTrigger>
@@ -125,8 +125,28 @@ export default function Branch(){
                     </DialogContent>
                 </Dialog>}
             </CardTitle>
-            <CardDescription className="mb-1 md:px-4">
-                {`${new Date(branch.updatedAt).toLocaleDateString()}`}
+            <CardDescription className="flex gap-1 mb-1 md:px-4">
+                <TooltipProvider>
+                    <Tooltip>
+                        <TooltipTrigger className="cursor-default">
+                            {`${new Date(branch.createdAt).toLocaleDateString()}`} 
+                        </TooltipTrigger>
+                        <TooltipContent>
+                            Created
+                        </TooltipContent>
+                    </Tooltip>
+                </TooltipProvider>
+                • 
+                <TooltipProvider>
+                    <Tooltip>
+                        <TooltipTrigger className="cursor-default">
+                            {`${new Date(branch.updatedAt).toLocaleDateString()}`}
+                        </TooltipTrigger>
+                        <TooltipContent>
+                            Updated
+                        </TooltipContent>
+                    </Tooltip>
+                </TooltipProvider>
             </CardDescription>
             <div className="md:absolute md:right-4 top-4 flex gap-2 items-start md:items-end flex-col">
                 <BranchInteractions branch={branch} />

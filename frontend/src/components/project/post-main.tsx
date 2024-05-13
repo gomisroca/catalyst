@@ -7,11 +7,17 @@ import { Link } from "react-router-dom";
 import { useUser } from "@/contexts/user-provider";
 import { useEffect, useState } from "react";
 import { Button } from "../ui/button";
-import { Eye } from "lucide-react";
+import { Eye, Pencil } from "lucide-react";
 import { BsQuestion } from "react-icons/bs";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../ui/tooltip";
+import { PostEditForm } from "./post-edit-form";
 
 export default function PostMain({ post, branch }: { post: Post, branch: Branch}){
+    const [open, setOpen] = useState(false);
+    const handleSubmitSuccess = () => {
+        setOpen(false)
+    }
+
     const { user } = useUser();
     const [hidePost, setHidePost] = useState(false);
     
@@ -50,7 +56,7 @@ export default function PostMain({ post, branch }: { post: Post, branch: Branch}
                     <AvatarFallback>{post.author.username[0]}</AvatarFallback>
                 </Avatar>
                 <div>
-                    <CardTitle className="text-lg gap-1 flex">
+                    <CardTitle className="text-lg gap-1 flex items-center">
                         {post.author.nickname ?
                         <span>{post.author.nickname}</span>
                         :
@@ -58,9 +64,49 @@ export default function PostMain({ post, branch }: { post: Post, branch: Branch}
                         <Link to={`/profile/${post.author.id}`}>
                             <span className="text-gray-500 hover:text-gray-600 cursor-pointer">@{post.author.username}</span>
                         </Link>
+                        {user && user.id == post.author.id &&
+                        <Dialog open={open} onOpenChange={setOpen}>
+                            <TooltipProvider>
+                                <Tooltip>
+                                    <TooltipTrigger asChild>
+                                        <DialogTrigger asChild>
+                                            <Button variant='outline' size="icon">
+                                                <Pencil className="h-4 w-4" />
+                                            </Button>
+                                        </DialogTrigger>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                        Edit Project
+                                    </TooltipContent>
+                                </Tooltip>
+                            </TooltipProvider>
+                            <DialogContent className="w-5/6 rounded-md">
+                                <PostEditForm onSubmitSuccess={handleSubmitSuccess} post={post} />
+                            </DialogContent>
+                        </Dialog>}
                     </CardTitle>
-                    <CardDescription>
-                        {`${new Date(post.updatedAt).toLocaleDateString()}`}
+                    <CardDescription className="flex gap-1">
+                        <TooltipProvider>
+                            <Tooltip>
+                                <TooltipTrigger className="cursor-default">
+                                    {`${new Date(post.createdAt).toLocaleDateString()}`} 
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                    Created
+                                </TooltipContent>
+                            </Tooltip>
+                        </TooltipProvider>
+                        • 
+                        <TooltipProvider>
+                            <Tooltip>
+                                <TooltipTrigger className="cursor-default">
+                                    {`${new Date(post.updatedAt).toLocaleDateString()}`}
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                    Updated
+                                </TooltipContent>
+                            </Tooltip>
+                        </TooltipProvider>
                     </CardDescription>
                 </div>
             </div>
