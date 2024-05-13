@@ -19,14 +19,17 @@ export default function PostMain({ post, branch }: { post: Post, branch: Branch}
     }
 
     const { user } = useUser();
-    const [hidePost, setHidePost] = useState(false);
+    const [hidePost, setHidePost] = useState<string | undefined>(undefined);
     
     useEffect(() => {
         if(
         user && 
-        (post.interactions.filter(int => (int.type == 'REPORT' || int.type == 'HIDE') && 
+        (post.interactions.filter(int => (
+        int.type == 'REPORT' || int.type == 'HIDE') && 
         int.user.id == user.id).length > 0)){
-            setHidePost(true)
+            setHidePost('You hid or reported this post.')
+        } else if (post.interactions.filter(int => int.type == 'REPORT').length >= 10){
+            setHidePost('This post has been flagged by the community.')
         }
     }, [user, post])
 
@@ -35,7 +38,7 @@ export default function PostMain({ post, branch }: { post: Post, branch: Branch}
         <Card className="p-4 relative">
             {hidePost &&
             <div className="z-10 flex items-center justify-center absolute w-11/12 h-5/6 rounded-md gap-1">
-                <Button size={"lg"} onClick={() => setHidePost(false)}>
+                <Button size={"lg"} onClick={() => setHidePost(undefined)}>
                     <Eye />
                     Show Post
                 </Button>
@@ -45,7 +48,7 @@ export default function PostMain({ post, branch }: { post: Post, branch: Branch}
                             <BsQuestion className="w-5 h-5"/>
                         </TooltipTrigger>
                         <TooltipContent>
-                            You hid or reported this post.
+                            {hidePost}
                         </TooltipContent>
                     </Tooltip>
                 </TooltipProvider>
