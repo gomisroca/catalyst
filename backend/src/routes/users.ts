@@ -322,6 +322,94 @@ router.get('/follows', async(req: Request, res: Response) => {
                 followedBy: {
                     has: user.id
                 }
+            },
+            include: {
+                projects: {
+                    include: {
+                        author: true,
+                        permissions: true,
+                    }
+                },
+                branches: {
+                    include: {
+                        author: true,
+                        permissions: true,
+                        project: {
+                            include:{
+                                permissions: true,
+                            }
+                        },
+                        interactions: {
+                            include: {
+                                user: true,
+                            }
+                        },
+                    }
+                },
+                posts: {
+                    include: {
+                        author: true,
+                        branch: {
+                            include: {
+                                permissions: true,
+                                project: {
+                                    include: {
+                                        permissions: true,
+                                    }
+                                }
+                            }
+                        },
+                        interactions: {
+                            include: {
+                                user: true,
+                            }
+                        },
+                    }
+                },
+                postInteractions: {
+                    include: {
+                        post: {
+                            include: {
+                                author: true,
+                                branch: {
+                                    include: {
+                                        permissions: true,
+                                        project: {
+                                            include: {
+                                                permissions: true,
+                                            }
+                                        }
+                                    }
+                                },
+                                interactions: {
+                                    include: {
+                                        user: true,
+                                    }
+                                },
+                            }
+                        }
+                    }
+                },
+                branchInteractions: {
+                    include: {
+                        branch: {
+                            include: {
+                                author: true,
+                                project: {
+                                    include: {
+                                        permissions: true,
+                                    }
+                                },
+                                permissions: true,
+                                interactions: {
+                                    include: {
+                                        user: true,
+                                    }
+                                },
+                            }
+                        }
+                    }
+                },
             }
         })
 
