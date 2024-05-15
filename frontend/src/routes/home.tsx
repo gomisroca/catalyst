@@ -1,52 +1,36 @@
-import PaginationWrapper from "@/components/pagination-wrapper";
-import { ProjectCard } from "@/components/project/project-card";
-import { useUser } from "@/contexts/user-provider";
-import { getProjects } from "@/lib/projects";
-import { useEffect, useState } from "react";
+import HomeBasic from "@/components/home/basic"
+import HomeTimeline from "@/components/home/timeline";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { useUser } from "@/contexts/user-provider"
 
 export default function Home(){
     const { user } = useUser();
-    const [projects, setProjects] = useState<Project[]>();
-    const [paginatedProjects, setPaginatedProjects] = useState<Project[]>();
-    const [page, setPage] = useState<number>(1);
-    const pageCount = 5;
-
-
-
-    useEffect(() => {
-        async function fetchProjects(){
-            const projs: Project[] = await getProjects();
-            const filteredProjects = projs.filter(proj =>  proj.permissions.private == false || 
-                user && (proj.author.id == user.id || proj.permissions.allowedUsers.includes(user.id)) );
-            setProjects(filteredProjects);
-        }
-        fetchProjects();
-    }, [user])
-    
-    const handlePageChange = (page: number) => {
-        setPage(page)
-    }
-
-    useEffect(() => {
-        function paginate(projects: Project[]){
-            const paginated = projects.slice((page - 1) * pageCount, (page) * pageCount)
-            setPaginatedProjects(paginated);
-        }
-
-        if(projects){
-            paginate(projects)
-        }
-    }, [projects, page])
 
     return(
-        <div className="flex flex-col gap-4 w-5/6">
-            {projects && (projects.length > pageCount) &&
-            <PaginationWrapper onPageChange={handlePageChange} page={page} pageCount={pageCount} data={projects} />}
-            {paginatedProjects && paginatedProjects.map(project => 
-                <div key={project.id}>
-                    <ProjectCard project={project} />
-                </div>
-            )}
-        </div>
+        <Tabs defaultValue="basic" className="w-full flex flex-col items-center">
+            <TabsList className="self-center w-3/4">
+                <TabsTrigger value="basic" className="w-1/2">Home</TabsTrigger>
+                {!user && 
+                <TooltipProvider>
+                    <Tooltip>
+                        <TooltipTrigger className="w-1/2 cursor-default">
+                                <TabsTrigger disabled value="timeline">For You</TabsTrigger>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                            You must be logged in to see your timeline.
+                        </TooltipContent>
+                    </Tooltip>
+                </TooltipProvider>}
+                {user && 
+                <TabsTrigger value="timeline" className="w-1/2">For You</TabsTrigger>}
+            </TabsList>
+            <TabsContent value="basic" className="w-full">
+                <HomeBasic />
+            </TabsContent>
+            <TabsContent value="timeline" className="w-full">
+                <HomeTimeline />
+            </TabsContent>
+        </Tabs>
     )
 }
