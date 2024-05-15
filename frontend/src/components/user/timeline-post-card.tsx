@@ -77,7 +77,7 @@ export default function TimelinePostCard({ post } : { post: Post}){
             {post.media &&
             <CardFooter className={hidePost ? "blur-md gap-2 grid grid-cols-2 lg:grid-cols-5 px-0 pt-2 pb-4" : "gap-2 grid grid-cols-2 lg:grid-cols-5 px-0 pt-2 pb-4"}>
                 {post.media.map(media =>
-                <Dialog>
+                <Dialog key={media}>
                     <DialogTrigger>
                         <div className="rounded-md w-full lg:w-[130px] xl:w-[200px] 2xl:w-[300px] h-[80px] lg:h-[100px] 2xl:h-[125px] overflow-hidden items-center flex">
                             <img className="rounded-md self-center" src={`${import.meta.env.VITE_BACKEND_ORIGIN}/${media}`} />

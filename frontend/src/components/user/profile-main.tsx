@@ -107,8 +107,10 @@ export default function Profile(){
                             </TooltipProvider>
                             <DialogContent className="max-w-none w-5/6 max-h-3/4 overflow-y-scroll rounded-md px-1 pb-1 pt-10">
                                 {profile.projects.length > 0 ?
-                                profile.projects.map(project => 
-                                    <TimelineProjectCard project={project} />
+                                profile.projects.map(project =>
+                                    <div key={project.id}>
+                                        <TimelineProjectCard project={project} />
+                                    </div>
                                 )
                                 : <span className="m-auto pb-10">This user hasn't created any projects yet.</span>}
                             </DialogContent>
@@ -131,7 +133,9 @@ export default function Profile(){
                             <DialogContent className="max-w-none w-5/6 max-h-3/4 overflow-y-scroll rounded-md px-1 pb-1 pt-10">
                                 {profile.branches.length > 0 ? 
                                 profile.branches.map(branch => 
-                                    <TimelineBranchCard branch={branch} />
+                                    <div key={branch.id}>
+                                        <TimelineBranchCard branch={branch} />
+                                    </div>
                                 )
                                 : <span className="m-auto pb-10">This user hasn't created any branches yet.</span>}
                             </DialogContent>
@@ -154,7 +158,9 @@ export default function Profile(){
                             <DialogContent className="max-w-none w-5/6 max-h-3/4 overflow-y-scroll rounded-md px-1 pb-1 pt-10">
                                 {profile.posts.length > 0 ?
                                 profile.posts.map(post => 
-                                    <TimelinePostCard post={post} />
+                                    <div key={post.id}>
+                                        <TimelinePostCard post={post} />
+                                    </div>
                                 )
                                 : <span className="m-auto pb-10">This user hasn't posted anything yet.</span>}
                             </DialogContent>
@@ -164,10 +170,6 @@ export default function Profile(){
             </div>
             <CardContent className="p-0 xl:p-4">
                 <ProfileTimeline profile={profile} />
-                {/* OUTLET
-                Here the timeline of last activity '/'
-                it switches to see the projects, branches, posts when clicked '/projects' '/branches' '/posts'
-                it switches to see the people they follow/who follow them when clicked '/follows' '/followers' */}
             </CardContent>
             </Card>}
         </>

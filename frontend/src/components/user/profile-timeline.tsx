@@ -89,7 +89,7 @@ export default function ProfileTimeline({ profile }: { profile: User }){
             <PaginationWrapper onPageChange={handlePageChange} page={page} pageCount={pageCount} data={timeline} />}
             {paginatedTimeline && paginatedTimeline.map(obj =>
             (obj.type == 'LIKE' || obj.type == 'SHARE') ?
-                <Card className="px-0 pt-2 bg-secondary/20 border-none">
+                <Card key={obj.id} className="px-0 pt-2 bg-secondary/20 border-none">
                     {obj.type == 'LIKE' &&
                     <>
                     <CardDescription className="flex items-center gap-1 mx-6">
@@ -127,7 +127,7 @@ export default function ProfileTimeline({ profile }: { profile: User }){
                 </Card>
                 :
                 obj.content ?
-                <Card className="px-0 pt-2 bg-secondary/20 border-none">
+                <Card key={obj.id} className="px-0 pt-2 bg-secondary/20 border-none">
                     <CardDescription className="flex items-center gap-1 mx-6">
                         <FaRegFileAlt size={"15px"} />
                         {profile.nickname || profile.username} posted
@@ -138,7 +138,7 @@ export default function ProfileTimeline({ profile }: { profile: User }){
                 </Card>
                 :
                 obj.projectId ?
-                <Card className="px-0 pt-2 bg-secondary/20 border-none">
+                <Card key={obj.id} className="px-0 pt-2 bg-secondary/20 border-none">
                     <CardDescription className="flex items-center gap-1 mx-6">
                         <AiOutlineBranches size={"15px"} />
                         {profile.nickname || profile.username} created a branch
@@ -149,7 +149,7 @@ export default function ProfileTimeline({ profile }: { profile: User }){
                 </Card>
                 : 
                 obj.name && !obj.projectId ?
-                <Card className="px-0 pt-2 bg-secondary/20 border-none">
+                <Card key={obj.id} className="px-0 pt-2 bg-secondary/20 border-none">
                     <CardDescription className="flex items-center gap-1 mx-6">
                         <FiFolderPlus size={"15px"} />
                         {profile.nickname || profile.username} created a project

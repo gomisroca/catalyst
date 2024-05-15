@@ -43,7 +43,9 @@ export default function Home(){
             {projects && (projects.length > pageCount) &&
             <PaginationWrapper onPageChange={handlePageChange} page={page} pageCount={pageCount} data={projects} />}
             {paginatedProjects && paginatedProjects.map(project => 
-                <ProjectCard project={project} />
+                <div key={project.id}>
+                    <ProjectCard project={project} />
+                </div>
             )}
         </div>
     )

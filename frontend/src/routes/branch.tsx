@@ -171,9 +171,9 @@ export default function Branch(){
                                 {branch.childBranches.map(branch =>
                                 branch.permissions.private ?
                                     user && (branch.author.id == user.id || branch.permissions.allowedUsers.includes(user.id)) &&
-                                    <SelectItem value={branch.id}>{branch.name}</SelectItem>
+                                    <SelectItem key={branch.id} value={branch.id}>{branch.name}</SelectItem>
                                 :
-                                <SelectItem value={branch.id}>{branch.name}</SelectItem>)}
+                                <SelectItem key={branch.id} value={branch.id}>{branch.name}</SelectItem>)}
                             </SelectContent>
                         </Select>
                     </div>}
@@ -192,7 +192,9 @@ export default function Branch(){
                         </div>}
                     </div>
                 {paginatedPosts && paginatedPosts.map(post => 
-                    <PostMain post={post} branch={branch} />
+                    <div key={post.id}>
+                        <PostMain post={post} branch={branch} />
+                    </div>
                 )}
                 </div>
             </CardContent>

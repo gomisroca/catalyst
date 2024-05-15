@@ -166,7 +166,7 @@ export default function Project(){
                         <SelectItem className="hidden" value={'null'}>--</SelectItem>
                         {branches && branches.map(branch =>
                         branch.permissions.allowBranch &&
-                        <SelectItem value={branch.id}>{branch.name}</SelectItem>)}
+                        <SelectItem key={branch.id} value={branch.id}>{branch.name}</SelectItem>)}
                     </SelectContent>
                 </Select>
                 </>

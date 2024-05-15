@@ -150,9 +150,9 @@ export function BranchUploadForm({ project, onSubmitSuccess }: { project: Projec
                                 {project.branches.map(branch =>
                                     branch.permissions.private ?
                                         user && (branch.author.id == user.id || branch.permissions.allowedUsers.includes(user.id)) &&
-                                        <SelectItem value={branch.id}>{branch.name}</SelectItem>
+                                        <SelectItem key={branch.id} value={branch.id}>{branch.name}</SelectItem>
                                     :
-                                    <SelectItem value={branch.id}>{branch.name}</SelectItem>
+                                    <SelectItem key={branch.id} value={branch.id}>{branch.name}</SelectItem>
                                 )}
                             </SelectContent>
                         </Select>
