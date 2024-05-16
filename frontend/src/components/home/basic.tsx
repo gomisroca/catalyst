@@ -2,6 +2,7 @@ import PaginationWrapper from "@/components/pagination-wrapper";
 import { ProjectCard } from "@/components/project/project-card";
 import { useUser } from "@/contexts/user-provider";
 import { getProjects } from "@/lib/projects";
+import { shuffle } from "@/lib/utils";
 import { useEffect, useState } from "react";
 
 export default function HomeBasic(){
@@ -16,6 +17,7 @@ export default function HomeBasic(){
             const projs: Project[] = await getProjects();
             const filteredProjects = projs.filter(proj =>  proj.permissions.private == false || 
                 user && (proj.author.id == user.id || proj.permissions.allowedUsers.includes(user.id)) );
+            shuffle(filteredProjects);
             setProjects(filteredProjects);
         }
         fetchProjects();
