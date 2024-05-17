@@ -9,7 +9,7 @@ export default function TimelineProjectCard({ project } : { project: Project}){
         <Card className="p-4 relative">
             <div className="flex gap-2 items-center">
                 <Avatar className="rounded-md">
-                    <AvatarImage className="rounded-sm" src={`${import.meta.env.VITE_BACKEND_ORIGIN}/${project.avatar}`} />
+                    <AvatarImage className="rounded-sm" src={`/images/${project.avatar}`} />
                     <AvatarFallback>{project.author.username[0]}</AvatarFallback>
                 </Avatar>
                 <div>

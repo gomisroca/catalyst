@@ -31,7 +31,7 @@ const corsOptions = {
 
 app.use(express.json({ limit: '5mb'}));
 app.use(session(sess));
-app.use(express.static('public'));
+app.use('/images', express.static('public'));
 app.use(cors(corsOptions));
 app.use(morgan('combined'));
 app.use(helmet());
@@ -39,9 +39,9 @@ app.use(passport.initialize());
 app.use(passport.session());
   
 const usersRouter = require('./routes/users');
-app.use('/users', usersRouter);
+app.use('/api/users', usersRouter);
 const projectsRouter = require('./routes/projects');
-app.use('/projects', projectsRouter);
+app.use('/api/projects', projectsRouter);
 
 app.listen(process.env.PORT, () => {
     console.log(`[SERVER] Running at port ${process.env.PORT}`)

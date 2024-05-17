@@ -29,7 +29,7 @@ export function UserProvider({ children }: PropsWithChildren) {
     
     const getUserInfo = async(accessToken: string): Promise<JWTUser | void> => {
         try {
-            const res = await fetch(`${import.meta.env.VITE_BACKEND_ORIGIN}/users/info`, {
+            const res = await fetch(`/api/users/info`, {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',

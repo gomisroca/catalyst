@@ -76,6 +76,7 @@ export interface MultipleSelectorRef {
   input: HTMLInputElement;
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useDebounce<T>(value: T, delay?: number): T {
   const [debouncedValue, setDebouncedValue] = React.useState<T>(value);
 
@@ -122,7 +123,7 @@ function removePickedOption(groupOption: GroupOption, picked: Option[]) {
 
 function isOptionsExist(groupOption: GroupOption, targetOption: Option[]) {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  for (const [key, value] of Object.entries(groupOption)) {
+  for (const [, value] of Object.entries(groupOption)) {
     if (value.some((option) => targetOption.find((p) => p.value === option.value))) {
       return true;
     }

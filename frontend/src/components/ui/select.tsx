@@ -70,7 +70,8 @@ SelectScrollDownButton.displayName =
 const SelectContent = React.forwardRef<
   React.ElementRef<typeof SelectPrimitive.Content>,
   React.ComponentPropsWithoutRef<typeof SelectPrimitive.Content>
->(({ className, children, position = "popper", ...props }, ref) => (
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+>(({ className, children, position = "popper", ...props }, _ref) => (
   <SelectPrimitive.Portal>
     <SelectPrimitive.Content
       ref={(ref) => ref?.addEventListener('touchend', (e) => e.preventDefault())}

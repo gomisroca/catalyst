@@ -79,7 +79,7 @@ export function PostEditForm({ post, onSubmitSuccess }: { post: Post, onSubmitSu
                 render={({ field: { value, onChange, ...fieldProps } })=> (
                     <FormItem>
                         {post.media && post.media.map(media => 
-                            <img key={media} className="rounded-sm" src={`${import.meta.env.VITE_BACKEND_ORIGIN}/${media}`} />
+                            <img key={media} className="rounded-sm" src={`/images/${media}`} />
                         )}
                         <FormLabel>Post Media</FormLabel>
                         <FormControl>
