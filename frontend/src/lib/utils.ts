@@ -17,7 +17,7 @@ function calculateScore(project: Project) {
   return score;
 }
 
-export function shuffle(array: Project[]) {
+export function shuffleProjectsWithWeights(array: Project[]) {
   for (let i = array.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
     
