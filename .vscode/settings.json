@@ -1,10 +1,6 @@
 {
-"css.validate": false,
-"less.validate": false,
-"scss.validate": false,
-"conventionalCommits.scopes": [
-    "DB",
-    "Backend",
-    "Frontend"
-],
+	"css.validate": false,
+	"less.validate": false,
+	"scss.validate": false,
+	"conventionalCommits.scopes": ["DB", "Backend", "Frontend"]
 }
