@@ -55,7 +55,7 @@ export default function PostMain({ post, branch }: { post: Post, branch: Branch}
             </div>}
             <div className={hidePost ? "blur-md flex gap-2 items-center" : "flex gap-2 items-center"}>
                 <Avatar className="rounded-md">
-                    <AvatarImage className="rounded-sm" src={`/images/${post.author.avatar}`} />
+                    <AvatarImage className="rounded-sm" src={`${import.meta.env.VITE_BACKEND_ORIGIN}/images/${post.author.avatar}`} />
                     <AvatarFallback>{post.author.username[0]}</AvatarFallback>
                 </Avatar>
                 <div>
@@ -122,7 +122,7 @@ export default function PostMain({ post, branch }: { post: Post, branch: Branch}
                 <Dialog key={media}>
                     <DialogTrigger>
                         <div className="rounded-md w-full lg:w-[150px] xl:w-[200px] 2xl:w-[300px] h-[80px] lg:h-[100px] 2xl:h-[125px] overflow-hidden items-center flex">
-                            <img className="rounded-md self-center" src={`/images/${media}`} />
+                            <img className="rounded-md self-center" src={`${import.meta.env.VITE_BACKEND_ORIGIN}/images/${media}`} />
                         </div>
                     </DialogTrigger>
                     <DialogContent className="p-1 max-w-none rounded-md w-auto">

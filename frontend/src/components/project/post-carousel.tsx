@@ -17,7 +17,7 @@ export default function PostCarousel({ carousel, selected }: { carousel: string[
         <CarouselContent className="rounded-md -mt-1 flex">
             {carousel.map(image =>
                 <CarouselItem className="rounded-md flex pt-1" key={image}>
-                    <img className="rounded-md m-auto" src={`/images/${image}`} />
+                    <img className="rounded-md m-auto" src={`${import.meta.env.VITE_BACKEND_ORIGIN}/images/${image}`} />
                 </CarouselItem>
             )}
             </CarouselContent>

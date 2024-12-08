@@ -11,7 +11,7 @@ export function ProjectCard({ project }: { project: Project }) {
             <Card className="p-4">
                 <div className="flex gap-2 items-center">
                     <Avatar className="rounded-md">
-                        <AvatarImage className="rounded-sm" src={`/images/${project.avatar}`} />
+                        <AvatarImage className="rounded-sm" src={`${import.meta.env.VITE_BACKEND_ORIGIN}/images/${project.avatar}`} />
                         <AvatarFallback>{project.name[0]}</AvatarFallback>
                     </Avatar>
                     <div>

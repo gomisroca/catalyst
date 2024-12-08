@@ -1,20 +1,20 @@
 export async function getProjects(): Promise<Project[]> {
-    const res = await fetch(`/api/projects/`);
+    const res = await fetch(`${import.meta.env.VITE_BACKEND_ORIGIN}/api/projects/`);
     return res.json() as Promise<Project[]>;
 }
 
 export async function getProject(projectId: string): Promise<Project> {
-    const res = await fetch(`/api/projects/${projectId}/`);
+    const res = await fetch(`${import.meta.env.VITE_BACKEND_ORIGIN}/api/projects/${projectId}/`);
     return res.json() as Promise<Project>;
 }
 
 export async function getBranch(branchId: string): Promise<Branch> {
-    const res = await fetch(`/api/projects/branch/${branchId}/`);
+    const res = await fetch(`${import.meta.env.VITE_BACKEND_ORIGIN}/api/projects/branch/${branchId}/`);
     return res.json() as Promise<Branch>;
 }
 
 export async function createProject(accessToken: string, projectData: FormData){
-    const res = await fetch(`/api/projects`, {
+    const res = await fetch(`${import.meta.env.VITE_BACKEND_ORIGIN}/api/projects`, {
         method: 'POST',
         headers: {
             'Authorization': `Bearer ${accessToken}`
@@ -25,7 +25,7 @@ export async function createProject(accessToken: string, projectData: FormData){
 }
 
 export async function updateProject(accessToken: string, projectData: FormData, projectId: string){
-    const res = await fetch(`/api/projects/${projectId}/`, {
+    const res = await fetch(`${import.meta.env.VITE_BACKEND_ORIGIN}/api/projects/${projectId}/`, {
         method: 'POST',
         headers: {
             'Authorization': `Bearer ${accessToken}`
@@ -42,7 +42,7 @@ interface BranchData {
     permissions: string[];
 }
 export async function createBranch(accessToken: string, branchData: BranchData, projectId: string){
-    const res = await fetch(`/api/projects/${projectId}/branch`, {
+    const res = await fetch(`${import.meta.env.VITE_BACKEND_ORIGIN}/api/projects/${projectId}/branch`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -58,7 +58,7 @@ interface EditBranchData {
     permissions: string[];
 }
 export async function updateBranch(accessToken: string, branchData: EditBranchData, branchId: string){
-    const res = await fetch(`/api/projects/branch/${branchId}/`, {
+    const res = await fetch(`${import.meta.env.VITE_BACKEND_ORIGIN}/api/projects/branch/${branchId}/`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -70,7 +70,7 @@ export async function updateBranch(accessToken: string, branchData: EditBranchDa
 }
 
 export async function createPost(accessToken: string, postData: FormData, branch: Branch){
-    const res = await fetch(`/api/projects/branch/${branch.id}/post`, {
+    const res = await fetch(`${import.meta.env.VITE_BACKEND_ORIGIN}/api/projects/branch/${branch.id}/post`, {
         method: 'POST',
         headers: {
             'Authorization': `Bearer ${accessToken}`
@@ -81,7 +81,7 @@ export async function createPost(accessToken: string, postData: FormData, branch
 }
 
 export async function updatePost(accessToken: string, postData: FormData, postId: string){
-    const res = await fetch(`/api/projects/post/${postId}/`, {
+    const res = await fetch(`${import.meta.env.VITE_BACKEND_ORIGIN}/api/projects/post/${postId}/`, {
         method: 'POST',
         headers: {
             'Authorization': `Bearer ${accessToken}`
@@ -94,7 +94,7 @@ interface InteractionData{
     type: string;
 }
 export async function updatePostInteractions(accessToken: string, postId: string, data: InteractionData){
-    const res = await fetch(`/api/projects/post/${postId}/interactions`, {
+    const res = await fetch(`${import.meta.env.VITE_BACKEND_ORIGIN}/api/projects/post/${postId}/interactions`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -106,7 +106,7 @@ export async function updatePostInteractions(accessToken: string, postId: string
 }
 
 export async function removePostInteractions(accessToken: string, postId: string, data: InteractionData){
-    const res = await fetch(`/api/projects/post/${postId}/interactions`, {
+    const res = await fetch(`${import.meta.env.VITE_BACKEND_ORIGIN}/api/projects/post/${postId}/interactions`, {
         method: 'DELETE',
         headers: {
             'Content-Type': 'application/json',
@@ -118,7 +118,7 @@ export async function removePostInteractions(accessToken: string, postId: string
 }
 
 export async function updateBranchInteractions(accessToken: string, branchId: string, data: InteractionData){
-    const res = await fetch(`/api/projects/branch/${branchId}/interactions`, {
+    const res = await fetch(`${import.meta.env.VITE_BACKEND_ORIGIN}/api/projects/branch/${branchId}/interactions`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -130,7 +130,7 @@ export async function updateBranchInteractions(accessToken: string, branchId: st
 }
 
 export async function removeBranchInteractions(accessToken: string, branchId: string, data: InteractionData){
-    const res = await fetch(`/api/projects/branch/${branchId}/interactions`, {
+    const res = await fetch(`${import.meta.env.VITE_BACKEND_ORIGIN}/api/projects/branch/${branchId}/interactions`, {
         method: 'DELETE',
         headers: {
             'Content-Type': 'application/json',

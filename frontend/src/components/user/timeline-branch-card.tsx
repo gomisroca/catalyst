@@ -43,7 +43,7 @@ export default function TimelineBranchCard({ branch } : { branch: Branch}){
             </div>}
             <div className={hideBranch ? "blur-md flex gap-2 items-center" : "flex gap-2 items-center"}>
                 <Avatar className="rounded-md">
-                    <AvatarImage className="rounded-sm" src={`/images/${branch.project.avatar}`} />
+                    <AvatarImage className="rounded-sm" src={`${import.meta.env.VITE_BACKEND_ORIGIN}/images/${branch.project.avatar}`} />
                     <AvatarFallback>{branch.author.username[0]}</AvatarFallback>
                 </Avatar>
                 <div>

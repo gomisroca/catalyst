@@ -126,7 +126,7 @@ export function ProjectEditForm({ project, onSubmitSuccess }: { project: Project
                 // eslint-disable-next-line @typescript-eslint/no-unused-vars
                 render={({ field: { value, onChange, ...fieldProps } })=> (
                     <FormItem>
-                        <img className="rounded-sm" src={`/images/${project.avatar}`} />
+                        <img className="rounded-sm" src={`${import.meta.env.VITE_BACKEND_ORIGIN}/images/${project.avatar}`} />
                         <FormLabel>Avatar</FormLabel>
                         <FormControl>
                             <Input

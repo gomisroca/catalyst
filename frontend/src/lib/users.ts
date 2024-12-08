@@ -1,5 +1,5 @@
 export async function getUser(userId: string): Promise<User> {
-    const res = await fetch(`/api/users/${userId}/`);
+    const res = await fetch(`${import.meta.env.VITE_BACKEND_ORIGIN}/api/users/${userId}/`);
     return res.json() as Promise<User>;
 }
 
@@ -7,7 +7,7 @@ export async function unfollowUser(userId: string, profileId: string): Promise<U
     const data = {
         profileId: profileId
     }
-    const res = await fetch(`/api/users/${userId}/unfollow`,{
+    const res = await fetch(`${import.meta.env.VITE_BACKEND_ORIGIN}/api/users/${userId}/unfollow`,{
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -21,7 +21,7 @@ export async function followUser(userId: string, profileId: string): Promise<Use
     const data = {
         profileId: profileId
     }
-    const res = await fetch(`/api/users/${userId}/follow`,{
+    const res = await fetch(`${import.meta.env.VITE_BACKEND_ORIGIN}/api/users/${userId}/follow`,{
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -32,7 +32,7 @@ export async function followUser(userId: string, profileId: string): Promise<Use
 }
 
 export async function getUserFollows(accessToken: string): Promise<User[]> {
-    const res = await fetch(`/api/users/follows`, {
+    const res = await fetch(`${import.meta.env.VITE_BACKEND_ORIGIN}/api/users/follows`, {
         method: 'GET',
         headers: {
             'Content-Type': 'application/json',
