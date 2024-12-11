@@ -13,7 +13,8 @@
     "paths": {
       "@/*": ["./*"]
     },
-    "types": ["node", "express"]
+    "types": ["node", "express"],
+    "typeRoots": ["./node_modules/@types"]
   },
   "exclude": ["node_modules", "dist"],
   "include": ["src/**/*.ts"],
