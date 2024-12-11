@@ -1,19 +1,21 @@
 {
   "compilerOptions": {
     "module": "commonjs",
-    "target": "esnext",
+    "target": "es2020",
     "moduleResolution": "node",
     "sourceMap": true,
     "outDir": "dist",
     "allowJs": true,
-    "lib": ["dom", "es6"],
+    "esModuleInterop": true,
+    "strict": true,
+    "lib": ["es2020"],
     "baseUrl": "./src",
     "paths": {
       "@/*": ["./*"]
     },
-    "types": ["node", "express", "jest"]
+    "types": ["node", "express"]
   },
   "exclude": ["node_modules", "dist"],
-  "include": ["src/**/*.ts", "tests/**/*.spec.ts"],
+  "include": ["src/**/*.ts"],
   "files": ["src/app.ts"]
 }
