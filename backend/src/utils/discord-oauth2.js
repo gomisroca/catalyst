@@ -1,12 +1,11 @@
-import { User, PrismaClient } from '@prisma/client';
-import { downloadImage } from './upload-image';
+import { PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient();
 
-const { GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, GOOGLE_CALLBACK_URL } = process.env;
 const passport = require('passport');
-const GoogleStrategy = require('passport-google-oauth20').Strategy;
+const DiscordStrategy = require('passport-discord').Strategy;
+const { DISCORD_ID, DISCORD_SECRET, DISCORD_CALLBACK_URL } = process.env;
+import { downloadImage } from './upload-image';
 
-// Passport
 passport.serializeUser((user, done) => {
   done(null, user);
 });
@@ -14,29 +13,28 @@ passport.deserializeUser((user, done) => {
   done(null, user);
 });
 passport.use(
-  new GoogleStrategy(
+  new DiscordStrategy(
     {
-      clientID: GOOGLE_CLIENT_ID,
-      clientSecret: GOOGLE_CLIENT_SECRET,
-      callbackURL: GOOGLE_CALLBACK_URL,
-      scope: ['profile', 'email'],
-      state: true,
+      clientID: DISCORD_ID,
+      clientSecret: DISCORD_SECRET,
+      callbackURL: DISCORD_CALLBACK_URL,
+      scope: ['identify', 'email'],
     },
-    async (accessToken, refreshToken, profile, done) => {
+    async function (accessToken, refreshToken, profile, done) {
       try {
-        const email = profile['_json']['email'];
-        if (!email) return done(new Error('Failed to receive email from Google. Please try again.'));
-
-        let existingUser: User | null = await prisma.user.findUnique({
+        const avatar = `https://cdn.discordapp.com/avatars/${profile.id}/${profile.avatar}.jpg`;
+        const email = profile.email;
+        if (!email) return done(new Error('Failed to receive email from Discord. Please try again.'));
+        let existingUser = await prisma.user.findUnique({
           where: {
             email: email,
           },
         });
 
         if (existingUser) {
-          const newAvatar = await downloadImage('avatars', profile._json.picture, existingUser.id);
-          if (!existingUser.googleId) {
-            await prisma.google.create({
+          const newAvatar = await downloadImage('avatars', avatar, existingUser.id);
+          if (!existingUser.discordId) {
+            await prisma.discord.create({
               data: {
                 id: profile.id,
                 userId: existingUser.id,
@@ -49,29 +47,31 @@ passport.use(
                 email: email,
               },
               data: {
-                googleId: profile.id,
+                discordId: profile.id,
+                avatar: newAvatar,
+              },
+            });
+          } else {
+            existingUser = await prisma.user.update({
+              where: {
+                email: email,
+              },
+              data: {
                 avatar: newAvatar,
               },
             });
           }
-          existingUser = await prisma.user.update({
-            where: {
-              email: email,
-            },
-            data: {
-              avatar: newAvatar,
-            },
-          });
+
           return done(null, existingUser);
         }
 
         let newUser = await prisma.user.create({
           data: {
-            username: profile.displayName,
+            username: profile.username,
             email: email,
-            avatar: profile._json.picture,
-            googleId: profile.id,
-            google: {
+            avatar: avatar,
+            discordId: profile.id,
+            discord: {
               create: {
                 id: profile.id,
                 accessToken: accessToken,
@@ -80,7 +80,7 @@ passport.use(
             },
           },
         });
-        const newAvatar = await downloadImage('avatars', profile._json.picture, newUser.id);
+        const newAvatar = await downloadImage('avatars', avatar, newUser.id);
         newUser = await prisma.user.update({
           where: {
             id: newUser.id,
@@ -89,6 +89,7 @@ passport.use(
             avatar: newAvatar,
           },
         });
+
         return done(null, newUser);
       } catch (verifyErr) {
         done(verifyErr);

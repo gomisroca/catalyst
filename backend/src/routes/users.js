@@ -13,21 +13,16 @@ import * as jwt from 'jsonwebtoken';
 
 import { verifyUser } from '../utils/auth';
 import { uploadImage } from '../utils/upload-image';
-const passportGoogle = require('../utils/google-oauth2');
+const passportGoogle = require('../utils/google-oauth2.js');
 const passportFacebook = require('../utils/fb-oauth2');
 const passportDiscord = require('../utils/discord-oauth2');
 
 const NodeCache = require('node-cache');
 const usersCache = new NodeCache({ stdTTL: 60 * 5 });
 
-interface UserWithInteractions extends User {
-  postInteractions: PostInteraction[];
-  branchInteractions: BranchInteraction[];
-}
-
 router.get('/discord', passportDiscord.authenticate('discord'));
 router.get('/discord/callback', passportDiscord.authenticate('discord', { session: true }), async (req, res) => {
-  const user: UserWithInteractions | null = await prisma.user.findUnique({
+  const user = await prisma.user.findUnique({
     where: {
       id: req.user.id,
     },
@@ -37,7 +32,7 @@ router.get('/discord/callback', passportDiscord.authenticate('discord', { sessio
     },
   });
 
-  let access_token: string = jwt.sign(
+  let access_token = jwt.sign(
     {
       id: user.id,
       email: user.email,
@@ -49,7 +44,7 @@ router.get('/discord/callback', passportDiscord.authenticate('discord', { sessio
       branchInteractions: user.branchInteractions,
       followedBy: user.followedBy,
     },
-    process.env.JWT_SECRET as jwt.Secret
+    process.env.JWT_SECRET
   );
   console.log(access_token);
   res.redirect(FRONTEND_ORIGIN + '/jwt?code=' + access_token);
@@ -65,7 +60,7 @@ router.get('/facebook/callback', passportFacebook.authenticate('facebook', { ses
       accessToken: req.query.code,
     },
   });
-  const user: UserWithInteractions | null = await prisma.user.findUnique({
+  const user = await prisma.user.findUnique({
     where: {
       id: req.user.id,
     },
@@ -75,7 +70,7 @@ router.get('/facebook/callback', passportFacebook.authenticate('facebook', { ses
     },
   });
 
-  let access_token: string = jwt.sign(
+  let access_token = jwt.sign(
     {
       id: user.id,
       email: user.email,
@@ -87,7 +82,7 @@ router.get('/facebook/callback', passportFacebook.authenticate('facebook', { ses
       branchInteractions: user.branchInteractions,
       followedBy: user.followedBy,
     },
-    process.env.JWT_SECRET as jwt.Secret
+    process.env.JWT_SECRET
   );
   res.redirect(FRONTEND_ORIGIN + '/jwt?code=' + access_token);
 });
@@ -102,7 +97,7 @@ router.get('/google/callback', passportGoogle.authenticate('google', { session: 
       accessToken: req.query.code,
     },
   });
-  const user: UserWithInteractions | null = await prisma.user.findUnique({
+  const user = await prisma.user.findUnique({
     where: {
       id: req.user.id,
     },
@@ -112,7 +107,7 @@ router.get('/google/callback', passportGoogle.authenticate('google', { session: 
     },
   });
 
-  let access_token: string = jwt.sign(
+  let access_token = jwt.sign(
     {
       id: user.id,
       email: user.email,
@@ -124,7 +119,7 @@ router.get('/google/callback', passportGoogle.authenticate('google', { session: 
       branchInteractions: user.branchInteractions,
       followedBy: user.followedBy,
     },
-    process.env.JWT_SECRET as jwt.Secret
+    process.env.JWT_SECRET
   );
   res.redirect(FRONTEND_ORIGIN + '/jwt?code=' + access_token);
 });
@@ -134,14 +129,14 @@ POST - Register or Log in User
 REQ - email, password
 RES - 200 - JWT with User Data
 */
-router.post('/sign-in', async (req: Request, res: Response) => {
+router.post('/sign-in', async (req, res) => {
   try {
-    const { email, password }: { email: string; password: string } = req.body;
+    const { email, password } = req.body;
 
     if (!(email && password)) {
       throw new Error('Input fields missing');
     }
-    const existingUser: UserWithInteractions | null = await prisma.user.findUnique({
+    const existingUser = await prisma.user.findUnique({
       where: {
         email: email,
       },
@@ -151,12 +146,12 @@ router.post('/sign-in', async (req: Request, res: Response) => {
       },
     });
 
-    let access_token: string;
+    let access_token;
     if (existingUser) {
       if (!existingUser.password) {
         throw new Error("User hasn't set a password");
       }
-      let pwdCheck: boolean = await bcrypt.compare(password, existingUser.password);
+      let pwdCheck = await bcrypt.compare(password, existingUser.password);
       if (!pwdCheck) {
         throw new Error('Invalid Password');
       }
@@ -172,11 +167,11 @@ router.post('/sign-in', async (req: Request, res: Response) => {
           branchInteractions: existingUser.branchInteractions,
           followedBy: existingUser.followedBy,
         },
-        process.env.JWT_SECRET as jwt.Secret
+        process.env.JWT_SECRET
       );
     } else {
-      let encryptedPassword: string = await bcrypt.hash(password, 10);
-      const newUser: UserWithInteractions = await prisma.user.create({
+      let encryptedPassword = await bcrypt.hash(password, 10);
+      const newUser = await prisma.user.create({
         data: {
           username: email.toLowerCase().split('@')[0],
           email: email.toLowerCase(),
@@ -199,7 +194,7 @@ router.post('/sign-in', async (req: Request, res: Response) => {
           branchInteractions: newUser.branchInteractions,
           followedBy: newUser.followedBy,
         },
-        process.env.JWT_SECRET as jwt.Secret
+        process.env.JWT_SECRET
       );
     }
     res.send({ access_token });
@@ -219,7 +214,7 @@ GET - Logged User Info
 REQ - email, password
 RES - 200 - User Data
 */
-router.get('/info', async (req: Request, res: Response) => {
+router.get('/info', async (req, res) => {
   try {
     const user = await verifyUser(req.header('authorization'));
     if (!user) {
@@ -242,7 +237,7 @@ POST - User Settings
 REQ - username, nickname, email, avatar, password
 RES - 200 - JWT with User Data
 */
-router.post('/settings', async (req: Request, res: Response) => {
+router.post('/settings', async (req, res) => {
   try {
     const user = await verifyUser(req.header('authorization'));
     if (!user) {
@@ -254,10 +249,10 @@ router.post('/settings', async (req: Request, res: Response) => {
         throw new Error(err);
       }
       console.log(files);
-      const encryptedPassword: string = await bcrypt.hash(fields.password[0], 10);
+      const encryptedPassword = await bcrypt.hash(fields.password[0], 10);
       const avatar = await uploadImage('avatars', files.avatar[0], user.id);
 
-      const newUser: UserWithInteractions = await prisma.user.update({
+      const newUser = await prisma.user.update({
         where: {
           id: user.id,
         },
@@ -285,7 +280,7 @@ router.post('/settings', async (req: Request, res: Response) => {
           branchInteractions: newUser.branchInteractions,
           followedBy: newUser.followedBy,
         },
-        process.env.JWT_SECRET as jwt.Secret
+        process.env.JWT_SECRET
       );
       res.send({ access_token });
     });
@@ -305,13 +300,13 @@ POST - Get User Follows
 REQ - 
 RES - 200 - Multiple User Data
 */
-router.get('/follows', async (req: Request, res: Response) => {
+router.get('/follows', async (req, res) => {
   try {
     const user = await verifyUser(req.header('authorization'));
     if (!user) {
       throw new Error('No user found');
     }
-    const follows: User[] | null = await prisma.user.findMany({
+    const follows = await prisma.user.findMany({
       where: {
         followedBy: {
           has: user.id,
@@ -424,12 +419,12 @@ GET - Specific User Info
 REQ - email, password
 RES - 200 - User Data
 */
-router.get('/:id', async (req: Request, res: Response) => {
+router.get('/:id', async (req, res) => {
   try {
     if (usersCache.has(req.params.id)) {
       return res.send(usersCache.get(req.params.id));
     }
-    const user: User | null = await prisma.user.findUnique({
+    const user = await prisma.user.findUnique({
       where: {
         id: req.params.id,
       },
@@ -543,14 +538,14 @@ POST - Follow User
 REQ - userId
 RES - 200 - User Data
 */
-router.post('/:id/follow', async (req: Request, res: Response) => {
+router.post('/:id/follow', async (req, res) => {
   try {
-    let user: User | null = await prisma.user.findUnique({
+    let user = await prisma.user.findUnique({
       where: {
         id: req.params.id,
       },
     });
-    let profile: User | null = await prisma.user.findUnique({
+    let profile = await prisma.user.findUnique({
       where: {
         id: req.body.profileId,
       },
@@ -654,14 +649,14 @@ POST - Unfollow User
 REQ - userId
 RES - 200 - User Data
 */
-router.post('/:id/unfollow', async (req: Request, res: Response) => {
+router.post('/:id/unfollow', async (req, res) => {
   try {
-    let user: User | null = await prisma.user.findUnique({
+    let user = await prisma.user.findUnique({
       where: {
         id: req.params.id,
       },
     });
-    let profile: User | null = await prisma.user.findUnique({
+    let profile = await prisma.user.findUnique({
       where: {
         id: req.body.profileId,
       },

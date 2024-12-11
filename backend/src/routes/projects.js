@@ -18,12 +18,12 @@ GET - Get All Projects
 REQ - null
 RES - 200 - Project Data
 */
-router.get('/', async (req: Request, res: Response) => {
+router.get('/', async (req, res) => {
   try {
     if (projectsCache.has('projects')) {
       return res.send(projectsCache.get('projects'));
     }
-    let projects: Project[] | null = await prisma.project.findMany({
+    let projects = await prisma.project.findMany({
       include: {
         author: true,
         permissions: true,
@@ -124,13 +124,13 @@ GET - Get Specific Project
 REQ - null
 RES - 200 - Project Data
 */
-router.get('/:id', async (req: Request, res: Response) => {
+router.get('/:id', async (req, res) => {
   try {
     if (projectsCache.has(req.params.id)) {
       return res.send(projectsCache.get(req.params.id));
     }
     const id = req.params.id;
-    const project: Project | null = await prisma.project.findUnique({
+    const project = await prisma.project.findUnique({
       where: {
         id: id,
       },
@@ -192,7 +192,7 @@ POST - Update Project
 REQ - name, description, avatar?, permissions
 RES - 200 - Project Data
 */
-router.post('/:id', async (req: Request, res: Response) => {
+router.post('/:id', async (req, res) => {
   try {
     const user = await verifyUser(req.header('authorization'));
     if (!user) {
@@ -204,8 +204,8 @@ router.post('/:id', async (req: Request, res: Response) => {
       if (err) {
         throw new Error(err);
       }
-      const currentProject: Project | null = await prisma.project.findUnique({ where: { id: req.params.id } });
-      let project: Project = await prisma.project.update({
+      const currentProject = await prisma.project.findUnique({ where: { id: req.params.id } });
+      let project = await prisma.project.update({
         where: {
           id: req.params.id,
         },
@@ -219,7 +219,7 @@ router.post('/:id', async (req: Request, res: Response) => {
       if (fields.allowedUsers && fields.allowedUsers.length > 0) {
         allowedUsers = fields.allowedUsers[0].split(',');
       }
-      const currentPermissions: Permissions | null = await prisma.permissions.findUnique({
+      const currentPermissions = await prisma.permissions.findUnique({
         where: { projectId: project.id },
       });
       await prisma.permissions.update({
@@ -263,13 +263,13 @@ GET - Get Specific Branch
 REQ - null
 RES - 200 - Branch Data
 */
-router.get('/branch/:branch', async (req: Request, res: Response) => {
+router.get('/branch/:branch', async (req, res) => {
   try {
     if (projectsCache.has(req.params.branch)) {
       return res.send(projectsCache.get(req.params.branch));
     }
     const branchId = req.params.branch;
-    const branch: Branch | null = await prisma.branch.findUnique({
+    const branch = await prisma.branch.findUnique({
       where: {
         id: branchId,
       },
@@ -331,25 +331,20 @@ POST - Update Branch
 REQ - name, description, permissions, projectId
 RES - 200 - Branch Data
 */
-router.post('/branch/:branch', async (req: Request, res: Response) => {
+router.post('/branch/:branch', async (req, res) => {
   try {
     const user = await verifyUser(req.header('authorization'));
     if (!user) {
       throw new Error('No user found');
     }
 
-    const {
-      name,
-      description,
-      permissions,
-      allowedUsers,
-    }: { name: string; description: string; permissions: string[]; allowedUsers: allowedUser[] | undefined } = req.body;
+    const { name, description, permissions, allowedUsers } = req.body;
     if (!(name && description && permissions)) {
       throw new Error('Invalid inputs');
     }
 
     const currentBranch = await prisma.branch.findUnique({ where: { id: req.params.branch } });
-    const branch: Branch = await prisma.branch.update({
+    const branch = await prisma.branch.update({
       where: {
         id: req.params.branch,
       },
@@ -390,7 +385,7 @@ POST - Create Project
 REQ - name, description, avatar, permissions, branchName?, branchDescription?
 RES - 200 - Project Data
 */
-router.post('/', async (req: Request, res: Response) => {
+router.post('/', async (req, res) => {
   try {
     const user = await verifyUser(req.header('authorization'));
     if (!user) {
@@ -403,7 +398,7 @@ router.post('/', async (req: Request, res: Response) => {
         throw new Error(err);
       }
 
-      let project: Project = await prisma.project.create({
+      let project = await prisma.project.create({
         data: {
           name: fields.name[0],
           description: fields.description[0],
@@ -423,7 +418,7 @@ router.post('/', async (req: Request, res: Response) => {
         },
       });
       if (fields.branchName) {
-        const branch: Branch = await prisma.branch.create({
+        const branch = await prisma.branch.create({
           data: {
             name: fields.branchName[0],
             description: fields.branchDescription[0],
@@ -470,37 +465,19 @@ POST - Create Branch
 REQ - name, description, parentBranch?, permissions, projectId
 RES - 200 - Project Data
 */
-interface allowedUser {
-  label: string;
-  value: string;
-}
-router.post('/:project/branch', async (req: Request, res: Response) => {
+router.post('/:project/branch', async (req, res) => {
   try {
     const user = await verifyUser(req.header('authorization'));
     if (!user) {
       throw new Error('No user found');
     }
 
-    const {
-      projectId,
-      name,
-      description,
-      parentBranch,
-      permissions,
-      allowedUsers,
-    }: {
-      projectId: string;
-      name: string;
-      description: string;
-      parentBranch: string;
-      permissions: string[];
-      allowedUsers: allowedUser[] | undefined;
-    } = req.body;
+    const { projectId, name, description, parentBranch, permissions, allowedUsers } = req.body;
     if (!(projectId && name && description && parentBranch && permissions)) {
       throw new Error('Invalid inputs');
     }
 
-    const project: Project = await prisma.project.findUnique({
+    const project = await prisma.project.findUnique({
       where: {
         id: projectId,
       },
@@ -509,7 +486,7 @@ router.post('/:project/branch', async (req: Request, res: Response) => {
       throw new Error('No project found');
     }
 
-    const branch: Branch = await prisma.branch.create({
+    const branch = await prisma.branch.create({
       data: {
         name: name,
         description: description,
@@ -546,13 +523,13 @@ POST - Create Post
 REQ - content, media?
 RES - 200 - Post Data
 */
-router.post('/branch/:branch/post', async (req: Request, res: Response) => {
+router.post('/branch/:branch/post', async (req, res) => {
   try {
     const user = await verifyUser(req.header('authorization'));
     if (!user) {
       throw new Error('No user found');
     }
-    let branch: Branch | null = await prisma.branch.findUnique({
+    let branch = await prisma.branch.findUnique({
       where: {
         id: req.params.branch,
       },
@@ -567,7 +544,7 @@ router.post('/branch/:branch/post', async (req: Request, res: Response) => {
         throw new Error(err);
       }
 
-      let post: Post = await prisma.post.create({
+      let post = await prisma.post.create({
         data: {
           content: fields.content[0],
           branchId: branch.id,
@@ -648,13 +625,13 @@ POST - Add Branch Interaction
 REQ - interaction
 RES - 200
 */
-router.post('/branch/:branch/interactions', async (req: Request, res: Response) => {
+router.post('/branch/:branch/interactions', async (req, res) => {
   try {
     const user = await verifyUser(req.header('authorization'));
     if (!user) {
       throw new Error('No user found');
     }
-    const { type }: { type: string } = req.body;
+    const { type } = req.body;
 
     switch (type) {
       case 'like':
@@ -705,7 +682,7 @@ router.post('/branch/:branch/interactions', async (req: Request, res: Response) 
       default:
         throw new Error('Something went wrong');
     }
-    const branch: Branch | null = await prisma.branch.findUnique({
+    const branch = await prisma.branch.findUnique({
       where: {
         id: req.params.branch,
       },
@@ -735,13 +712,13 @@ DELETE - Remove Post Interaction
 REQ - interaction
 RES - 200
 */
-router.delete('/branch/:branch/interactions', async (req: Request, res: Response) => {
+router.delete('/branch/:branch/interactions', async (req, res) => {
   try {
     const user = await verifyUser(req.header('authorization'));
     if (!user) {
       throw new Error('No user found');
     }
-    const { type, id }: { type: string; id?: string } = req.body;
+    const { type, id } = req.body;
     let interaction;
     switch (type) {
       case 'like':
@@ -802,7 +779,7 @@ router.delete('/branch/:branch/interactions', async (req: Request, res: Response
       default:
         throw new Error('Something went wrong');
     }
-    const branch: Branch | null = await prisma.branch.findUnique({
+    const branch = await prisma.branch.findUnique({
       where: {
         id: req.params.branch,
       },
@@ -832,10 +809,7 @@ POST - Update Post
 REQ - content, media?
 RES - 200
 */
-interface PostWithBranch extends Post {
-  branch: Branch;
-}
-router.post('/post/:post/', async (req: Request, res: Response) => {
+router.post('/post/:post/', async (req, res) => {
   try {
     const user = await verifyUser(req.header('authorization'));
     if (!user) {
@@ -847,7 +821,7 @@ router.post('/post/:post/', async (req: Request, res: Response) => {
         throw new Error(err);
       }
 
-      const post: PostWithBranch = await prisma.post.update({
+      const post = await prisma.post.update({
         where: {
           id: req.params.post,
         },
@@ -938,13 +912,13 @@ POST - Add Post Interaction
 REQ - interaction
 RES - 200
 */
-router.post('/post/:post/interactions', async (req: Request, res: Response) => {
+router.post('/post/:post/interactions', async (req, res) => {
   try {
     const user = await verifyUser(req.header('authorization'));
     if (!user) {
       throw new Error('No user found');
     }
-    const { type }: { type: string } = req.body;
+    const { type } = req.body;
 
     switch (type) {
       case 'like':
@@ -995,7 +969,7 @@ router.post('/post/:post/interactions', async (req: Request, res: Response) => {
       default:
         throw new Error('Something went wrong');
     }
-    const post: Post | null = await prisma.post.findUnique({
+    const post = await prisma.post.findUnique({
       where: {
         id: req.params.post,
       },
@@ -1025,13 +999,13 @@ DELETE - Remove Post Interaction
 REQ - interaction
 RES - 200
 */
-router.delete('/post/:post/interactions', async (req: Request, res: Response) => {
+router.delete('/post/:post/interactions', async (req, res) => {
   try {
     const user = await verifyUser(req.header('authorization'));
     if (!user) {
       throw new Error('No user found');
     }
-    const { type, id }: { type: string; id?: string } = req.body;
+    const { type, id } = req.body;
     let interaction;
     switch (type) {
       case 'like':
@@ -1092,7 +1066,7 @@ router.delete('/post/:post/interactions', async (req: Request, res: Response) =>
       default:
         throw new Error('Something went wrong');
     }
-    const post: Post | null = await prisma.post.findUnique({
+    const post = await prisma.post.findUnique({
       where: {
         id: req.params.post,
       },

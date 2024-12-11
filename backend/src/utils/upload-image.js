@@ -3,12 +3,7 @@ import * as fs from 'fs';
 const { Readable } = require('stream');
 const { finished } = require('stream/promises');
 
-interface FormFile {
-  filepath: string;
-  mimetype: string;
-  size: number;
-}
-export function uploadImage(type: string, file: FormFile, id: string): string {
+export function uploadImage(type, file, id) {
   const filepath = file.filepath;
   const mimetype = file.mimetype;
   const filesize = file.size;
@@ -31,7 +26,7 @@ export function uploadImage(type: string, file: FormFile, id: string): string {
   return relativePath;
 }
 
-export async function downloadImage(type: string, imageUrl: string, id: string) {
+export async function downloadImage(type, imageUrl, id) {
   try {
     const response = await fetch(imageUrl);
     const destination = path.resolve(`public/${type}/${id}.jpg`);

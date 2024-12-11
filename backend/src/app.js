@@ -1,4 +1,3 @@
-import type { Cookie } from 'express-session';
 const express = require('express');
 const session = require('express-session');
 const passport = require('passport');
@@ -13,8 +12,8 @@ if (process.env.NODE_ENV === 'development') {
 const app = express();
 
 const sess = {
-  secret: <string>process.env.SESSION_SECRET,
-  cookie: <Cookie>{},
+  secret: process.env.SESSION_SECRET,
+  cookie: {},
   resave: false,
   saveUninitialized: false,
 };
