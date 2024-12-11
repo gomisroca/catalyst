@@ -1,10 +1,7 @@
-import React from 'react'
-import ReactDOM from 'react-dom/client'
-import './index.css'
-import {
-  createBrowserRouter,
-  RouterProvider,
-} from "react-router-dom";
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+import './index.css';
+import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import Home from './routes/home';
 import { ThemeProvider } from '@/contexts/theme-provider';
 import { UserProvider } from '@/contexts/user-provider';
@@ -16,40 +13,40 @@ import Profile from './components/user/profile-main';
 
 const router = createBrowserRouter([
   {
-    path: "/",
+    path: '/',
     element: <Home />,
   },
   {
-    path: "/jwt",
-    element: <JWTGet />
+    path: '/jwt',
+    element: <JWTGet />,
   },
   {
-    path: "/:projectId",
+    path: '/:projectId',
     element: <Project />,
     children: [
       {
-        path: ":branchId",
-        element: <Branch />
-      }
-    ]
+        path: ':branchId',
+        element: <Branch />,
+      },
+    ],
   },
   {
-    path: "/profile/:userId",
+    path: '/profile/:userId',
     element: <Profile />,
-  }
+  },
 ]);
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <UserProvider>
       <ThemeProvider defaultTheme="dark" storageKey="catalyst-theme">
-        <div className='bg-gradient min-h-screen'>
-        <Navmenu />
-        <div className='p-2 md:p-10 lg:p-20 flex items-center justify-center'>
-          <RouterProvider router={router} />
-        </div>
+        <div className="bg-gradient min-h-screen">
+          <Navmenu />
+          <div className="flex items-center justify-center p-2 md:p-10 lg:p-20">
+            <RouterProvider router={router} />
+          </div>
         </div>
       </ThemeProvider>
     </UserProvider>
   </React.StrictMode>
-)
+);
