@@ -1,9 +1,8 @@
 const express = require('express');
-import { Request, Response } from 'express';
 const router = express.Router();
 import formidable from 'formidable';
 
-import { User, PrismaClient, BranchInteraction, PostInteraction } from '@prisma/client';
+import { PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient();
 
 const { FRONTEND_ORIGIN } = process.env;
