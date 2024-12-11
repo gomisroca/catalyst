@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "NODE_ENV=development nodemon src/app.ts",
     "build": "tsc",
-    "start": "node dist/app.js",
+    "start": "node ./dist/app.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
@@ -39,6 +39,8 @@
   },
   "devDependencies": {
     "@types/express": "^5.0.0",
+    "@types/express-session": "^1.18.1",
+    "@types/formidable": "^3.4.5",
     "@types/jest": "^29.5.14",
     "@types/node": "^22.10.2",
     "prisma": "^6.0.1",
