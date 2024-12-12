@@ -1,9 +1,11 @@
 import { PrismaClient } from '@prisma/client';
-import { downloadImage } from './upload-image';
+import { downloadImage } from './upload-image.js';
 const prisma = new PrismaClient();
 
-const passport = require('passport');
-const FacebookStrategy = require('passport-facebook').Strategy;
+import passport from 'passport';
+import * as PassportFacebook from 'passport-facebook';
+const FacebookStrategy = PassportFacebook.Strategy;
+
 const { FACEBOOK_APP_ID, FACEBOOK_APP_SECRET, FACEBOOK_CALLBACK_URL } = process.env;
 
 passport.serializeUser((user, done) => {
@@ -95,4 +97,4 @@ passport.use(
   )
 );
 
-module.exports = passport;
+export default passport;

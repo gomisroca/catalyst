@@ -1,12 +1,15 @@
-const express = require('express');
-const session = require('express-session');
-const passport = require('passport');
-const cors = require('cors');
-const helmet = require('helmet');
-const morgan = require('morgan');
+import express from 'express';
+import session from 'express-session';
+import passport from 'passport';
+import cors from 'cors';
+import helmet from 'helmet';
+import morgan from 'morgan';
+import dotenv from 'dotenv';
+import usersRouter from './routes/users.js';
+import projectsRouter from './routes/projects.js';
 
 if (process.env.NODE_ENV === 'development') {
-  require('dotenv').config();
+  dotenv.config();
 }
 
 const app = express();
@@ -37,9 +40,11 @@ app.use(helmet());
 app.use(passport.initialize());
 app.use(passport.session());
 
-const usersRouter = require('./routes/users');
+app.get('/', (req, res) => {
+  res.send('<h4>Welcome to the Catalyst API</h4><p>This page serves as a health check.</p>');
+});
+
 app.use('/api/users', usersRouter);
-const projectsRouter = require('./routes/projects');
 app.use('/api/projects', projectsRouter);
 
 app.listen(process.env.PORT, () => {

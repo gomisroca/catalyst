@@ -1,4 +1,4 @@
-const express = require('express');
+import express from 'express';
 const router = express.Router();
 import formidable from 'formidable';
 
@@ -7,16 +7,16 @@ const prisma = new PrismaClient();
 
 const { FRONTEND_ORIGIN } = process.env;
 
-const bcrypt = require('bcrypt');
+import bcrypt from 'bcrypt';
 import * as jwt from 'jsonwebtoken';
 
-import { verifyUser } from '../utils/auth';
-import { uploadImage } from '../utils/upload-image';
-const passportGoogle = require('../utils/google-oauth2.js');
-const passportFacebook = require('../utils/fb-oauth2');
-const passportDiscord = require('../utils/discord-oauth2');
+import { verifyUser } from '../utils/auth.js';
+import { uploadImage } from '../utils/upload-image.js';
+import passportGoogle from '../utils/google-oauth2.js';
+import passportFacebook from '../utils/fb-oauth2.js';
+import passportDiscord from '../utils/discord-oauth2.js';
 
-const NodeCache = require('node-cache');
+import NodeCache from 'node-cache';
 const usersCache = new NodeCache({ stdTTL: 60 * 5 });
 
 router.get('/discord', passportDiscord.authenticate('discord'));
@@ -753,4 +753,4 @@ router.post('/:id/unfollow', async (req, res) => {
   }
 });
 
-module.exports = router;
+export default router;

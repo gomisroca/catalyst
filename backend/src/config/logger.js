@@ -1,4 +1,4 @@
-const winston = require('winston');
+import winston from 'winston';
 const environment = process.env.NODE_ENV;
 
 const enumerateErrorFormat = winston.format((info) => {

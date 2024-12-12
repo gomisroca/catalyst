@@ -1,10 +1,12 @@
 import { PrismaClient } from '@prisma/client';
-import { downloadImage } from './upload-image';
+import { downloadImage } from './upload-image.js';
 const prisma = new PrismaClient();
 
+import passport from 'passport';
+import * as PassportGoogle from 'passport-google-oauth20';
+const GoogleStrategy = PassportGoogle.Strategy;
+
 const { GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, GOOGLE_CALLBACK_URL } = process.env;
-const passport = require('passport');
-const GoogleStrategy = require('passport-google-oauth20').Strategy;
 
 // Passport
 passport.serializeUser((user, done) => {
@@ -97,4 +99,4 @@ passport.use(
   )
 );
 
-module.exports = passport;
+export default passport;

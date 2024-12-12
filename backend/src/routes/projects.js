@@ -1,16 +1,15 @@
-const express = require('express');
-import { Request, Response } from 'express';
+import express from 'express';
 const router = express.Router();
 
-import { Branch, Permissions, Post, PrismaClient, Project } from '@prisma/client';
-import { verifyUser } from '../utils/auth';
+import { PrismaClient } from '@prisma/client';
+import { verifyUser } from '../utils/auth.js';
 const prisma = new PrismaClient();
 import formidable from 'formidable';
-import { uploadImage } from '../utils/upload-image';
-import { setMetrics } from '../utils/metrics';
-const { v4: uuidv4 } = require('uuid');
+import { uploadImage } from '../utils/upload-image.js';
+import { setMetrics } from '../utils/metrics.js';
+import { v4 as uuidv4 } from 'uuid';
 
-const NodeCache = require('node-cache');
+import NodeCache from 'node-cache';
 const projectsCache = new NodeCache({ stdTTL: 60 * 5 });
 
 /*
@@ -1091,4 +1090,4 @@ router.delete('/post/:post/interactions', async (req, res) => {
   }
 });
 
-module.exports = router;
+export default router;

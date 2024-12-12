@@ -1,4 +1,4 @@
-const jwt = require('jsonwebtoken');
+import * as jwt from 'jsonwebtoken';
 
 export function verifyUser(authorization) {
   const token = authorization.split(' ')[1];

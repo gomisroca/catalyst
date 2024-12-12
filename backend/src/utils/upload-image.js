@@ -1,7 +1,7 @@
 import * as path from 'path';
 import * as fs from 'fs';
-const { Readable } = require('stream');
-const { finished } = require('stream/promises');
+import Readable from 'node:stream';
+import finished from 'node:stream/promises';
 
 export function uploadImage(type, file, id) {
   const filepath = file.filepath;

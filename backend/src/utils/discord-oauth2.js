@@ -1,10 +1,12 @@
 import { PrismaClient } from '@prisma/client';
+import { downloadImage } from './upload-image.js';
 const prisma = new PrismaClient();
 
-const passport = require('passport');
-const DiscordStrategy = require('passport-discord').Strategy;
+import passport from 'passport';
+import * as PassportDiscord from 'passport-discord';
+const DiscordStrategy = PassportDiscord.Strategy;
+
 const { DISCORD_ID, DISCORD_SECRET, DISCORD_CALLBACK_URL } = process.env;
-import { downloadImage } from './upload-image';
 
 passport.serializeUser((user, done) => {
   done(null, user);
@@ -98,4 +100,4 @@ passport.use(
   )
 );
 
-module.exports = passport;
+export default passport;
