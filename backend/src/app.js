@@ -1,5 +1,7 @@
 import express from 'express';
 import session from 'express-session';
+const { PrismaSessionStore } = require('@quixo3/prisma-session-store');
+const { PrismaClient } = require('@prisma/client');
 import passport from 'passport';
 import cors from 'cors';
 import helmet from 'helmet';
@@ -16,9 +18,16 @@ const app = express();
 
 const sess = {
   secret: process.env.SESSION_SECRET,
-  cookie: {},
-  resave: false,
-  saveUninitialized: false,
+  cookie: {
+    maxAge: 7 * 24 * 60 * 60 * 1000,
+  },
+  resave: true,
+  saveUninitialized: true,
+  store: new PrismaSessionStore(new PrismaClient(), {
+    checkPeriod: 2 * 60 * 1000,
+    dbRecordIdIsSessionId: true,
+    dbRecordIdFunction: undefined,
+  }),
 };
 
 if (process.env.NODE_ENV === 'production') {
