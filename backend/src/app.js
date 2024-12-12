@@ -1,7 +1,7 @@
 import express from 'express';
 import session from 'express-session';
-const { PrismaSessionStore } = require('@quixo3/prisma-session-store');
-const { PrismaClient } = require('@prisma/client');
+import { PrismaSessionStore } from '@quixo3/prisma-session-store';
+import { PrismaClient } from '@prisma/client';
 import passport from 'passport';
 import cors from 'cors';
 import helmet from 'helmet';
