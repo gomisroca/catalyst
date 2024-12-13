@@ -21,8 +21,8 @@ const sess = {
   cookie: {
     maxAge: 7 * 24 * 60 * 60 * 1000,
   },
-  resave: true,
-  saveUninitialized: true,
+  resave: false,
+  saveUninitialized: false,
   store: new PrismaSessionStore(new PrismaClient(), {
     checkPeriod: 2 * 60 * 1000,
     dbRecordIdIsSessionId: true,
@@ -53,8 +53,8 @@ app.get('/', (req, res) => {
   res.send('<h4>Welcome to the Catalyst API</h4><p>This page serves as a health check.</p>');
 });
 
-app.use('/api/users', usersRouter);
-app.use('/api/projects', projectsRouter);
+app.use('/users', usersRouter);
+app.use('/projects', projectsRouter);
 
 app.listen(process.env.PORT, () => {
   console.log(`[SERVER] Running at port ${process.env.PORT}`);
