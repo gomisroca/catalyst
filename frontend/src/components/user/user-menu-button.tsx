@@ -16,7 +16,7 @@ export default function UserMenuButton({ user }: { user: User }) {
               <DropdownMenuTrigger asChild>
                 <Button className="cursor-pointer" size="icon" asChild variant={'outline'}>
                   <Avatar className="rounded-md p-[0.2rem]">
-                    <AvatarImage className="rounded-sm" src={`${import.meta.env.VITE_BACKEND_ORIGIN}/${user.avatar}`} />
+                    <AvatarImage className="rounded-sm" src={`${import.meta.env.VITE_IMG_ROOT + user.avatar}`} />
                     <AvatarFallback>{user.username[0]}</AvatarFallback>
                   </Avatar>
                 </Button>

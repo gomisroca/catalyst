@@ -45,10 +45,7 @@ export default function TimelinePostCard({ post }: { post: Post }) {
       )}
       <div className={hidePost ? 'flex items-center gap-2 blur-md' : 'flex items-center gap-2'}>
         <Avatar className="rounded-md">
-          <AvatarImage
-            className="rounded-sm"
-            src={`${import.meta.env.VITE_BACKEND_ORIGIN}/images/${post.author.avatar}`}
-          />
+          <AvatarImage className="rounded-sm" src={`${import.meta.env.VITE_IMG_ROOT + post.author.avatar}`} />
           <AvatarFallback>{post.author.username[0]}</AvatarFallback>
         </Avatar>
         <div>
@@ -80,10 +77,7 @@ export default function TimelinePostCard({ post }: { post: Post }) {
             <Dialog key={media}>
               <DialogTrigger>
                 <div className="flex h-[80px] w-full items-center overflow-hidden rounded-md lg:h-[100px] lg:w-[130px] xl:w-[200px] 2xl:h-[125px] 2xl:w-[300px]">
-                  <img
-                    className="self-center rounded-md"
-                    src={`${import.meta.env.VITE_BACKEND_ORIGIN}/images/${media}`}
-                  />
+                  <img className="self-center rounded-md" src={`${import.meta.env.VITE_IMG_ROOT + media}`} />
                 </div>
               </DialogTrigger>
               <DialogContent className="w-auto max-w-none rounded-md p-1">

@@ -1,17 +1,16 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
-import Cookies from 'js-cookie';
-
 import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { updatePost } from '@/lib/projects';
 import { useState } from 'react';
 import { Textarea } from '../ui/textarea';
+import { getCookie } from '@/lib/cookies';
 
 export function PostEditForm({ post, onSubmitSuccess }: { post: Post; onSubmitSuccess: () => void }) {
-  const accessToken = Cookies.get('__catalyst__jwt');
+  const accessToken = getCookie('__catalyst__jwt');
   const [failState, setFailState] = useState<string>();
   const [successState, setSuccessState] = useState<string>();
 
@@ -72,11 +71,7 @@ export function PostEditForm({ post, onSubmitSuccess }: { post: Post; onSubmitSu
             <FormItem>
               {post.media &&
                 post.media.map((media) => (
-                  <img
-                    key={media}
-                    className="rounded-sm"
-                    src={`${import.meta.env.VITE_BACKEND_ORIGIN}/images/${media}`}
-                  />
+                  <img key={media} className="rounded-sm" src={`${import.meta.env.VITE_IMG_ROOT + media}`} />
                 ))}
               <FormLabel>Post Media</FormLabel>
               <FormControl>

@@ -50,10 +50,7 @@ export default function Profile() {
         <Card className="w-full p-4">
           <div className="flex items-center gap-2 p-4">
             <Avatar className="rounded-md">
-              <AvatarImage
-                className="rounded-sm"
-                src={`${import.meta.env.VITE_BACKEND_ORIGIN}/images/${profile.avatar}`}
-              />
+              <AvatarImage className="rounded-sm" src={`${import.meta.env.VITE_IMG_ROOT + profile.avatar}`} />
               <AvatarFallback>{profile.username[0]}</AvatarFallback>
             </Avatar>
             <div>

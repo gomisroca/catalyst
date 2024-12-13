@@ -76,10 +76,7 @@ export default function Project() {
         <Card className="w-full p-4">
           <div className="flex items-center gap-2 px-4">
             <Avatar className="rounded-md">
-              <AvatarImage
-                className="rounded-sm"
-                src={`${import.meta.env.VITE_BACKEND_ORIGIN}/images/${project.avatar}`}
-              />
+              <AvatarImage className="rounded-sm" src={`${import.meta.env.VITE_IMG_ROOT + project.avatar}`} />
               <AvatarFallback>{project.name[0]}</AvatarFallback>
             </Avatar>
             <div>
