@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import Cookies from 'js-cookie';
+import { setCookie } from '@/lib/cookies';
 
 export default function JWTGet() {
   const checkToken = () => {
@@ -8,7 +8,7 @@ export default function JWTGet() {
       if (!token) {
         throw new Error('No token found in URL');
       }
-      Cookies.set('__catalyst__jwt', token);
+      setCookie('__catalyst__jwt', token);
       window.location.href = '/';
     } catch (err) {
       console.log(err);

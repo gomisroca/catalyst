@@ -1,13 +1,12 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
-import Cookies from 'js-cookie';
-
 import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { useUser } from '@/contexts/user-provider';
 import { useState } from 'react';
+import { getCookie, setCookie } from '@/lib/cookies';
 
 const formSchema = z.object({
   username: z.string(),
@@ -45,7 +44,7 @@ const formSchema = z.object({
 
 export function UserSettingsForm() {
   const { user } = useUser();
-  const accessToken = Cookies.get('__catalyst__jwt');
+  const accessToken = getCookie('__catalyst__jwt');
   const [failState, setFailState] = useState<string>();
   const [successState, setSuccessState] = useState<string>();
 
@@ -67,7 +66,7 @@ export function UserSettingsForm() {
     data.append('avatar', values.avatar);
     data.append('password', values.password);
 
-    const res = await fetch(`/api/users/settings`, {
+    const res = await fetch(`${import.meta.env.VITE_BACKEND_ORIGIN}/api/users/settings`, {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${accessToken}`,
@@ -80,7 +79,7 @@ export function UserSettingsForm() {
     } else {
       setSuccessState('Posted!');
       const data = await res.json();
-      Cookies.set('__catalyst__jwt', data.access_token);
+      setCookie('__catalyst__jwt', data.access_token);
       window.location.href = '/';
     }
   }

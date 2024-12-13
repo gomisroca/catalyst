@@ -1,8 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
-import Cookies from 'js-cookie';
-
 import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
@@ -13,6 +11,7 @@ import { useUser } from '@/contexts/user-provider';
 import { useEffect, useState } from 'react';
 import { getUserFollows } from '@/lib/users';
 import MultipleSelector, { Option } from '../ui/multiple-selector';
+import { getCookie } from '@/lib/cookies';
 
 interface BranchData {
   name: string;
@@ -25,7 +24,7 @@ interface BranchData {
 
 export function BranchUploadForm({ project, onSubmitSuccess }: { project: Project; onSubmitSuccess: () => void }) {
   const { user } = useUser();
-  const accessToken = Cookies.get('__catalyst__jwt');
+  const accessToken = getCookie('__catalyst__jwt');
   const [failState, setFailState] = useState<string>();
   const [successState, setSuccessState] = useState<string>();
   const [usePrivate, setUsePrivate] = useState<boolean>(false);

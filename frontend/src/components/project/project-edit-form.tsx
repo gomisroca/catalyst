@@ -1,8 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
-import Cookies from 'js-cookie';
-
 import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
@@ -11,6 +9,7 @@ import { updateProject } from '@/lib/projects';
 import { getUserFollows } from '@/lib/users';
 import MultipleSelector, { Option } from '../ui/multiple-selector';
 import { Checkbox } from '../ui/checkbox';
+import { getCookie } from '@/lib/cookies';
 
 const formSchema = z.object({
   name: z.string().min(1),
@@ -21,7 +20,7 @@ const formSchema = z.object({
 });
 
 export function ProjectEditForm({ project, onSubmitSuccess }: { project: Project; onSubmitSuccess: () => void }) {
-  const accessToken = Cookies.get('__catalyst__jwt');
+  const accessToken = getCookie('__catalyst__jwt');
   const [failState, setFailState] = useState<string>();
   const [successState, setSuccessState] = useState<string>();
   const [follows, setFollows] = useState<Option[]>([]);
@@ -121,7 +120,7 @@ export function ProjectEditForm({ project, onSubmitSuccess }: { project: Project
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
             render={({ field: { value, onChange, ...fieldProps } }) => (
               <FormItem>
-                <img className="rounded-sm" src={`${import.meta.env.VITE_BACKEND_ORIGIN}/images/${project.avatar}`} />
+                <img className="rounded-sm" src={`${import.meta.env.VITE_IMG_ROOT + project.avatar}`} />
                 <FormLabel>Avatar</FormLabel>
                 <FormControl>
                   <Input

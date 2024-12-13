@@ -1,8 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
-import Cookies from 'js-cookie';
-
 import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
@@ -12,6 +10,7 @@ import { createProject } from '@/lib/projects';
 import { getUserFollows } from '@/lib/users';
 import MultipleSelector, { Option } from '../ui/multiple-selector';
 import { Checkbox } from '../ui/checkbox';
+import { getCookie } from '@/lib/cookies';
 
 const formSchema = z.object({
   name: z.string().min(1),
@@ -24,7 +23,7 @@ const formSchema = z.object({
 });
 
 export function ProjectUploadForm({ onSubmitSuccess }: { onSubmitSuccess: () => void }) {
-  const accessToken = Cookies.get('__catalyst__jwt');
+  const accessToken = getCookie('__catalyst__jwt');
   const [branchFields, setBranchFields] = useState<boolean>(false);
   const [failState, setFailState] = useState<string>();
   const [successState, setSuccessState] = useState<string>();

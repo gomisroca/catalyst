@@ -1,8 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
-import Cookies from 'js-cookie';
-
 import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
@@ -11,6 +9,7 @@ import { Checkbox } from '../ui/checkbox';
 import { useEffect, useState } from 'react';
 import { getUserFollows } from '@/lib/users';
 import MultipleSelector, { Option } from '../ui/multiple-selector';
+import { getCookie } from '@/lib/cookies';
 
 interface BranchData {
   name: string;
@@ -21,7 +20,7 @@ interface BranchData {
 }
 
 export function BranchEditForm({ branch, onSubmitSuccess }: { branch: Branch; onSubmitSuccess: () => void }) {
-  const accessToken = Cookies.get('__catalyst__jwt');
+  const accessToken = getCookie('__catalyst__jwt');
   const [failState, setFailState] = useState<string>();
   const [successState, setSuccessState] = useState<string>();
   const trueKeys: string[] = Object.keys(branch.permissions).filter(

@@ -2,14 +2,14 @@ import { Ban, BookmarkMinus, BookmarkPlus, EllipsisVertical, Eye, EyeOff, Forwar
 import { Button } from '../ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../ui/tooltip';
 import { useUser } from '@/contexts/user-provider';
-import Cookies from 'js-cookie';
 import { removePostInteractions, updatePostInteractions } from '@/lib/projects';
 import { useEffect, useState } from 'react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '../ui/dropdown-menu';
+import { getCookie } from '@/lib/cookies';
 
 export default function PostInteractions({ post, branch }: { post: Post; branch: Branch }) {
   const { user } = useUser();
-  const accessToken = Cookies.get('__catalyst__jwt');
+  const accessToken = getCookie('__catalyst__jwt');
   const [likes, setLikes] = useState(post.interactions.filter((int) => int.type == 'LIKE') || []);
   const [shares, setShares] = useState(post.interactions.filter((int) => int.type == 'SHARE') || []);
   const [bookmarks, setBookmarks] = useState(post.interactions.filter((int) => int.type == 'BOOKMARK') || []);

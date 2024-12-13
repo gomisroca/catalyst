@@ -1,7 +1,6 @@
 import { useUser } from '@/contexts/user-provider';
 import { getUserFollows } from '@/lib/users';
 import { useEffect, useState } from 'react';
-import Cookies from 'js-cookie';
 import PaginationWrapper from '../pagination-wrapper';
 import { Card, CardContent, CardDescription } from '../ui/card';
 import { Forward, Star } from 'lucide-react';
@@ -12,6 +11,8 @@ import { AiOutlineBranches } from 'react-icons/ai';
 import { FaRegFileAlt } from 'react-icons/fa';
 import { FiFolderPlus } from 'react-icons/fi';
 import TimelineProjectCard from '../user/timeline-project-card';
+import { getCookie } from '@/lib/cookies';
+
 interface InteractionOrProjectOrBranchOrPost {
   createdAt?: string;
   updatedAt?: string;
@@ -40,7 +41,7 @@ interface InteractionOrProjectOrBranchOrPost {
 
 export default function HomeTimeline() {
   const { user } = useUser();
-  const accessToken = Cookies.get('__catalyst__jwt');
+  const accessToken = getCookie('__catalyst__jwt');
   const [follows, setFollows] = useState<User[]>([]);
   const [timeline, setTimeline] = useState<InteractionOrProjectOrBranchOrPost[]>();
   const [paginatedTimeline, setPaginatedTimeline] = useState<InteractionOrProjectOrBranchOrPost[]>();

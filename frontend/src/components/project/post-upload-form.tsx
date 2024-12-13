@@ -1,17 +1,16 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
-import Cookies from 'js-cookie';
-
 import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { createPost } from '@/lib/projects';
 import { useState } from 'react';
 import { Textarea } from '../ui/textarea';
+import { getCookie } from '@/lib/cookies';
 
 export function PostUploadForm({ branch, onSubmitSuccess }: { branch: Branch; onSubmitSuccess: () => void }) {
-  const accessToken = Cookies.get('__catalyst__jwt');
+  const accessToken = getCookie('__catalyst__jwt');
   const [failState, setFailState] = useState<string>();
   const [successState, setSuccessState] = useState<string>();
 

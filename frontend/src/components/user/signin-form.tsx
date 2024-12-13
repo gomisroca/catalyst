@@ -1,14 +1,13 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
-
 import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { GrGoogle } from 'react-icons/gr';
 import { FaDiscord, FaFacebook } from 'react-icons/fa';
 import { Separator } from '../ui/separator';
-import Cookies from 'js-cookie';
+import { setCookie } from '@/lib/cookies';
 
 const formSchema = z.object({
   email: z.string().email({ message: 'Invalid Email' }),
@@ -50,27 +49,27 @@ export function SignInForm() {
     },
   });
   const userGoogleLogin = async () => {
-    window.location.href = `/api/users/google`;
+    window.location.href = `${import.meta.env.VITE_BACKEND_ORIGIN}/api/users/google`;
   };
   const userFbLogin = async () => {
-    window.location.href = `/api/users/facebook`;
+    window.location.href = `${import.meta.env.VITE_BACKEND_ORIGIN}/api/users/facebook`;
   };
   const userDiscordLogin = async () => {
-    window.location.href = `/api/users/discord`;
+    window.location.href = `${import.meta.env.VITE_BACKEND_ORIGIN}/api/users/discord`;
   };
   async function onSubmit(values: z.infer<typeof formSchema>) {
     const data = {
       email: values.email,
       password: values.password,
     };
-    const res = await fetch(`/api/users/sign-in`, {
+    const res = await fetch(`${import.meta.env.VITE_BACKEND_ORIGIN}/api/users/sign-in`, {
       headers: { 'Content-Type': 'application/json' },
       method: 'POST',
       body: JSON.stringify(data),
     });
     if (res.ok) {
       const data = await res.json();
-      Cookies.set('__catalyst__jwt', data.access_token);
+      setCookie('__catalyst__jwt', data.access_token);
       window.location.href = '/';
     }
   }

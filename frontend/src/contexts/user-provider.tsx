@@ -1,5 +1,5 @@
 import { createContext, useState, useEffect, useContext, PropsWithChildren } from 'react';
-import Cookies from 'js-cookie';
+import { getCookie, removeCookie } from '@/lib/cookies';
 
 interface JWTUser {
   id: string;
@@ -25,11 +25,11 @@ const UserContext = createContext<UserProviderState>({} as UserProviderState);
 
 export function UserProvider({ children }: PropsWithChildren) {
   const [user, setUser] = useState<JWTUser | undefined>();
-  const accessToken = Cookies.get('__catalyst__jwt');
+  const accessToken = getCookie('__catalyst__jwt');
 
   const getUserInfo = async (accessToken: string): Promise<JWTUser | void> => {
     try {
-      const res = await fetch(`/api/users/info`, {
+      const res = await fetch(`${import.meta.env.VITE_BACKEND_ORIGIN}/api/users/info`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -43,7 +43,7 @@ export function UserProvider({ children }: PropsWithChildren) {
   };
   const signOut = async () => {
     try {
-      Cookies.remove('__catalyst__jwt');
+      removeCookie('__catalyst__jwt');
       setUser(undefined);
     } catch (err) {
       console.log(err);
