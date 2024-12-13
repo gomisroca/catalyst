@@ -1,5 +1,5 @@
 import { PrismaClient } from '@prisma/client';
-import { downloadImage } from './upload-image.js';
+import { uploadImageFromUrl } from './upload-image.js';
 const prisma = new PrismaClient();
 
 import passport from 'passport';
@@ -34,7 +34,7 @@ passport.use(
         });
 
         if (existingUser) {
-          const newAvatar = await downloadImage('avatars', avatar, existingUser.id);
+          const newAvatar = await uploadImageFromUrl(avatar, 'avatars');
           if (!existingUser.discordId) {
             await prisma.discord.create({
               data: {
@@ -82,7 +82,7 @@ passport.use(
             },
           },
         });
-        const newAvatar = await downloadImage('avatars', avatar, newUser.id);
+        const newAvatar = await uploadImageFromUrl(avatar, 'avatars');
         newUser = await prisma.user.update({
           where: {
             id: newUser.id,

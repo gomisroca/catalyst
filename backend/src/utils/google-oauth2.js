@@ -1,5 +1,5 @@
 import { PrismaClient } from '@prisma/client';
-import { downloadImage } from './upload-image.js';
+import { uploadImageFromUrl } from './upload-image.js';
 const prisma = new PrismaClient();
 
 import passport from 'passport';
@@ -36,7 +36,7 @@ passport.use(
         });
 
         if (existingUser) {
-          const newAvatar = await downloadImage('avatars', profile._json.picture, existingUser.id);
+          const newAvatar = await uploadImageFromUrl(profile._json.picture, 'avatars');
           if (!existingUser.googleId) {
             await prisma.google.create({
               data: {
@@ -82,7 +82,7 @@ passport.use(
             },
           },
         });
-        const newAvatar = await downloadImage('avatars', profile._json.picture, newUser.id);
+        const newAvatar = await uploadImageFromUrl(profile._json.picture, 'avatars');
         newUser = await prisma.user.update({
           where: {
             id: newUser.id,
