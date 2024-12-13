@@ -66,7 +66,7 @@ export function UserSettingsForm() {
     data.append('avatar', values.avatar);
     data.append('password', values.password);
 
-    const res = await fetch(`${import.meta.env.VITE_BACKEND_ORIGIN}/api/users/settings`, {
+    const res = await fetch(`${import.meta.env.VITE_BACKEND_ORIGIN}/users/settings`, {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${accessToken}`,

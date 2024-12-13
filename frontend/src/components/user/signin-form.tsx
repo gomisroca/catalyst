@@ -49,20 +49,20 @@ export function SignInForm() {
     },
   });
   const userGoogleLogin = async () => {
-    window.location.href = `${import.meta.env.VITE_BACKEND_ORIGIN}/api/users/google`;
+    window.location.href = `${import.meta.env.VITE_BACKEND_ORIGIN}/users/google`;
   };
   const userFbLogin = async () => {
-    window.location.href = `${import.meta.env.VITE_BACKEND_ORIGIN}/api/users/facebook`;
+    window.location.href = `${import.meta.env.VITE_BACKEND_ORIGIN}/users/facebook`;
   };
   const userDiscordLogin = async () => {
-    window.location.href = `${import.meta.env.VITE_BACKEND_ORIGIN}/api/users/discord`;
+    window.location.href = `${import.meta.env.VITE_BACKEND_ORIGIN}/users/discord`;
   };
   async function onSubmit(values: z.infer<typeof formSchema>) {
     const data = {
       email: values.email,
       password: values.password,
     };
-    const res = await fetch(`${import.meta.env.VITE_BACKEND_ORIGIN}/api/users/sign-in`, {
+    const res = await fetch(`${import.meta.env.VITE_BACKEND_ORIGIN}/users/sign-in`, {
       headers: { 'Content-Type': 'application/json' },
       method: 'POST',
       body: JSON.stringify(data),
