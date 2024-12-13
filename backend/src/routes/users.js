@@ -8,7 +8,7 @@ const prisma = new PrismaClient();
 const { FRONTEND_ORIGIN } = process.env;
 
 import bcrypt from 'bcrypt';
-import * as jwt from 'jsonwebtoken';
+import jwt from 'jsonwebtoken';
 
 import { verifyUser } from '../utils/auth.js';
 import { uploadImage } from '../utils/upload-image.js';
@@ -45,7 +45,6 @@ router.get('/discord/callback', passportDiscord.authenticate('discord', { sessio
     },
     process.env.JWT_SECRET
   );
-  console.log(access_token);
   res.redirect(FRONTEND_ORIGIN + '/jwt?code=' + access_token);
 });
 
@@ -247,7 +246,6 @@ router.post('/settings', async (req, res) => {
       if (err) {
         throw new Error(err);
       }
-      console.log(files);
       const encryptedPassword = await bcrypt.hash(fields.password[0], 10);
       const avatar = await uploadImage('avatars', files.avatar[0], user.id);
 
