@@ -18,7 +18,9 @@ import passportDiscord from '../utils/discord-oauth2.js';
 
 import NodeCache from 'node-cache';
 const usersCache = new NodeCache({ stdTTL: 60 * 5 });
-
+router.get('/', async (req, res) => {
+  return res.send('Users Endpoint');
+});
 router.get('/discord', passportDiscord.authenticate('discord'));
 router.get('/discord/callback', passportDiscord.authenticate('discord', { session: true }), async (req, res) => {
   const user = await prisma.user.findUnique({
