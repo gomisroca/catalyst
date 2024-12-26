@@ -60,3 +60,5 @@ app.listen(process.env.PORT, () => {
   console.log(`[SERVER] Running at port ${process.env.PORT}`);
   console.log(`[SERVER] Environment ${process.env.NODE_ENV}`);
 });
+
+export default app;
