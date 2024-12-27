@@ -28,6 +28,7 @@ export default function Navmenu() {
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button className="w-[40px]" size="icon" variant={'outline'}>
+                  <span className="sr-only">Home</span>
                   <Home className="w-[40px]" onClick={() => (window.location.href = '/')} />
                 </Button>
               </TooltipTrigger>

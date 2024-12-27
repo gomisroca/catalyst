@@ -8,7 +8,8 @@
     "build": "tsc && vite build",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview",
-    "test": "vitest"
+    "test": "vitest",
+    "e2e": "playwright test"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.1",
@@ -50,6 +51,9 @@
   },
   "devDependencies": {
     "@playwright/test": "^1.49.1",
+    "@testing-library/dom": "^10.4.0",
+    "@testing-library/jest-dom": "^6.6.3",
+    "@testing-library/react": "^16.1.0",
     "@types/node": "^22.10.1",
     "@types/react": "^19.0.1",
     "@types/react-dom": "^19.0.2",
@@ -60,6 +64,7 @@
     "eslint": "^9.16.0",
     "eslint-plugin-react-hooks": "^5.1.0",
     "eslint-plugin-react-refresh": "^0.4.16",
+    "jsdom": "^25.0.1",
     "npm": "^10.9.2",
     "postcss": "^8.4.49",
     "prettier": "^3.4.2",
