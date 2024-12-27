@@ -1,11 +1,14 @@
+import path from 'path';
 import { defineConfig } from 'vite';
 
 export default defineConfig({
   test: {
-    /* for example, use global to avoid globals imports (describe, test, expect): */
+    setupFiles: './tests/setup.js',
     globals: true,
+  },
+  resolve: {
     alias: {
-      '@': '/src',
+      '@': path.resolve(__dirname, 'src'),
     },
   },
 });
