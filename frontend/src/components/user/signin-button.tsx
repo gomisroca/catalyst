@@ -10,8 +10,9 @@ export default function SignInButton() {
         <Tooltip>
           <TooltipTrigger asChild>
             <DialogTrigger className="w-full">
-              <Button className="cursor-pointer" size="icon" asChild variant={'outline'}>
-                <UserRound />
+              <Button className="w-[40px] cursor-pointer" size="icon" variant={'outline'}>
+                <span className="sr-only">Sign In</span>
+                <UserRound className="w-[40px]" />
               </Button>
             </DialogTrigger>
           </TooltipTrigger>
