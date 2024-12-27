@@ -56,11 +56,9 @@ app.get('/', (req, res) => {
 app.use('/users', usersRouter);
 app.use('/projects', projectsRouter);
 
-if (require.main === module) {
-  app.listen(process.env.PORT, () => {
-    console.log(`[SERVER] Running at port ${process.env.PORT}`);
-    console.log(`[SERVER] Environment ${process.env.NODE_ENV}`);
-  });
-}
+app.listen(process.env.PORT, () => {
+  console.log(`[SERVER] Running at port ${process.env.PORT}`);
+  console.log(`[SERVER] Environment ${process.env.NODE_ENV}`);
+});
 
 export default app;
