@@ -24,7 +24,7 @@ export function BranchEditForm({ branch, onSubmitSuccess }: { branch: Branch; on
   const [failState, setFailState] = useState<string>();
   const [successState, setSuccessState] = useState<string>();
   const trueKeys: string[] = Object.keys(branch.permissions).filter(
-    (key) => branch.permissions[key as keyof Permissions] == true
+    (key) => branch.permissions[key as keyof Permission] == true
   );
   const [usePrivate, setUsePrivate] = useState<boolean>(trueKeys.includes('private'));
   const [follows, setFollows] = useState<Option[]>([]);

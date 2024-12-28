@@ -25,7 +25,7 @@ export function ProjectEditForm({ project, onSubmitSuccess }: { project: Project
   const [successState, setSuccessState] = useState<string>();
   const [follows, setFollows] = useState<Option[]>([]);
   const trueKeys: string[] = Object.keys(project.permissions).filter(
-    (key) => project.permissions[key as keyof Permissions] == true
+    (key) => project.permissions[key as keyof Permission] == true
   );
   const [usePrivate, setUsePrivate] = useState<boolean>(trueKeys.includes('private'));
 
