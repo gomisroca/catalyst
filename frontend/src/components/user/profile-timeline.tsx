@@ -32,7 +32,7 @@ interface InteractionOrProjectOrBranchOrPost {
   posts?: Post[];
   parentBranch?: Branch;
   childBranches?: Branch[];
-  permissions?: Permissions;
+  permissions?: Permission;
   avatar?: string;
   branches?: Branch[];
 }
