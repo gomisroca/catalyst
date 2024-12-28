@@ -82,7 +82,7 @@ export default function Project() {
             <div>
               <CardDescription>
                 {project.author.nickname || project.author.username}
-                <Link to={`/profile/${project.author.id}`} className="hover:text-gray-500">
+                <Link to={`/profile/${project.author.id}`} className="hover:text-gray-500" data-testid="author-link">
                   @{project.author.username}
                 </Link>
               </CardDescription>

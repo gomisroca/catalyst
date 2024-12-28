@@ -32,7 +32,7 @@ interface User {
   followedBy: string[];
 }
 
-interface Permissions {
+interface Permission {
   private: boolean;
   allowedUsers: string[];
   allowCollaborate: boolean;
@@ -62,7 +62,7 @@ interface Branch {
   posts: Post[];
   parentBranch: Branch;
   childBranches: Branch[];
-  permissions: Permissions;
+  permissions: Permission;
   interactions: Interaction[];
   popularity: number;
   activity: number;
@@ -78,7 +78,7 @@ interface Project {
   updatedAt: string;
   author: User;
   branches: Branch[];
-  permissions: Permissions;
+  permissions: Permission;
   popularity: number;
   activity: number;
   trendingActivity: boolean;
