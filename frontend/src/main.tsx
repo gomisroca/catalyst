@@ -1,15 +1,20 @@
+// Libraries Imports
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import './index.css';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
-import Home from './routes/home';
-import { ThemeProvider } from '@/contexts/theme-provider';
-import { UserProvider } from '@/contexts/user-provider';
-import Navmenu from './components/ui/navmenu';
-import JWTGet from './routes/JWTGet';
-import Project from './routes/project';
-import Branch from './routes/branch';
-import Profile from './components/user/profile-main';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
+import '@/index.css';
+// Contexts Imports
+import ThemeProvider from '@/contexts/theme-provider';
+// Routes Imports
+import JWTGet from '@/routes/JWTGet';
+import Project from '@/routes/project';
+import Branch from '@/routes/branch';
+import Home from '@/routes/home';
+// Components Imports
+import Navmenu from '@/components/ui/navmenu';
+import Profile from '@/components/user/profile-main';
 
 const router = createBrowserRouter([
   {
@@ -31,15 +36,17 @@ const router = createBrowserRouter([
     ],
   },
   {
-    path: '/profile/:userId',
+    path: '/profile/:profileId',
     element: <Profile />,
   },
 ]);
 
+const queryClient = new QueryClient();
+
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
-    <UserProvider>
-      <ThemeProvider defaultTheme="dark" storageKey="catalyst-theme">
+    <QueryClientProvider client={queryClient}>
+      <ThemeProvider>
         <div className="bg-gradient min-h-screen">
           <Navmenu />
           <div className="flex items-center justify-center p-2 md:p-10 lg:p-20">
@@ -47,6 +54,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
           </div>
         </div>
       </ThemeProvider>
-    </UserProvider>
+      <ReactQueryDevtools initialIsOpen={false} />
+    </QueryClientProvider>
   </React.StrictMode>
 );
