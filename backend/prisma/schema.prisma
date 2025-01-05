@@ -60,7 +60,6 @@ model User {
   discord            Discord?
   discordId          String?
   email              String              @unique
-  password           String?
   username           String
   nickname           String?
   avatar             String?
