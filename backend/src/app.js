@@ -1,14 +1,13 @@
 import express from 'express';
 import session from 'express-session';
 import { PrismaSessionStore } from '@quixo3/prisma-session-store';
-import { PrismaClient } from '@prisma/client';
 import passport from 'passport';
 import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
 import dotenv from 'dotenv';
-import usersRouter from './routes/users.js';
-import projectsRouter from './routes/projects.js';
+import routes from './handlers/index.js';
+import { db } from './utils/db.js';
 
 if (process.env.NODE_ENV === 'development') {
   dotenv.config();
@@ -23,7 +22,7 @@ const sess = {
   },
   resave: false,
   saveUninitialized: false,
-  store: new PrismaSessionStore(new PrismaClient(), {
+  store: new PrismaSessionStore(db, {
     checkPeriod: 2 * 60 * 1000,
     dbRecordIdIsSessionId: true,
     dbRecordIdFunction: undefined,
@@ -42,19 +41,20 @@ const corsOptions = {
 
 app.use(express.json({ limit: '5mb' }));
 app.use(session(sess));
-app.use('/images', express.static('public'));
 app.use(cors(corsOptions));
 app.use(morgan('combined'));
 app.use(helmet());
 app.use(passport.initialize());
 app.use(passport.session());
 
-app.get('/', (req, res) => {
-  res.send('<h4>Welcome to the Catalyst API</h4><p>This page serves as a health check.</p>');
-});
+app.get('/', (req, res) => res.send('Welcome to the Catalyst API. This page serves as a health check.'));
+app.use('/', routes);
 
-app.use('/users', usersRouter);
-app.use('/projects', projectsRouter);
+// Error handling middleware
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).json({ error: 'Something broke!' });
+});
 
 app.listen(process.env.PORT, () => {
   console.log(`[SERVER] Running at port ${process.env.PORT}`);
