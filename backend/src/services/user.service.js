@@ -99,11 +99,20 @@ export class UserService {
         nickname: fields.nickname?.[0] || user.nickname,
         email: fields.email?.[0] || user.email,
         avatar,
-        password: encryptedPassword,
       },
-      include: {
+      select: {
+        id: true,
+        email: true,
+        username: true,
+        nickname: true,
+        avatar: true,
+        role: true,
+        posts: true,
+        branches: true,
+        projects: true,
         postInteractions: true,
         branchInteractions: true,
+        followedBy: true,
       },
     });
 
@@ -117,9 +126,6 @@ export class UserService {
         nickname: dbUser.nickname,
         avatar: dbUser.avatar,
         role: dbUser.role,
-        postInteractions: dbUser.postInteractions,
-        branchInteractions: dbUser.branchInteractions,
-        followedBy: dbUser.followedBy,
       },
       process.env.JWT_SECRET,
       { expiresIn: '1h' }
@@ -130,9 +136,5 @@ export class UserService {
     await this.db.user.delete({
       where: { id },
     });
-  }
-
-  async validatePassword(user, password) {
-    return bcrypt.compare(password, user.password);
   }
 }
