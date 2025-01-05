@@ -55,7 +55,7 @@ export const userService = {
     }
   },
 
-  updateUser: async (accessToken: string, userData: UpdateUserData) => {
+  updateUser: async (accessToken: string, userData: FormData) => {
     try {
       const options = {
         headers: {

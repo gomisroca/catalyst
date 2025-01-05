@@ -3,6 +3,7 @@ import { baseUserSchema, UserSchema } from './BaseSchema';
 
 export const updateUserSchema = baseUserSchema.partial().omit({
   id: true,
+  role: true,
 });
 
 export type BasicUser = z.infer<typeof baseUserSchema>;
