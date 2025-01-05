@@ -17,13 +17,17 @@ interface Interaction {
   postId?: string;
   branchId?: string;
 }
-interface User {
+
+interface BasicUser {
   id: string;
   email: string;
   username: string;
   nickname: string;
   avatar: string;
   role: string;
+}
+
+interface User extends BasicUser {
   postInteractions: Interaction[];
   branchInteractions: Interaction[];
   projects: Project[];
