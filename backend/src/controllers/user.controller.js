@@ -77,7 +77,14 @@ export class UserController {
       if (!req.user) {
         return res.status(401).json({ error: 'Unauthorized' });
       }
+      const cookie = getCookie('__catalyst__jwt');
+      if (!cookie) {
+        throw new Error('No cookie found');
+      }
+
       await this.userService.delete(req.user.id);
+      removeCookie('__catalyst__jwt');
+
       res.redirect(`${process.env.FRONTEND_ORIGIN}`);
     } catch (error) {
       console.error('Delete error:', error);

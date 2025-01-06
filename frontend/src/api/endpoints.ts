@@ -11,6 +11,7 @@ export const ENDPOINTS = {
     DISCORD: '/auth/discord',
     FACEBOOK: '/auth/facebook',
     GOOGLE: '/auth/google',
+    SIGNOUT: '/auth/signout',
   },
   INTERACTIONS: {
     FOLLOW: (id: string) => `/interactions/user/${id}/follow`,

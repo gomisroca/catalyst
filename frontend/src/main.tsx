@@ -6,11 +6,10 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import '@/index.css';
 // Routes Imports
-import JWTGet from '@/routes/JWTGet';
+import Home from '@/routes/home';
 import Project from '@/routes/project';
 import Branch from '@/routes/branch';
 import Profile from '@/routes/profile';
-import Home from '@/routes/home';
 // Components Imports
 import Navmenu from '@/components/ui/navmenu';
 
@@ -18,10 +17,6 @@ const router = createBrowserRouter([
   {
     path: '/',
     element: <Home />,
-  },
-  {
-    path: '/jwt',
-    element: <JWTGet />,
   },
   {
     path: '/:projectId',

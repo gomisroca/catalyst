@@ -1,15 +1,18 @@
+import { authService } from '@/api/services/authService';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { userService } from '@/api/services/userService';
 
-export const useUpdateUser = () => {
+export const useSignOut = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (userData: FormData) => {
-      return userService.updateUser(userData);
+    mutationFn: () => {
+      return authService.signOut();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['self'] });
+    },
+    onError: (error) => {
+      console.error('Failed to sign out:', error);
     },
     retry: 1, // Retry once on failure
   });

@@ -5,14 +5,9 @@ import { updateUserSchema, type User, type UpdateUserData } from '@/api/schemas/
 import { baseUserSchema, UserSchema } from '@/api/schemas/BaseSchema';
 
 export const userService = {
-  getSelf: async (accessToken: string) => {
+  getSelf: async () => {
     try {
-      const options = {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      };
-      const response = await apiService.get<User>(ENDPOINTS.USERS.SELF, options);
+      const response = await apiService.get<User>(ENDPOINTS.USERS.SELF);
       return baseUserSchema.parse(response);
     } catch (error) {
       console.error('Failed to get self:', error);
@@ -30,14 +25,9 @@ export const userService = {
     }
   },
 
-  getFollowedUsers: async (accessToken: string) => {
+  getFollowedUsers: async () => {
     try {
-      const options = {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      };
-      const response = await apiService.get<User[]>(ENDPOINTS.USERS.FOLLOWED, options);
+      const response = await apiService.get<User[]>(ENDPOINTS.USERS.FOLLOWED);
       return z.array(UserSchema).parse(response);
     } catch (error) {
       console.error('Failed to get followed users:', error);
@@ -55,15 +45,10 @@ export const userService = {
     }
   },
 
-  updateUser: async (accessToken: string, userData: FormData) => {
+  updateUser: async (userData: FormData) => {
     try {
-      const options = {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      };
       updateUserSchema.parse(userData);
-      const response = await apiService.put<unknown>(ENDPOINTS.USERS.UPDATE, userData, options);
+      const response = await apiService.put<unknown>(ENDPOINTS.USERS.UPDATE, userData);
       return baseUserSchema.parse(response);
     } catch (error) {
       console.error('Failed to update user:', error);
@@ -71,14 +56,9 @@ export const userService = {
     }
   },
 
-  deleteUser: async (accessToken: string) => {
+  deleteUser: async () => {
     try {
-      const options = {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      };
-      await apiService.delete<void>(ENDPOINTS.USERS.DELETE, options);
+      await apiService.delete<void>(ENDPOINTS.USERS.DELETE);
     } catch (error) {
       console.error('Failed to delete user:', error);
       throw error;
