@@ -1,15 +1,19 @@
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm } from 'react-hook-form';
+// Base Imports
 import { z } from 'zod';
-import { Button } from '@/components/ui/button';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
+import { zodResolver } from '@hookform/resolvers/zod';
+// Hook Imports
+import { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { useGetFollowedUsers } from '@/hooks/users/useGetFollowedUsers';
 import { updateBranch } from '@/lib/projects';
-import { Checkbox } from '../ui/checkbox';
-import { useEffect, useState } from 'react';
-import { getUserFollows } from '@/lib/users';
-import MultipleSelector, { Option } from '../ui/multiple-selector';
-import { getCookie } from '@/lib/cookies';
+// UI Imports
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import MultipleSelector, { Option } from '@/components/ui/multiple-selector';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Checkbox } from '@/components/ui/checkbox';
+import Loading from '../ui/loading';
+import Error from '../ui/error';
 
 interface BranchData {
   name: string;
@@ -20,28 +24,12 @@ interface BranchData {
 }
 
 export function BranchEditForm({ branch, onSubmitSuccess }: { branch: Branch; onSubmitSuccess: () => void }) {
-  const accessToken = getCookie('__catalyst__jwt');
-  const [failState, setFailState] = useState<string>();
-  const [successState, setSuccessState] = useState<string>();
+  const { data: follows, isLoading: followsLoading, error: followsError } = useGetFollowedUsers();
+
   const trueKeys: string[] = Object.keys(branch.permissions).filter(
     (key) => branch.permissions[key as keyof Permission] == true
   );
   const [usePrivate, setUsePrivate] = useState<boolean>(trueKeys.includes('private'));
-  const [follows, setFollows] = useState<Option[]>([]);
-
-  useEffect(() => {
-    async function getFollows(accessToken: string) {
-      const userFollows = await getUserFollows(accessToken);
-      const transformedFollows = userFollows.map((user) => ({
-        label: user.username,
-        value: user.id,
-      }));
-      setFollows(transformedFollows);
-    }
-    if (accessToken) {
-      getFollows(accessToken);
-    }
-  }, [accessToken]);
 
   const permissions = [
     { id: 'private', label: 'Private' },
@@ -77,21 +65,15 @@ export function BranchEditForm({ branch, onSubmitSuccess }: { branch: Branch; on
       data.allowedUsers = values.allowedUsers;
     }
 
-    if (accessToken) {
-      const res = await updateBranch(accessToken, data, branch.id);
-      console.log(res);
-      if (!res.ok) {
-        const fail = await res.json();
-        setFailState(fail);
-      } else {
-        setSuccessState('Branch updated!');
-        setTimeout(() => onSubmitSuccess(), 2000);
-      }
-    } else {
-      setFailState('Must be logged in.');
-    }
+    const res = await updateBranch(accessToken, data, branch.id);
   }
 
+  if (followsLoading) {
+    return <Loading />;
+  }
+  if (followsError) {
+    return <Error message={followsError?.message} />;
+  }
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-4">

@@ -1,15 +1,17 @@
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm } from 'react-hook-form';
+// Base Imports
 import { z } from 'zod';
+import { zodResolver } from '@hookform/resolvers/zod';
+// Hook Imports
+import { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { useGetFollowedUsers } from '@/hooks/users/useGetFollowedUsers';
+import { updateProject } from '@/lib/projects';
+// UI Imports
+import MultipleSelector from '@/components/ui/multiple-selector';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { useEffect, useState } from 'react';
-import { updateProject } from '@/lib/projects';
-import { getUserFollows } from '@/lib/users';
-import MultipleSelector, { Option } from '../ui/multiple-selector';
-import { Checkbox } from '../ui/checkbox';
-import { getCookie } from '@/lib/cookies';
 
 const formSchema = z.object({
   name: z.string().min(1),
@@ -20,28 +22,12 @@ const formSchema = z.object({
 });
 
 export function ProjectEditForm({ project, onSubmitSuccess }: { project: Project; onSubmitSuccess: () => void }) {
-  const accessToken = getCookie('__catalyst__jwt');
-  const [failState, setFailState] = useState<string>();
-  const [successState, setSuccessState] = useState<string>();
-  const [follows, setFollows] = useState<Option[]>([]);
+  const { data: follows } = useGetFollowedUsers();
+
   const trueKeys: string[] = Object.keys(project.permissions).filter(
     (key) => project.permissions[key as keyof Permission] == true
   );
   const [usePrivate, setUsePrivate] = useState<boolean>(trueKeys.includes('private'));
-
-  useEffect(() => {
-    async function getFollows(accessToken: string) {
-      const userFollows = await getUserFollows(accessToken);
-      const transformedFollows = userFollows.map((user) => ({
-        label: user.username,
-        value: user.id,
-      }));
-      setFollows(transformedFollows);
-    }
-    if (accessToken) {
-      getFollows(accessToken);
-    }
-  }, [accessToken]);
 
   const permissions = [
     { id: 'private', label: 'Private' },
@@ -70,17 +56,12 @@ export function ProjectEditForm({ project, onSubmitSuccess }: { project: Project
         data.append('allowedUsers', user.value);
       }
     }
-    if (accessToken) {
-      const res = await updateProject(accessToken, data, project.id);
-      if (!res.ok) {
-        const fail = await res.json();
-        setFailState(fail);
-      } else {
-        setSuccessState('Project updated!');
-        setTimeout(() => onSubmitSuccess(), 2000);
-      }
+
+    const res = await updateProject(accessToken, data, project.id);
+    if (!res.ok) {
+      const fail = await res.json();
     } else {
-      setFailState('Must be logged in.');
+      setTimeout(() => onSubmitSuccess(), 2000);
     }
   }
 
@@ -193,8 +174,6 @@ export function ProjectEditForm({ project, onSubmitSuccess }: { project: Project
           <Button type="submit" className="mt-4">
             Submit
           </Button>
-          {failState && <div className="m-auto text-destructive">{failState}</div>}
-          {successState && <div className="m-auto">{successState}</div>}
         </form>
       </Form>
     </>

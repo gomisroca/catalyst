@@ -1,130 +1,27 @@
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm } from 'react-hook-form';
-import { z } from 'zod';
 import { Button } from '@/components/ui/button';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
 import { GrGoogle } from 'react-icons/gr';
 import { FaDiscord, FaFacebook } from 'react-icons/fa';
-import { Separator } from '../ui/separator';
-import { setCookie } from '@/lib/cookies';
+import { ENDPOINTS } from '@/api/endpoints';
 
-const formSchema = z.object({
-  email: z.string().email({ message: 'Invalid Email' }),
-  password: z
-    .string()
-    .min(8, { message: 'Password must be at least 8 characters long.' })
-    .superRefine((password, checkPassComplexity) => {
-      const containsUppercase = (ch: string) => /[A-Z]/.test(ch);
-      const containsLowercase = (ch: string) => /[a-z]/.test(ch);
-      const containsSpecialChar = (ch: string) =>
-        //eslint-disable-next-line
-        /[`!@#$%^&*()_\-+=\[\]{};':"\\|,.<>\/?~ ]/.test(ch);
-      let countOfUpperCase = 0;
-      let countOfLowerCase = 0;
-      let countOfNumbers = 0;
-      let countOfSpecialChar = 0;
-      for (let i = 0; i < password.length; i++) {
-        const ch = password.charAt(i);
-        if (!isNaN(+ch)) countOfNumbers++;
-        else if (containsUppercase(ch)) countOfUpperCase++;
-        else if (containsLowercase(ch)) countOfLowerCase++;
-        else if (containsSpecialChar(ch)) countOfSpecialChar++;
-      }
-      if (countOfLowerCase < 1 || countOfUpperCase < 1 || countOfSpecialChar < 1 || countOfNumbers < 1) {
-        checkPassComplexity.addIssue({
-          code: 'custom',
-          message: 'Password requires lowercase, uppercase, symbol and number characters.',
-        });
-      }
-    }),
-});
+const providers = [
+  { name: 'Google', icon: <GrGoogle />, endpoint: ENDPOINTS.AUTH.GOOGLE },
+  { name: 'Facebook', icon: <FaFacebook />, endpoint: ENDPOINTS.AUTH.FACEBOOK },
+  { name: 'Discord', icon: <FaDiscord />, endpoint: ENDPOINTS.AUTH.DISCORD },
+];
 
 export function SignInForm() {
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      email: '',
-      password: '',
-    },
-  });
-  const userGoogleLogin = async () => {
-    window.location.href = `${import.meta.env.VITE_BACKEND_ORIGIN}/users/google`;
+  const handleLogin = (provider: string) => {
+    window.location.href = `${import.meta.env.VITE_BACKEND_ORIGIN}${provider}`;
   };
-  const userFbLogin = async () => {
-    window.location.href = `${import.meta.env.VITE_BACKEND_ORIGIN}/users/facebook`;
-  };
-  const userDiscordLogin = async () => {
-    window.location.href = `${import.meta.env.VITE_BACKEND_ORIGIN}/users/discord`;
-  };
-  async function onSubmit(values: z.infer<typeof formSchema>) {
-    const data = {
-      email: values.email,
-      password: values.password,
-    };
-    const res = await fetch(`${import.meta.env.VITE_BACKEND_ORIGIN}/users/sign-in`, {
-      headers: { 'Content-Type': 'application/json' },
-      method: 'POST',
-      body: JSON.stringify(data),
-    });
-    if (res.ok) {
-      const data = await res.json();
-      setCookie('__catalyst__jwt', data.access_token);
-      window.location.href = '/';
-    }
-  }
-  return (
-    <>
-      <div className="my-4 flex flex-col gap-2">
-        <Button variant="outline" className="flex items-center gap-2" onClick={userGoogleLogin}>
-          <GrGoogle />
-          <span>Sign in using Google</span>
-        </Button>
-        <Button variant="outline" className="flex items-center gap-2" onClick={userFbLogin}>
-          <FaFacebook />
-          <span>Sign in using Facebook</span>
-        </Button>
-        <Button variant="outline" className="flex items-center gap-2" onClick={userDiscordLogin}>
-          <FaDiscord />
-          <span>Sign in using Discord</span>
-        </Button>
-      </div>
-      <Separator />
-      <div className="flex items-center justify-center">
-        <span>Or sign in with email</span>
-      </div>
 
-      <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-2">
-          <FormField
-            control={form.control}
-            name="email"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Email</FormLabel>
-                <FormControl>
-                  <Input {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="password"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Password</FormLabel>
-                <FormControl>
-                  <Input {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <Button type="submit">Submit</Button>
-        </form>
-      </Form>
-    </>
+  return (
+    <div className="my-4 flex flex-col gap-2">
+      {providers.map(({ name, icon, endpoint }) => (
+        <Button key={name} variant="outline" className="flex items-center gap-2" onClick={() => handleLogin(endpoint)}>
+          {icon}
+          <span>Sign in using {name}</span>
+        </Button>
+      ))}
+    </div>
   );
 }

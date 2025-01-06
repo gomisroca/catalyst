@@ -3,7 +3,6 @@ import { Card, CardContent, CardDescription, CardFooter, CardTitle } from '@/com
 import { getProject } from '@/lib/projects';
 import { useEffect, useState } from 'react';
 import { Link, Outlet, useNavigate, useParams } from 'react-router-dom';
-import { useUser } from '@/contexts/user-provider';
 import CreateBranchButton from '@/components/project/create-branch-button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
@@ -12,6 +11,7 @@ import { Button } from '@/components/ui/button';
 import { Pencil } from 'lucide-react';
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
 import { ProjectEditForm } from '@/components/project/project-edit-form';
+import { useGetSelf } from '@/hooks/users/useGetSelf';
 
 export default function Project() {
   const [open, setOpen] = useState(false);
@@ -20,7 +20,7 @@ export default function Project() {
     setOpen(false);
   };
 
-  const { user } = useUser();
+  const { data: user } = useGetSelf();
 
   const { projectId } = useParams();
   const [project, setProject] = useState<Project>();
@@ -108,7 +108,7 @@ export default function Project() {
                     </Tooltip>
                   </TooltipProvider>
                 )}
-                {user && user.id == project.author.id && (
+                {user?.id == project.author.id && (
                   <Dialog open={open} onOpenChange={setOpen}>
                     <TooltipProvider>
                       <Tooltip>
@@ -159,7 +159,7 @@ export default function Project() {
                     <SelectValue placeholder="Select a branch" />
                   </SelectTrigger>
                   <SelectContent>
-                    {user && (project.author.id == user.id || project.permissions.allowBranch) && (
+                    {(project.author.id == user?.id || project.permissions.allowBranch) && (
                       <CreateBranchButton project={project} />
                     )}
                     <SelectItem className="hidden" value={'null'}>

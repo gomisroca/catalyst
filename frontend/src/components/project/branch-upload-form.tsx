@@ -1,17 +1,21 @@
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm } from 'react-hook-form';
+// Base Imports
 import { z } from 'zod';
-import { Button } from '@/components/ui/button';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
+import { zodResolver } from '@hookform/resolvers/zod';
+// Hook Imports
+import { useState } from 'react';
+import { useForm } from 'react-hook-form';
 import { createBranch } from '@/lib/projects';
+import { useGetFollowedUsers } from '@/hooks/users/useGetFollowedUsers';
+import { useGetSelf } from '@/hooks/users/useGetSelf';
+// UI Imports
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Checkbox } from '@/components/ui/checkbox';
+import MultipleSelector, { Option } from '@/components/ui/multiple-selector';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Checkbox } from '../ui/checkbox';
-import { useUser } from '@/contexts/user-provider';
-import { useEffect, useState } from 'react';
-import { getUserFollows } from '@/lib/users';
-import MultipleSelector, { Option } from '../ui/multiple-selector';
-import { getCookie } from '@/lib/cookies';
+import Loading from '@/components/ui/loading';
+import Error from '@/components/ui/error';
 
 interface BranchData {
   name: string;
@@ -23,27 +27,10 @@ interface BranchData {
 }
 
 export function BranchUploadForm({ project, onSubmitSuccess }: { project: Project; onSubmitSuccess: () => void }) {
-  const { user } = useUser();
-  const accessToken = getCookie('__catalyst__jwt');
-  const [failState, setFailState] = useState<string>();
-  const [successState, setSuccessState] = useState<string>();
-  const [usePrivate, setUsePrivate] = useState<boolean>(false);
-  const [follows, setFollows] = useState<Option[]>([]);
+  const { data: user, isLoading: userLoading, error: userError } = useGetSelf();
+  const { data: follows, isLoading: followsLoading, error: followsError } = useGetFollowedUsers();
 
-  useEffect(() => {
-    async function getFollows(accessToken: string) {
-      const userFollows = await getUserFollows(accessToken);
-      const transformedFollows = userFollows.map((user) => ({
-        label: user.username,
-        value: user.id,
-      }));
-      console.log(transformedFollows);
-      setFollows(transformedFollows);
-    }
-    if (accessToken) {
-      getFollows(accessToken);
-    }
-  }, [accessToken]);
+  const [usePrivate, setUsePrivate] = useState<boolean>(false);
 
   const permissions = [
     { id: 'private', label: 'Private' },
@@ -59,6 +46,7 @@ export function BranchUploadForm({ project, onSubmitSuccess }: { project: Projec
     permissions: z.array(z.string()),
     allowedUsers: z.array(z.any()).optional(),
   });
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -82,20 +70,20 @@ export function BranchUploadForm({ project, onSubmitSuccess }: { project: Projec
       data.allowedUsers = values.allowedUsers;
     }
 
-    if (accessToken) {
-      const res = await createBranch(accessToken, data, project.id);
-      if (!res.ok) {
-        const fail = await res.json();
-        setFailState(fail);
-      } else {
-        setSuccessState('Branch created!');
-        setTimeout(() => onSubmitSuccess(), 2000);
-      }
+    const res = await createBranch(accessToken, data, project.id);
+    if (!res.ok) {
+      const fail = await res.json();
     } else {
-      setFailState('Must be logged in.');
+      setTimeout(() => onSubmitSuccess(), 2000);
     }
   }
 
+  if (userLoading || followsLoading) {
+    return <Loading />;
+  }
+  if (userError || followsError) {
+    return <Error message={userError?.message || followsError?.message} />;
+  }
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-4">
@@ -141,8 +129,7 @@ export function BranchUploadForm({ project, onSubmitSuccess }: { project: Projec
                   <SelectItem value={'none'}>None</SelectItem>
                   {project.branches.map((branch) =>
                     branch.permissions.private ? (
-                      user &&
-                      (branch.author.id == user.id || branch.permissions.allowedUsers.includes(user.id)) && (
+                      (branch.author.id == user?.id || branch.permissions.allowedUsers.includes(user?.id)) && (
                         <SelectItem key={branch.id} value={branch.id}>
                           {branch.name}
                         </SelectItem>
@@ -217,8 +204,6 @@ export function BranchUploadForm({ project, onSubmitSuccess }: { project: Projec
         <Button type="submit" className="mt-4">
           Submit
         </Button>
-        {failState && <div className="m-auto text-destructive">{failState}</div>}
-        {successState && <div className="m-auto">{successState}</div>}
       </form>
     </Form>
   );

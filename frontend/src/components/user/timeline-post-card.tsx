@@ -1,25 +1,28 @@
+// Base Imports
 import { Link } from 'react-router-dom';
-import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
-import { Card, CardContent, CardDescription, CardFooter, CardTitle } from '../ui/card';
-import { Dialog, DialogContent, DialogTrigger } from '../ui/dialog';
-import PostCarousel from '../project/post-carousel';
-import PostInteractions from '../project/post-interactions';
-import { useUser } from '@/contexts/user-provider';
+// Hook Imports
 import { useEffect, useState } from 'react';
-import { Button } from '../ui/button';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../ui/tooltip';
+import { useGetSelf } from '@/hooks/users/useGetSelf';
+// UI Improts
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Card, CardContent, CardDescription, CardFooter, CardTitle } from '@/components/ui/card';
+import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { BsQuestion } from 'react-icons/bs';
 import { Eye } from 'lucide-react';
+// Component Imports
+import PostCarousel from '@/components/project/post-carousel';
+import PostInteractions from '@/components/project/post-interactions';
 
 export default function TimelinePostCard({ post }: { post: Post }) {
-  const { user } = useUser();
+  const { data: user } = useGetSelf();
   const [hidePost, setHidePost] = useState(false);
 
   useEffect(() => {
     if (
-      user &&
-      post.interactions.filter((int) => (int.type == 'REPORT' || int.type == 'HIDE') && int.user.id == user.id).length >
-        0
+      post.interactions.filter((int) => (int.type == 'REPORT' || int.type == 'HIDE') && int.user.id == user?.id)
+        .length > 0
     ) {
       setHidePost(true);
     }

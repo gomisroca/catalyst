@@ -1,15 +1,19 @@
-import { Card, CardContent, CardDescription } from '../ui/card';
-import { useEffect, useState } from 'react';
-import { Forward, Star } from 'lucide-react';
+// Base Imports
 import { Link } from 'react-router-dom';
-import TimelineBranchCard from './timeline-branch-card';
-import TimelinePostCard from './timeline-post-card';
+// Hook Imports
+import { useEffect, useState } from 'react';
+import { useGetSelf } from '@/hooks/users/useGetSelf';
+// UI Imports
+import { Card, CardContent, CardDescription } from '@/components/ui/card';
+import { Forward, Star } from 'lucide-react';
 import { FaRegFileAlt } from 'react-icons/fa';
 import { AiOutlineBranches } from 'react-icons/ai';
-import TimelineProjectCard from './timeline-project-card';
 import { FiFolderPlus } from 'react-icons/fi';
-import PaginationWrapper from '../pagination-wrapper';
-import { useUser } from '@/contexts/user-provider';
+// Component Imports
+import TimelineBranchCard from '@/components/user/timeline-branch-card';
+import TimelinePostCard from '@/components/user/timeline-post-card';
+import TimelineProjectCard from '@/components/user/timeline-project-card';
+import PaginationWrapper from '@/components/pagination-wrapper';
 
 interface InteractionOrProjectOrBranchOrPost {
   createdAt?: string;
@@ -38,7 +42,8 @@ interface InteractionOrProjectOrBranchOrPost {
 }
 
 export default function ProfileTimeline({ profile }: { profile: User }) {
-  const { user } = useUser();
+  const { data: user } = useGetSelf();
+
   const [timeline, setTimeline] = useState<InteractionOrProjectOrBranchOrPost[]>();
   const [paginatedTimeline, setPaginatedTimeline] = useState<InteractionOrProjectOrBranchOrPost[]>();
   const [page, setPage] = useState<number>(1);
@@ -79,11 +84,13 @@ export default function ProfileTimeline({ profile }: { profile: User }) {
           obj.content ||
           (obj.projectId &&
             (obj.permissions?.private == false ||
-              (user && (obj.author?.id == user.id || obj.permissions?.allowedUsers.includes(user.id))))) ||
+              obj.author?.id == user?.id ||
+              (user && obj.permissions?.allowedUsers.includes(user.id)))) ||
           (obj.name &&
             !obj.projectId &&
             (obj.permissions?.private == false ||
-              (user && (obj.author?.id == user.id || obj.permissions?.allowedUsers.includes(user.id)))))
+              obj.author?.id == user?.id ||
+              (user && obj.permissions?.allowedUsers.includes(user.id))))
       );
       setTimeline(filteredTimeline);
     }

@@ -1,16 +1,18 @@
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm } from 'react-hook-form';
+// Base Imports
 import { z } from 'zod';
+import { zodResolver } from '@hookform/resolvers/zod';
+// Hook Imports
+import { useEffect, useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { useGetFollowedUsers } from '@/hooks/users/useGetFollowedUsers';
+import { createProject } from '@/lib/projects';
+// UI Imports
 import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { Switch } from '../ui/switch';
-import { useEffect, useState } from 'react';
-import { createProject } from '@/lib/projects';
-import { getUserFollows } from '@/lib/users';
-import MultipleSelector, { Option } from '../ui/multiple-selector';
-import { Checkbox } from '../ui/checkbox';
-import { getCookie } from '@/lib/cookies';
+import { Switch } from '@/components/ui/switch';
+import MultipleSelector from '@/components/ui/multiple-selector';
+import { Checkbox } from '@/components/ui/checkbox';
 
 const formSchema = z.object({
   name: z.string().min(1),
@@ -23,27 +25,9 @@ const formSchema = z.object({
 });
 
 export function ProjectUploadForm({ onSubmitSuccess }: { onSubmitSuccess: () => void }) {
-  const accessToken = getCookie('__catalyst__jwt');
+  const { data: follows } = useGetFollowedUsers();
   const [branchFields, setBranchFields] = useState<boolean>(false);
-  const [failState, setFailState] = useState<string>();
-  const [successState, setSuccessState] = useState<string>();
   const [usePrivate, setUsePrivate] = useState<boolean>(false);
-  const [follows, setFollows] = useState<Option[]>([]);
-
-  useEffect(() => {
-    async function getFollows(accessToken: string) {
-      const userFollows = await getUserFollows(accessToken);
-      const transformedFollows = userFollows.map((user) => ({
-        label: user.username,
-        value: user.id,
-      }));
-      console.log(transformedFollows);
-      setFollows(transformedFollows);
-    }
-    if (accessToken) {
-      getFollows(accessToken);
-    }
-  }, [accessToken]);
 
   const permissions = [
     { id: 'private', label: 'Private' },
@@ -76,17 +60,12 @@ export function ProjectUploadForm({ onSubmitSuccess }: { onSubmitSuccess: () => 
       data.append('branchName', values.branchName);
       data.append('branchDescription', values.branchDescription);
     }
-    if (accessToken) {
-      const res = await createProject(accessToken, data);
-      if (!res.ok) {
-        const fail = await res.json();
-        setFailState(fail);
-      } else {
-        setSuccessState('Project created!');
-        setTimeout(() => onSubmitSuccess(), 2000);
-      }
+
+    const res = await createProject(accessToken, data);
+    if (!res.ok) {
+      const fail = await res.json();
     } else {
-      setFailState('Must be logged in.');
+      setTimeout(() => onSubmitSuccess(), 2000);
     }
   }
   return (
@@ -231,8 +210,6 @@ export function ProjectUploadForm({ onSubmitSuccess }: { onSubmitSuccess: () => 
           <Button type="submit" className="mt-4">
             Submit
           </Button>
-          {failState && <div className="m-auto text-destructive">{failState}</div>}
-          {successState && <div className="m-auto">{successState}</div>}
         </form>
       </Form>
     </>

@@ -5,15 +5,9 @@ import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { createPost } from '@/lib/projects';
-import { useState } from 'react';
-import { Textarea } from '../ui/textarea';
-import { getCookie } from '@/lib/cookies';
+import { Textarea } from '@/components/ui/textarea';
 
 export function PostUploadForm({ branch, onSubmitSuccess }: { branch: Branch; onSubmitSuccess: () => void }) {
-  const accessToken = getCookie('__catalyst__jwt');
-  const [failState, setFailState] = useState<string>();
-  const [successState, setSuccessState] = useState<string>();
-
   const formSchema = z.object({
     content: z.string(),
     media: z.array(z.any()).max(5).optional(),
@@ -26,24 +20,17 @@ export function PostUploadForm({ branch, onSubmitSuccess }: { branch: Branch; on
   });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    console.log(values);
     const data = new FormData();
     data.append('content', values.content);
     if (values.media) {
       Array.from(values.media).map((file) => data.append('media', file));
     }
-    console.log(data);
-    if (accessToken) {
-      const res = await createPost(accessToken, data, branch);
-      if (!res.ok) {
-        const fail = await res.json();
-        setFailState(fail);
-      } else {
-        setSuccessState('Posted!');
-        setTimeout(() => onSubmitSuccess(), 2000);
-      }
+
+    const res = await createPost(accessToken, data, branch);
+    if (!res.ok) {
+      const fail = await res.json();
     } else {
-      setFailState('Must be logged in.');
+      setTimeout(() => onSubmitSuccess(), 2000);
     }
   }
 
@@ -87,8 +74,6 @@ export function PostUploadForm({ branch, onSubmitSuccess }: { branch: Branch; on
         <Button type="submit" className="mt-4">
           Submit
         </Button>
-        {failState && <div className="m-auto text-destructive">{failState}</div>}
-        {successState && <div className="m-auto">{successState}</div>}
       </form>
     </Form>
   );

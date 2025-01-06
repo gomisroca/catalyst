@@ -1,22 +1,25 @@
+// Base Imports
 import { Link } from 'react-router-dom';
-import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
-import { Card, CardContent, CardDescription, CardTitle } from '../ui/card';
-import BranchInteractions from '../project/branch-interactions';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../ui/tooltip';
-import { BsActivity, BsFire, BsQuestion } from 'react-icons/bs';
-import { Button } from '../ui/button';
-import { Eye } from 'lucide-react';
+// Hook Imports
 import { useEffect, useState } from 'react';
-import { useUser } from '@/contexts/user-provider';
+import { useGetSelf } from '@/hooks/users/useGetSelf';
+// UI Imports
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Card, CardContent, CardDescription, CardTitle } from '@/components/ui/card';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Button } from '@/components/ui/button';
+import { BsActivity, BsFire, BsQuestion } from 'react-icons/bs';
+import { Eye } from 'lucide-react';
+// Component Imports
+import BranchInteractions from '@/components/project/branch-interactions';
 
 export default function TimelineBranchCard({ branch }: { branch: Branch }) {
-  const { user } = useUser();
+  const { data: user } = useGetSelf();
   const [hideBranch, setHideBranch] = useState(false);
 
   useEffect(() => {
     if (
-      user &&
-      branch.interactions.filter((int) => (int.type == 'REPORT' || int.type == 'HIDE') && int.user.id == user.id)
+      branch.interactions.filter((int) => (int.type == 'REPORT' || int.type == 'HIDE') && int.user.id === user?.id)
         .length > 0
     ) {
       setHideBranch(true);

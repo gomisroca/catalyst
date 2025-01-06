@@ -1,19 +1,23 @@
-import { Card, CardContent, CardDescription, CardTitle } from '@/components/ui/card';
-import { getBranch } from '@/lib/projects';
-import { MdKeyboardArrowRight } from 'react-icons/md';
-import { useEffect, useState } from 'react';
+// Base Imports
 import { Link, Outlet, useNavigate, useParams } from 'react-router-dom';
+// Hook Imports
+import { useEffect, useState } from 'react';
+import { getBranch } from '@/lib/projects';
+import { useGetSelf } from '@/hooks/users/useGetSelf';
+// UI Imports
+import { Card, CardContent, CardDescription, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useUser } from '@/contexts/user-provider';
-import CreatePostButton from '@/components/project/create-post-button';
-import PostMain from '@/components/project/post-main';
-import BranchInteractions from '@/components/project/branch-interactions';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { BsActivity, BsFire } from 'react-icons/bs';
-import PaginationWrapper from '@/components/pagination-wrapper';
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Pencil } from 'lucide-react';
+import { MdKeyboardArrowRight } from 'react-icons/md';
+// Component Imports
+import CreatePostButton from '@/components/project/create-post-button';
+import PostMain from '@/components/project/post-main';
+import BranchInteractions from '@/components/project/branch-interactions';
+import PaginationWrapper from '@/components/pagination-wrapper';
 import { BranchEditForm } from '@/components/project/branch-edit-form';
 
 export default function Branch() {
@@ -23,7 +27,7 @@ export default function Branch() {
     setOpen(false);
   };
 
-  const { user } = useUser();
+  const { data: user } = useGetSelf();
   const { projectId, branchId } = useParams();
   const [branch, setBranch] = useState<Branch>();
   const [posts, setPosts] = useState<Post[]>();
@@ -47,7 +51,7 @@ export default function Branch() {
     if (projectId && branchId) {
       fetchBranch(branchId);
     }
-  }, [user, projectId, branchId]);
+  }, [projectId, branchId]);
 
   useEffect(() => {
     function paginate(posts: Post[]) {
@@ -101,7 +105,7 @@ export default function Branch() {
                 </Tooltip>
               </TooltipProvider>
             )}
-            {user && user.id == branch.author.id && (
+            {user?.id == branch.author.id && (
               <Dialog open={open} onOpenChange={setOpen}>
                 <TooltipProvider>
                   <Tooltip>
@@ -166,8 +170,8 @@ export default function Branch() {
                       <SelectItem value={'null'}>--</SelectItem>
                       {branch.childBranches.map((branch) =>
                         branch.permissions.private ? (
-                          user &&
-                          (branch.author.id == user.id || branch.permissions.allowedUsers.includes(user.id)) && (
+                          (branch.author.id == user?.id ||
+                            (user && branch.permissions.allowedUsers.includes(user.id))) && (
                             <SelectItem key={branch.id} value={branch.id}>
                               {branch.name}
                             </SelectItem>
@@ -188,11 +192,10 @@ export default function Branch() {
             {branch.description}
             <div className="mt-8 flex flex-col gap-1">
               <div className="flex flex-col items-center gap-1 lg:flex-row lg:gap-0">
-                {user &&
-                  (branch.author.id == user.id ||
-                    (branch.permissions.allowCollaborate && branch.project.permissions.allowCollaborate)) && (
-                    <CreatePostButton branch={branch} />
-                  )}
+                {(branch.author.id == user?.id ||
+                  (branch.permissions.allowCollaborate && branch.project.permissions.allowCollaborate)) && (
+                  <CreatePostButton branch={branch} />
+                )}
 
                 {branch.posts && branch.posts.length > pageCount && (
                   <div className="left-0 right-0 lg:absolute">

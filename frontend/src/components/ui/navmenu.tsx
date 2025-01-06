@@ -1,21 +1,24 @@
-import { ModeToggle } from '@/components/mode-toggle';
+// Hook Imports
+import { useState } from 'react';
+import { useGetSelf } from '@/hooks/users/useGetSelf';
+// UI Imports
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
-import { SignInForm } from '../user/signin-form';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { useUser } from '@/contexts/user-provider';
-import { UserSettingsForm } from '../user/user-settings-form';
 import { FiFolderPlus } from 'react-icons/fi';
-import { ProjectUploadForm } from '../project/project-upload-form';
-import UserMenuButton from '../user/user-menu-button';
-import SignInButton from '../user/signin-button';
 import { Home } from 'lucide-react';
-import { useState } from 'react';
+// Component Imports
+import { ModeToggle } from '@/components/mode-toggle';
+import { SignInForm } from '@/components/user/signin-form';
+import { UserSettingsForm } from '@/components/user/user-settings-form';
+import { ProjectUploadForm } from '@/components/project/project-upload-form';
+import UserMenuButton from '@/components/user/user-menu-button';
+import SignInButton from '@/components/user/signin-button';
 
 export default function Navmenu() {
-  const { user } = useUser();
-  const [open, setOpen] = useState(false);
+  const { data: user } = useGetSelf();
 
+  const [open, setOpen] = useState(false);
   const handleSubmitSuccess = () => {
     setOpen(false);
   };

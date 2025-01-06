@@ -1,12 +1,17 @@
+// Hook Imports
+import { useEffect, useState } from 'react';
+import { useGetSelf } from '@/hooks/users/useGetSelf';
+// Component Imports
 import PaginationWrapper from '@/components/pagination-wrapper';
 import { ProjectCard } from '@/components/project/project-card';
-import { useUser } from '@/contexts/user-provider';
+// Util Imports
 import { getProjects } from '@/lib/projects';
 import { shuffle } from '@/lib/utils';
-import { useEffect, useState } from 'react';
+import Loading from '../ui/loading';
+import Error from '../ui/error';
 
 export default function HomeBasic() {
-  const { user } = useUser();
+  const { data: user, isLoading: userLoading, error: userError } = useGetSelf();
   const [projects, setProjects] = useState<Project[]>();
   const [paginatedProjects, setPaginatedProjects] = useState<Project[]>();
   const [page, setPage] = useState<number>(1);
@@ -41,6 +46,12 @@ export default function HomeBasic() {
     }
   }, [projects, page]);
 
+  if (userLoading) {
+    return <Loading />;
+  }
+  if (userError) {
+    return <Error message={userError?.message} />;
+  }
   return (
     <div className="flex w-full flex-col gap-4">
       {projects && projects.length > pageCount && (

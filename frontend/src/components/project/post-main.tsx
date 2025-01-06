@@ -1,31 +1,35 @@
+// Base Imports
+import { Link } from 'react-router-dom';
+// Hook Imports
+import { useEffect, useState } from 'react';
+import { useGetSelf } from '@/hooks/users/useGetSelf';
+// Component Imports
+import PostCarousel from '@/components/project/post-carousel';
+import { PostEditForm } from '@/components/project/post-edit-form';
+import PostInteractions from '@/components/project/post-interactions';
+// UI Imports
 import { Card, CardContent, CardDescription, CardFooter, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Dialog, DialogContent, DialogTrigger } from '../ui/dialog';
-import PostCarousel from './post-carousel';
-import PostInteractions from './post-interactions';
-import { Link } from 'react-router-dom';
-import { useUser } from '@/contexts/user-provider';
-import { useEffect, useState } from 'react';
-import { Button } from '../ui/button';
+import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Button } from '@/components/ui/button';
 import { Eye, Pencil } from 'lucide-react';
 import { BsQuestion } from 'react-icons/bs';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../ui/tooltip';
-import { PostEditForm } from './post-edit-form';
 
 export default function PostMain({ post, branch }: { post: Post; branch: Branch }) {
+  const { data: user } = useGetSelf();
+
   const [open, setOpen] = useState(false);
   const handleSubmitSuccess = () => {
     setOpen(false);
   };
 
-  const { user } = useUser();
   const [hidePost, setHidePost] = useState<string | undefined>(undefined);
 
   useEffect(() => {
     if (
-      user &&
-      post.interactions.filter((int) => (int.type == 'REPORT' || int.type == 'HIDE') && int.user.id == user.id).length >
-        0
+      post.interactions.filter((int) => (int.type == 'REPORT' || int.type == 'HIDE') && int.user.id == user?.id)
+        .length > 0
     ) {
       setHidePost('You hid or reported this post.');
     } else if (post.interactions.filter((int) => int.type == 'REPORT').length >= 10) {
@@ -63,20 +67,13 @@ export default function PostMain({ post, branch }: { post: Post; branch: Branch 
               <Link to={`/profile/${post.author.id}`}>
                 <span className="cursor-pointer text-gray-500 hover:text-gray-600">@{post.author.username}</span>
               </Link>
-              {user && user.id == post.author.id && (
+              {user?.id == post.author.id && (
                 <Dialog open={open} onOpenChange={setOpen}>
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <DialogTrigger asChild>
-                          <Button variant="outline" size="icon">
-                            <Pencil className="h-4 w-4" />
-                          </Button>
-                        </DialogTrigger>
-                      </TooltipTrigger>
-                      <TooltipContent>Edit Project</TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
+                  <DialogTrigger asChild>
+                    <Button variant="outline" size="icon">
+                      <Pencil className="h-4 w-4" />
+                    </Button>
+                  </DialogTrigger>
                   <DialogContent className="w-5/6 rounded-md">
                     <PostEditForm onSubmitSuccess={handleSubmitSuccess} post={post} />
                   </DialogContent>
@@ -84,23 +81,7 @@ export default function PostMain({ post, branch }: { post: Post; branch: Branch 
               )}
             </CardTitle>
             <CardDescription className="flex gap-1">
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger className="cursor-default">
-                    {`${new Date(post.createdAt).toLocaleDateString()}`}
-                  </TooltipTrigger>
-                  <TooltipContent>Created</TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-              •
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger className="cursor-default">
-                    {`${new Date(post.updatedAt).toLocaleDateString()}`}
-                  </TooltipTrigger>
-                  <TooltipContent>Updated</TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
+              {`${new Date(post.createdAt).toLocaleDateString()}`}•{`${new Date(post.updatedAt).toLocaleDateString()}`}
             </CardDescription>
           </div>
         </div>

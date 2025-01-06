@@ -1,17 +1,22 @@
-import { useUser } from '@/contexts/user-provider';
-import { getUserFollows } from '@/lib/users';
-import { useEffect, useState } from 'react';
-import PaginationWrapper from '../pagination-wrapper';
-import { Card, CardContent, CardDescription } from '../ui/card';
-import { Forward, Star } from 'lucide-react';
-import TimelineBranchCard from '../user/timeline-branch-card';
-import TimelinePostCard from '../user/timeline-post-card';
+// Util Imports
 import { Link } from 'react-router-dom';
+import PaginationWrapper from '@/components/pagination-wrapper';
+// Hook Imports
+import { useEffect, useState } from 'react';
+import { useGetSelf } from '@/hooks/users/useGetSelf';
+import { useGetFollowedUsers } from '@/hooks/users/useGetFollowedUsers';
+// UI Imports
+import { Card, CardContent, CardDescription } from '@/components/ui/card';
+import { Forward, Star } from 'lucide-react';
 import { AiOutlineBranches } from 'react-icons/ai';
 import { FaRegFileAlt } from 'react-icons/fa';
 import { FiFolderPlus } from 'react-icons/fi';
-import TimelineProjectCard from '../user/timeline-project-card';
-import { getCookie } from '@/lib/cookies';
+import Loading from '@/components/ui/loading';
+import Error from '@/components/ui/error';
+// Component Imports
+import TimelineProjectCard from '@/components/user/timeline-project-card';
+import TimelineBranchCard from '@/components/user/timeline-branch-card';
+import TimelinePostCard from '@/components/user/timeline-post-card';
 
 interface InteractionOrProjectOrBranchOrPost {
   createdAt?: string;
@@ -40,9 +45,9 @@ interface InteractionOrProjectOrBranchOrPost {
 }
 
 export default function HomeTimeline() {
-  const { user } = useUser();
-  const accessToken = getCookie('__catalyst__jwt');
-  const [follows, setFollows] = useState<User[]>([]);
+  const { data: user, isLoading: userLoading, error: userError } = useGetSelf();
+  const { data: follows, isLoading: followsLoading, error: followsError } = useGetFollowedUsers();
+
   const [timeline, setTimeline] = useState<InteractionOrProjectOrBranchOrPost[]>();
   const [paginatedTimeline, setPaginatedTimeline] = useState<InteractionOrProjectOrBranchOrPost[]>();
   const [page, setPage] = useState<number>(1);
@@ -61,18 +66,6 @@ export default function HomeTimeline() {
       paginate(timeline);
     }
   }, [timeline, page]);
-
-  useEffect(() => {
-    async function getFollows(accessToken: string) {
-      // Need to pass more data here
-      // Interactions, posts, branches, projects, from all followed users
-      const userFollows = await getUserFollows(accessToken);
-      setFollows(userFollows);
-    }
-    if (accessToken) {
-      getFollows(accessToken);
-    }
-  }, [accessToken]);
 
   useEffect(() => {
     // We have an array of users, I think we want to do the same thing, but iterating over all follows, pushing their stuff into a global unsortedTimeline
@@ -109,7 +102,6 @@ export default function HomeTimeline() {
             (obj.permissions?.private == false ||
               (user && (obj.author?.id == user.id || obj.permissions?.allowedUsers.includes(user.id)))))
       );
-      console.log(filteredTimeline);
 
       setTimeline(filteredTimeline);
     }
@@ -119,6 +111,12 @@ export default function HomeTimeline() {
     }
   }, [user, follows]);
 
+  if (userLoading || followsLoading) {
+    return <Loading />;
+  }
+  if (userError || followsError) {
+    return <Error message={userError?.message || followsError?.message} />;
+  }
   return (
     <div className="flex w-full flex-col gap-4">
       {timeline && timeline.length > pageCount && (

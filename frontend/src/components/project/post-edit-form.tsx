@@ -1,16 +1,17 @@
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm } from 'react-hook-form';
+// Base Imports
 import { z } from 'zod';
+import { zodResolver } from '@hookform/resolvers/zod';
+// Hook Imports
+import { useForm } from 'react-hook-form';
+import { updatePost } from '@/lib/projects';
+import { useState } from 'react';
+// UI Imports
 import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { updatePost } from '@/lib/projects';
-import { useState } from 'react';
-import { Textarea } from '../ui/textarea';
-import { getCookie } from '@/lib/cookies';
+import { Textarea } from '@/components/ui/textarea';
 
 export function PostEditForm({ post, onSubmitSuccess }: { post: Post; onSubmitSuccess: () => void }) {
-  const accessToken = getCookie('__catalyst__jwt');
   const [failState, setFailState] = useState<string>();
   const [successState, setSuccessState] = useState<string>();
 
@@ -26,24 +27,19 @@ export function PostEditForm({ post, onSubmitSuccess }: { post: Post; onSubmitSu
   });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    console.log(values);
     const data = new FormData();
     data.append('content', values.content);
     if (values.media) {
       Array.from(values.media).map((file) => data.append('media', file));
     }
-    console.log(data);
-    if (accessToken) {
-      const res = await updatePost(accessToken, data, post.id);
-      if (!res.ok) {
-        const fail = await res.json();
-        setFailState(fail);
-      } else {
-        setSuccessState('Post updated!');
-        setTimeout(() => onSubmitSuccess(), 2000);
-      }
+
+    const res = await updatePost(accessToken, data, post.id);
+    if (!res.ok) {
+      const fail = await res.json();
+      setFailState(fail);
     } else {
-      setFailState('Must be logged in.');
+      setSuccessState('Post updated!');
+      setTimeout(() => onSubmitSuccess(), 2000);
     }
   }
 

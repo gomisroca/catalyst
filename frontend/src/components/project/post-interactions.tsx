@@ -1,15 +1,20 @@
-import { Ban, BookmarkMinus, BookmarkPlus, EllipsisVertical, Eye, EyeOff, Forward, Star, StarOff } from 'lucide-react';
-import { Button } from '../ui/button';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../ui/tooltip';
-import { useUser } from '@/contexts/user-provider';
-import { removePostInteractions, updatePostInteractions } from '@/lib/projects';
+// Hook Imports
 import { useEffect, useState } from 'react';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '../ui/dropdown-menu';
-import { getCookie } from '@/lib/cookies';
+import { useGetSelf } from '@/hooks/users/useGetSelf';
+import { removePostInteractions, updatePostInteractions } from '@/lib/projects';
+// UI Imports
+import { Button } from '@/components/ui/button';
+import { Ban, BookmarkMinus, BookmarkPlus, EllipsisVertical, Eye, EyeOff, Forward, Star, StarOff } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 export default function PostInteractions({ post, branch }: { post: Post; branch: Branch }) {
-  const { user } = useUser();
-  const accessToken = getCookie('__catalyst__jwt');
+  const { data: user } = useGetSelf();
+
   const [likes, setLikes] = useState(post.interactions.filter((int) => int.type == 'LIKE') || []);
   const [shares, setShares] = useState(post.interactions.filter((int) => int.type == 'SHARE') || []);
   const [bookmarks, setBookmarks] = useState(post.interactions.filter((int) => int.type == 'BOOKMARK') || []);
@@ -25,95 +30,86 @@ export default function PostInteractions({ post, branch }: { post: Post; branch:
   }, [post]);
 
   async function addInteraction(type: string) {
-    if (accessToken) {
-      const data = {
-        type: type,
-      };
-      const res = await updatePostInteractions(accessToken, post.id, data);
-      if (res.ok) {
-        const postWithInteractions = await res.json();
-        setLikes(postWithInteractions.interactions.filter((int: Interaction) => int.type == 'LIKE'));
-        setShares(postWithInteractions.interactions.filter((int: Interaction) => int.type == 'SHARE'));
-        setBookmarks(postWithInteractions.interactions.filter((int: Interaction) => int.type == 'BOOKMARK'));
-        setReports(postWithInteractions.interactions.filter((int: Interaction) => int.type == 'REPORT'));
-        setHidden(postWithInteractions.interactions.filter((int: Interaction) => int.type == 'HIDE'));
-      }
+    const data = {
+      type: type,
+    };
+    const res = await updatePostInteractions(accessToken, post.id, data);
+    if (res.ok) {
+      const postWithInteractions = await res.json();
+      setLikes(postWithInteractions.interactions.filter((int: Interaction) => int.type == 'LIKE'));
+      setShares(postWithInteractions.interactions.filter((int: Interaction) => int.type == 'SHARE'));
+      setBookmarks(postWithInteractions.interactions.filter((int: Interaction) => int.type == 'BOOKMARK'));
+      setReports(postWithInteractions.interactions.filter((int: Interaction) => int.type == 'REPORT'));
+      setHidden(postWithInteractions.interactions.filter((int: Interaction) => int.type == 'HIDE'));
     }
   }
 
   async function removeInteraction(type: string) {
-    if (accessToken) {
-      const data = {
-        type: type,
-      };
-      const res = await removePostInteractions(accessToken, post.id, data);
-      if (res.ok) {
-        const postWithInteractions = await res.json();
-        setLikes(postWithInteractions.interactions.filter((int: Interaction) => int.type == 'LIKE'));
-        setShares(postWithInteractions.interactions.filter((int: Interaction) => int.type == 'SHARE'));
-        setBookmarks(postWithInteractions.interactions.filter((int: Interaction) => int.type == 'BOOKMARK'));
-        setReports(postWithInteractions.interactions.filter((int: Interaction) => int.type == 'REPORT'));
-        setHidden(postWithInteractions.interactions.filter((int: Interaction) => int.type == 'HIDE'));
-      }
+    const data = {
+      type: type,
+    };
+    const res = await removePostInteractions(accessToken, post.id, data);
+    if (res.ok) {
+      const postWithInteractions = await res.json();
+      setLikes(postWithInteractions.interactions.filter((int: Interaction) => int.type == 'LIKE'));
+      setShares(postWithInteractions.interactions.filter((int: Interaction) => int.type == 'SHARE'));
+      setBookmarks(postWithInteractions.interactions.filter((int: Interaction) => int.type == 'BOOKMARK'));
+      setReports(postWithInteractions.interactions.filter((int: Interaction) => int.type == 'REPORT'));
+      setHidden(postWithInteractions.interactions.filter((int: Interaction) => int.type == 'HIDE'));
     }
   }
 
   return (
     <div className="flex items-center gap-2">
-      <TooltipProvider>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            {user && likes.filter((x) => x.userId == user.id).length > 0 ? (
-              <Button onClick={() => removeInteraction('like')} variant={'outline'} className="gap-1 bg-secondary">
-                <StarOff />
-                {likes.length > 0 ? likes.length : 0}
-              </Button>
-            ) : (
-              <Button onClick={() => addInteraction('like')} variant={'outline'} className="gap-1">
-                <Star />
-                {likes.length > 0 ? likes.length : 0}
-              </Button>
-            )}
-          </TooltipTrigger>
-          <TooltipContent>Like</TooltipContent>
-        </Tooltip>
-      </TooltipProvider>
-      {branch.permissions.allowShare && branch.project.permissions.allowShare && (
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              {user && shares.filter((x) => x.userId == user.id).length > 0 ? (
-                <Button variant={'outline'} disabled className="gap-1 bg-secondary">
-                  <Forward />
-                  {shares.length > 0 ? shares.length : 0}
-                </Button>
-              ) : (
-                <Button onClick={() => addInteraction('share')} variant={'outline'} className="gap-1">
-                  <Forward />
-                  {shares.length > 0 ? shares.length : 0}
-                </Button>
-              )}
-            </TooltipTrigger>
-            <TooltipContent>Share</TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
+      {likes.filter((x) => x.userId === user?.id).length > 0 ? (
+        <Button onClick={() => removeInteraction('like')} variant={'outline'} className="gap-1 bg-secondary">
+          <StarOff />
+          {likes.length > 0 ? likes.length : 0}
+        </Button>
+      ) : user ? (
+        <Button onClick={() => addInteraction('like')} variant={'outline'} className="gap-1">
+          <Star />
+          {likes.length > 0 ? likes.length : 0}
+        </Button>
+      ) : (
+        <Button variant={'outline'} className="gap-1" disabled>
+          <Star />
+          {likes.length > 0 ? likes.length : 0}
+        </Button>
       )}
-      <TooltipProvider>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            {user && bookmarks.filter((x) => x.userId == user.id).length > 0 ? (
-              <Button onClick={() => removeInteraction('bookmark')} variant={'outline'} className="bg-secondary">
-                <BookmarkMinus />
-              </Button>
-            ) : (
-              <Button onClick={() => addInteraction('bookmark')} variant={'outline'}>
-                <BookmarkPlus />
-              </Button>
-            )}
-          </TooltipTrigger>
-          <TooltipContent>Bookmark</TooltipContent>
-        </Tooltip>
-      </TooltipProvider>
+      {branch.permissions.allowShare && branch.project.permissions.allowShare && (
+        <>
+          {shares.filter((x) => x.userId === user?.id).length > 0 ? (
+            <Button variant={'outline'} disabled className="gap-1 bg-secondary">
+              <Forward />
+              {shares.length > 0 ? shares.length : 0}
+            </Button>
+          ) : user ? (
+            <Button onClick={() => addInteraction('share')} variant={'outline'} className="gap-1">
+              <Forward />
+              {shares.length > 0 ? shares.length : 0}
+            </Button>
+          ) : (
+            <Button variant={'outline'} className="gap-1" disabled>
+              <Forward />
+              {shares.length > 0 ? shares.length : 0}
+            </Button>
+          )}
+        </>
+      )}
+      {bookmarks.filter((x) => x.userId == user?.id).length > 0 ? (
+        <Button onClick={() => removeInteraction('bookmark')} variant={'outline'} className="bg-secondary">
+          <BookmarkMinus />
+        </Button>
+      ) : user ? (
+        <Button onClick={() => addInteraction('bookmark')} variant={'outline'}>
+          <BookmarkPlus />
+        </Button>
+      ) : (
+        <Button variant={'outline'} disabled>
+          <BookmarkPlus />
+        </Button>
+      )}
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <EllipsisVertical />
@@ -121,24 +117,34 @@ export default function PostInteractions({ post, branch }: { post: Post; branch:
         <DropdownMenuContent className="flex flex-col gap-1">
           {/* Make report open a modal with a form with general reasons select and textarea, on submit, also add the interaction 
                     if the user has already reported, fade out the icon and it does nothing*/}
-          {user && reports.filter((x) => x.userId == user.id).length > 0 ? (
+          {reports.filter((x) => x.userId == user?.id).length > 0 ? (
             <DropdownMenuItem className="gap-1 bg-secondary" disabled>
               <Ban />
               Report
             </DropdownMenuItem>
-          ) : (
+          ) : user ? (
             <DropdownMenuItem className="cursor-pointer gap-1" onClick={() => addInteraction('report')}>
               <Ban />
               Report
             </DropdownMenuItem>
+          ) : (
+            <DropdownMenuItem className="gap-1 bg-secondary" disabled>
+              <Ban />
+              Report
+            </DropdownMenuItem>
           )}
-          {user && hidden.filter((x) => x.userId == user.id).length > 0 ? (
+          {hidden.filter((x) => x.userId == user?.id).length > 0 ? (
             <DropdownMenuItem className="cursor-pointer gap-1 bg-secondary" onClick={() => removeInteraction('hidden')}>
               <Eye />
               Show
             </DropdownMenuItem>
-          ) : (
+          ) : user ? (
             <DropdownMenuItem className="cursor-pointer gap-1" onClick={() => addInteraction('hidden')}>
+              <EyeOff />
+              Hide
+            </DropdownMenuItem>
+          ) : (
+            <DropdownMenuItem className="cursor-pointer gap-1" disabled>
               <EyeOff />
               Hide
             </DropdownMenuItem>
