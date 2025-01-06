@@ -9,10 +9,10 @@ import '@/index.css';
 import JWTGet from '@/routes/JWTGet';
 import Project from '@/routes/project';
 import Branch from '@/routes/branch';
+import Profile from '@/routes/profile';
 import Home from '@/routes/home';
 // Components Imports
 import Navmenu from '@/components/ui/navmenu';
-import Profile from '@/components/user/profile-main';
 
 const router = createBrowserRouter([
   {
