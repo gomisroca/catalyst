@@ -1,14 +1,15 @@
 // Hook Imports
 import { useEffect, useState } from 'react';
 import { useGetSelf } from '@/hooks/users/useGetSelf';
+// UI Imports
+import Loading from '@/components/ui/loading';
+import Error from '@/components/ui/error';
 // Component Imports
 import PaginationWrapper from '@/components/pagination-wrapper';
 import { ProjectCard } from '@/components/project/project-card';
 // Util Imports
 import { getProjects } from '@/lib/projects';
 import { shuffle } from '@/lib/utils';
-import Loading from '../ui/loading';
-import Error from '../ui/error';
 
 export default function HomeBasic() {
   const { data: user, isLoading: userLoading, error: userError } = useGetSelf();
