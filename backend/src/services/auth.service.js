@@ -8,37 +8,42 @@ export class AuthService {
   }
 
   async handleCallback(user) {
-    let fetchedUser;
+    try {
+      let fetchedUser;
 
-    if (usersCache.has(user.id)) {
-      fetchedUser = usersCache.get(user.id);
-    } else {
-      fetchedUser = await this.db.user.findUnique({
-        where: {
-          id: user.id,
+      if (usersCache.has(user.id)) {
+        fetchedUser = usersCache.get(user.id);
+      } else {
+        fetchedUser = await this.db.user.findUnique({
+          where: {
+            id: user.id,
+          },
+          include: {
+            postInteractions: true,
+            branchInteractions: true,
+          },
+        });
+      }
+
+      if (!fetchedUser) {
+        throw new Error('User not found');
+      }
+
+      return jwt.sign(
+        {
+          id: fetchedUser.id,
+          email: fetchedUser.email,
+          username: fetchedUser.username,
+          nickname: fetchedUser.nickname,
+          avatar: fetchedUser.avatar,
+          role: fetchedUser.role,
         },
-        include: {
-          postInteractions: true,
-          branchInteractions: true,
-        },
-      });
+        process.env.JWT_SECRET,
+        { expiresIn: process.env.JWT_EXPIRY ?? '1h' }
+      );
+    } catch (error) {
+      console.error('Failed to handle callback:', error);
+      throw new Error('Failed to handle callback: ' + error.message);
     }
-
-    if (!fetchedUser) {
-      throw new Error('User not found');
-    }
-
-    return jwt.sign(
-      {
-        id: fetchedUser.id,
-        email: fetchedUser.email,
-        username: fetchedUser.username,
-        nickname: fetchedUser.nickname,
-        avatar: fetchedUser.avatar,
-        role: fetchedUser.role,
-      },
-      process.env.JWT_SECRET,
-      { expiresIn: process.env.JWT_EXPIRY ?? '1h' }
-    );
   }
 }
