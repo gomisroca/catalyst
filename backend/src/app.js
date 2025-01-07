@@ -6,6 +6,7 @@ import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
 import dotenv from 'dotenv';
+import cookieParser from 'cookie-parser';
 import routes from './handlers/index.js';
 import { db } from './utils/db.js';
 
@@ -42,6 +43,7 @@ const corsOptions = {
 app.use(express.json({ limit: '5mb' }));
 app.use(session(sess));
 app.use(cors(corsOptions));
+app.use(cookieParser());
 app.use(morgan('combined'));
 app.use(helmet());
 app.use(passport.initialize());
