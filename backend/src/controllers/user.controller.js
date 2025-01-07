@@ -1,4 +1,7 @@
+import { baseUserSchema } from '../schemas/BaseSchema.js';
 import { UserService } from '../services/user.service.js';
+import { sendError, sendSuccess } from '../utils/standard-responses.js';
+import { getCookie, removeCookie, setCookie } from '../utils/cookies.js';
 
 export class UserController {
   userService;
@@ -9,86 +12,78 @@ export class UserController {
 
   healthCheck = (_, res) => {
     try {
-      return res.status(200).send('Users Endpoint Healthy');
+      sendSuccess(res, 'Users Endpoint Healthy');
     } catch (error) {
-      return res.status(500).json({ error: 'Failed health check' });
+      console.log('Failed health check:', error);
+      sendError(res, `Failed health check: ${error.message}`);
     }
   };
 
   getSelf = async (req, res) => {
     try {
-      if (!req.user) {
-        return res.status(401).json({ error: 'Unauthorized' });
-      }
-      return res.json(req.user);
+      sendSuccess(res, req.user);
     } catch (error) {
-      return res.status(500).json({ error: 'Failed to get user data' });
+      console.log('Failed to get self data:', error);
+      sendError(res, `Failed to get self data: ${error.message}`);
     }
   };
 
   getById = async (req, res) => {
     try {
       const user = await this.userService.findById(req.params.id);
-      if (!user) {
-        return res.status(404).json({ error: 'User not found' });
-      }
-      return res.json(user);
+      if (!user) return sendError(res, 'User not found', 404);
+      sendSuccess(res, user);
     } catch (error) {
-      return res.status(500).json({ error: error.message });
+      console.log('Failed to get user:', error);
+      sendError(res, `Failed to get user: ${error.message}`);
     }
   };
 
   getFollowed = async (req, res) => {
     try {
-      if (!req.user) {
-        return res.status(401).json({ error: 'Unauthorized' });
-      }
       const followedUsers = await this.userService.findFollowed(req.user.id);
-      return res.json(followedUsers);
+      sendSuccess(res, followedUsers);
     } catch (error) {
-      return res.status(500).json({ error: 'Failed to fetch followed users' });
+      console.log('Failed to fetch followed users:', error);
+      sendError(res, `Failed to fetch followed users: ${error.message}`);
     }
   };
 
   getAll = async (_, res) => {
     try {
       const users = await this.userService.findAll();
-      return res.json(users);
+      sendSuccess(res, users);
     } catch (error) {
-      return res.status(500).json({ error: 'Failed to fetch users' });
+      console.log('Failed to fetch users:', error);
+      sendError(res, `Failed to fetch users: ${error.message}`);
     }
   };
 
   update = async (req, res) => {
     try {
-      if (!req.user) {
-        return res.status(401).json({ error: 'Unauthorized' });
-      }
+      const { error } = baseUserSchema.validate(req.body);
+      if (error) return sendError(res, error.details[0].message);
+
       const token = await this.userService.update(req.user.id, req.body);
-      res.redirect(`${process.env.FRONTEND_ORIGIN}/jwt?code=${token}`);
+
+      setCookie(res, '__catalyst__jwt', token);
+      sendSuccess(res, 'User updated successfully');
     } catch (error) {
       console.error('Update error:', error);
-      res.redirect(`${process.env.FRONTEND_ORIGIN}/login?error=auth_failed`);
+      sendError(res, `Failed to update user: ${error.message}`);
     }
   };
 
   delete = async (req, res) => {
     try {
-      if (!req.user) {
-        return res.status(401).json({ error: 'Unauthorized' });
-      }
-      const cookie = getCookie('__catalyst__jwt');
-      if (!cookie) {
-        throw new Error('No cookie found');
-      }
-
       await this.userService.delete(req.user.id);
-      removeCookie('__catalyst__jwt');
 
-      res.redirect(`${process.env.FRONTEND_ORIGIN}`);
+      const cookie = getCookie(req, '__catalyst__jwt');
+      if (cookie) removeCookie(res, '__catalyst__jwt');
+      sendSuccess(res, 'User deleted successfully');
     } catch (error) {
-      console.error('Delete error:', error);
-      res.redirect(`${process.env.FRONTEND_ORIGIN}/login?error=auth_failed`);
+      console.error('Failed to delete user:', error);
+      sendError(res, `Failed to delete user: ${error.message}`);
     }
   };
 }

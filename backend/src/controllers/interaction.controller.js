@@ -1,4 +1,5 @@
 import { InteractionService } from '../services/interaction.service.js';
+import { sendError, sendSuccess } from '../utils/standard-responses.js';
 
 export class InteractionController {
   interactionService;
@@ -9,26 +10,21 @@ export class InteractionController {
 
   healthCheck = (_, res) => {
     try {
-      return res.status(200).send('Interactions Endpoint Healthy');
+      sendSuccess(res, 'Interactions Endpoint Healthy');
     } catch (error) {
-      return res.status(500).json({ error: 'Failed health check' });
+      console.error('Failed health check:', error);
+      sendError(res, `Failed health check: ${error.message}`);
     }
   };
 
   followUser = async (req, res) => {
     try {
-      if (!req.user) {
-        return res.status(401).json({ error: 'Unauthorized' });
-      }
-
       const user = await this.interactionService.followUser(req.user.id, req.params.id);
-      if (!user) {
-        return res.status(404).json({ error: 'Failed to follow or unfollow user' });
-      }
-
-      return res.json(user);
+      if (!user) return sendError(res, 'User not found', 404);
+      sendSuccess(res, user);
     } catch (error) {
-      return res.status(500).json({ error: error.message });
+      console.error('Failed to follow or unfollow user:', error);
+      sendError(res, `Failed to follow or unfollow user: ${error.message}`);
     }
   };
 }
