@@ -1,6 +1,6 @@
 import jwt from 'jsonwebtoken';
 import { db } from '../utils/db.js';
-import { usersCache } from '../utils/cache.js';
+import { fetchFromCacheOrDB, usersCache } from '../utils/cache.js';
 import { uploadImage } from '../utils/upload-image.js';
 import parseForm from '../utils/parse-form.js';
 
@@ -150,6 +150,7 @@ export class UserService {
       if (!user) throw new Error('User not found');
 
       await this.db.user.delete({ where: { id } });
+
       usersCache.delete(id);
     } catch (error) {
       console.error('Failed to delete user:', error);
