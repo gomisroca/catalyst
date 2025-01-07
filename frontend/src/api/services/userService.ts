@@ -1,8 +1,8 @@
 import { z } from 'zod';
 import apiService from '@/api/config';
 import { ENDPOINTS } from '@/api/endpoints';
-import { updateUserSchema, type User, type UpdateUserData } from '@/api/schemas/UserSchema';
 import { baseUserSchema, UserSchema } from '@/api/schemas/BaseSchema';
+import { updateUserSchema, type User, type UpdateUserData } from '@/api/schemas/UserSchema';
 
 export const userService = {
   getSelf: async () => {
