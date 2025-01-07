@@ -1,7 +1,7 @@
-import formidable from 'formidable';
 import { db } from '../utils/db.js';
-import { projectsCache } from '../utils/cache.js';
+import { fetchFromCacheOrDB, projectsCache } from '../utils/cache.js';
 import { uploadImage } from '../utils/upload-image.js';
+import parseForm from '../utils/parse-form.js';
 
 export class ProjectService {
   constructor() {
@@ -10,78 +10,47 @@ export class ProjectService {
 
   async findById(id) {
     try {
-      if (projectsCache.has(id)) {
-        return projectsCache.get(id);
-      }
-      const dbProject = await this.db.project.findUnique({
-        where: { id },
-        include: {
-          author: true,
-          branches: true,
-          permissions: true,
-        },
-      });
-      if (!dbProject) {
-        throw new Error('Project not found');
-      }
-      projectsCache.set(dbProject.id, dbProject);
-      return dbProject;
+      const project = await fetchFromCacheOrDB(projectsCache, id, () =>
+        this.db.project.findUnique({
+          where: { id },
+          include: { author: true, branches: true, permissions: true },
+        })
+      );
+      if (!project) throw new Error('Project not found');
+      return project;
     } catch (error) {
       console.error('Failed to fetch project:', error);
-      throw new Error('Failed to fetch project: ' + error.message);
+      throw new Error('Failed to fetch project');
     }
   }
 
   async findAll() {
     try {
-      if (projectsCache.has('projects')) {
-        return projectsCache.get('projects');
-      }
-
-      const projects = await this.db.project.findMany({
-        include: {
-          author: true,
-          branches: true,
-          permissions: true,
-        },
-      });
-
-      projectsCache.set('projects', projects);
-
-      return projects;
+      return await fetchFromCacheOrDB(projectsCache, 'projects', () =>
+        this.db.project.findMany({
+          include: { author: true, branches: true, permissions: true },
+        })
+      );
     } catch (error) {
       console.error('Failed to fetch projects:', error);
-      throw new Error('Failed to fetch projects: ' + error.message);
+      throw new Error('Failed to fetch projects');
     }
   }
 
   async create(user, data) {
     try {
-      const form = formidable({});
-
-      const parseForm = (req) =>
-        new Promise((resolve, reject) => {
-          form.parse(req, (err, fields, files) => {
-            if (err) return reject(err);
-            resolve({ fields, files });
-          });
-        });
-
       const { fields, files } = await parseForm(data);
 
-      const permissions = fields.permissions[0].split(',');
-
-      let allowedUsers = [];
-      if (fields.allowedUsers && fields.allowedUsers.length > 0) {
-        allowedUsers = fields.allowedUsers[0].split(',');
-      }
+      const permissions = fields.permissions[0]?.split(',') || [];
+      const allowedUsers = fields.allowedUsers?.[0]?.split(',') || [];
+      const avatar = await uploadImage(files.avatar?.[0], 'projects');
 
       const project = await this.db.project.create({
         data: {
           name: fields.name[0],
           description: fields.description[0],
           authorId: user.id,
-          avatar: await uploadImage(files.avatar[0], 'projects'),
+          avatar,
         },
       });
 
@@ -93,13 +62,13 @@ export class ProjectService {
             allowCollaborate: permissions.includes('allowCollaborate'),
             allowBranch: permissions.includes('allowBranch'),
             allowShare: permissions.includes('allowShare'),
-            allowedUsers: allowedUsers.length > 0 ? allowedUsers : undefined,
+            allowedUsers: allowedUsers.length ? allowedUsers : undefined,
           },
         }),
         this.db.branch.create({
           data: {
             name: 'main',
-            description: 'Main branch of ' + project.name,
+            description: `Main branch of ${project.name}`,
             authorId: user.id,
             default: true,
             projectId: project.id,
@@ -114,7 +83,7 @@ export class ProjectService {
           allowCollaborate: permissions.includes('allowCollaborate'),
           allowBranch: permissions.includes('allowBranch'),
           allowShare: permissions.includes('allowShare'),
-          allowedUsers: allowedUsers.length > 0 ? allowedUsers : undefined,
+          allowedUsers: allowedUsers.length ? allowedUsers : undefined,
         },
       });
 
@@ -123,92 +92,61 @@ export class ProjectService {
       return project;
     } catch (error) {
       console.error('Failed to create project:', error);
-      throw new Error('Failed to create project: ' + error.message);
+      throw new Error('Failed to create project');
     }
   }
 
   async update(id, data) {
     try {
-      const form = formidable({});
-
-      const parseForm = (req) =>
-        new Promise((resolve, reject) => {
-          form.parse(req, (err, fields, files) => {
-            if (err) return reject(err);
-            resolve({ fields, files });
-          });
-        });
-
       const { fields, files } = await parseForm(data);
 
-      const currentProject = await this.db.project.findUnique({
+      const currentProject = await this.db.project.findUnique({ where: { id } });
+      if (!currentProject) throw new Error('Project not found');
+
+      const permissions = fields.permissions?.[0]?.split(',') || [];
+      const allowedUsers = fields.allowedUsers?.[0]?.split(',') || [];
+      const avatar = files.avatar ? await uploadImage(files.avatar[0], 'projects') : currentProject.avatar;
+
+      const updatedProject = await this.db.project.update({
         where: { id },
-      });
-      if (!currentProject) {
-        throw new Error('Project not found');
-      }
-
-      const permissions = fields.permissions[0].split(',');
-      const currentPermissions = await this.db.permissions.findUnique({
-        where: { projectId: currentProject.id },
+        data: {
+          name: fields.name?.[0] || currentProject.name,
+          description: fields.description?.[0] || currentProject.description,
+          avatar,
+        },
+        include: { author: true, branches: true, permissions: true },
       });
 
-      let allowedUsers = [];
-      if (fields.allowedUsers && fields.allowedUsers.length > 0) {
-        allowedUsers = fields.allowedUsers[0].split(',');
-      }
+      await this.db.permissions.update({
+        where: { projectId: id },
+        data: {
+          private: permissions.includes('private'),
+          allowCollaborate: permissions.includes('allowCollaborate'),
+          allowBranch: permissions.includes('allowBranch'),
+          allowShare: permissions.includes('allowShare'),
+          allowedUsers: allowedUsers.length ? allowedUsers : undefined,
+        },
+      });
 
-      const [project, _] = await this.db.$transaction([
-        this.db.project.update({
-          where: { id },
-          data: {
-            name: fields.name[0] ? fields.name[0] : currentProject.name,
-            description: fields.description[0] ? fields.description[0] : currentProject.description,
-            avatar: files.avatar ? await uploadImage(files.avatar[0], 'projects') : currentProject.avatar,
-          },
-          include: {
-            author: true,
-            branches: true,
-            permissions: true,
-          },
-        }),
-        this.db.permissions.update({
-          where: {
-            projectId: id,
-          },
-          data: {
-            private: permissions.includes('private'),
-            allowCollaborate: permissions.includes('allowCollaborate'),
-            allowBranch: permissions.includes('allowBranch'),
-            allowShare: permissions.includes('allowShare'),
-            allowedUsers: allowedUsers.length > 0 ? allowedUsers : currentPermissions?.allowedUsers,
-          },
-        }),
-      ]);
+      projectsCache.set(updatedProject.id, updatedProject);
 
-      projectsCache.set(project.id, project);
-
-      return project;
+      return updatedProject;
     } catch (error) {
       console.error('Failed to update project:', error);
-      throw new Error('Failed to update project: ' + error.message);
+      throw new Error('Failed to update project');
     }
   }
 
   async delete(id) {
     try {
-      const project = await this.db.project.findUnique({
-        where: { id },
-      });
-      if (!project) {
-        throw new Error('Project not found');
-      }
-      await this.db.project.delete({
-        where: { id },
-      });
+      const project = await this.db.project.findUnique({ where: { id } });
+      if (!project) throw new Error('Project not found');
+
+      await this.db.project.delete({ where: { id } });
+      projectsCache.delete(id);
     } catch (error) {
       console.error('Failed to delete project:', error);
-      throw new Error('Failed to delete project: ' + error.message);
+      throw new Error('Failed to delete project');
     }
   }
 }
