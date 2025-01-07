@@ -22,6 +22,7 @@
     "@quixo3/prisma-session-store": "^3.1.13",
     "@supabase/supabase-js": "^2.47.5",
     "bcrypt": "^5.1.1",
+    "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",
     "eslint": "^9.16.0",
@@ -41,9 +42,9 @@
     "passport-google-oauth20": "^2.0.0",
     "prettier": "^3.4.2",
     "supertest": "^7.0.0",
-    "universal-cookie": "^7.2.2",
     "uuid": "^11.0.3",
-    "winston": "^3.17.0"
+    "winston": "^3.17.0",
+    "zod": "^3.24.1"
   },
   "devDependencies": {
     "prettier-plugin-tailwindcss": "^0.6.9",

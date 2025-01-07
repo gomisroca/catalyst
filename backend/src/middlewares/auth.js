@@ -1,9 +1,10 @@
 import jwt from 'jsonwebtoken';
-import { getCookie } from '../utils/cookies';
+import { getCookie } from '../utils/cookies.js';
+import { sendError } from '../utils/standard-responses.js';
 
 export const auth = async (req, res, next) => {
   try {
-    const token = getCookie('__catalyst__jwt');
+    const token = getCookie(req, '__catalyst__jwt');
     if (!token) {
       throw new Error('No cookie found');
     }
@@ -14,6 +15,6 @@ export const auth = async (req, res, next) => {
 
     next();
   } catch (error) {
-    return res.status(401).json({ error: 'Invalid or expired token' });
+    sendError(res, 'Invalid or expired token', 401);
   }
 };

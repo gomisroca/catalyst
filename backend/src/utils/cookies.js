@@ -1,7 +1,3 @@
-import Cookies from 'universal-cookie';
-
-const cookies = new Cookies();
-
 const options = {
   httpOnly: true,
   secure: process.env.NODE_ENV === 'production',
@@ -10,14 +6,14 @@ const options = {
   path: '/',
 };
 
-export function setCookie(key, value) {
-  return cookies.set(key, value, options);
+export function setCookie(res, key, value) {
+  res.cookie(key, value, options); // Attach the cookie to the HTTP response
 }
 
-export function getCookie(key) {
-  return cookies.get(key);
+export function getCookie(req, key) {
+  return req.cookies[key]; // Access cookies from the request object
 }
 
-export function removeCookie(key) {
-  return cookies.remove(key);
+export function removeCookie(res, key) {
+  res.clearCookie(key, { path: '/' }); // Clear the cookie
 }
