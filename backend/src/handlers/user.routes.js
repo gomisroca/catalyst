@@ -22,7 +22,7 @@ router.get('/self', auth, userController.getSelf);
 /*
 PUT - Update Self
 REQ - User Data
-RES - 200 - User Data
+RES - 200 - User
 */
 router.put('/self', auth, userController.update);
 
@@ -36,7 +36,7 @@ router.delete('/self', auth, userController.delete);
 /*
 GET - Specific User
 REQ - None
-RES - 200 - User Data
+RES - 200 - User
 */
 router.get('/:id', userController.getById);
 
