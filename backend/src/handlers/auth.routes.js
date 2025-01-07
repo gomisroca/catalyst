@@ -6,6 +6,8 @@ import { auth } from '../middlewares/auth.js';
 const router = Router();
 const authController = new AuthController();
 
+router.get('/health', authController.healthCheck);
+
 router.get('/discord', passportAuth.authenticate('discord'));
 router.get('/discord/callback', passportAuth.authenticate('discord', { session: true }), authController.callback);
 
