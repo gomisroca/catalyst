@@ -92,10 +92,20 @@ const BranchSchema: z.ZodType<Branch> = baseBranchSchema.extend({
   interactions: z.array(InteractionSchema),
 });
 
-const ProjectSchema: z.ZodType<Project> = baseProjectSchema.extend({
+const ProjectSchema = z.object({
+  ...baseProjectSchema.shape,
   author: UserSchema,
   branches: z.array(BranchSchema),
   permissions: basePermissionSchema,
 });
 
-export { baseUserSchema, basePermissionSchema, InteractionSchema, PostSchema, BranchSchema, ProjectSchema, UserSchema };
+export {
+  baseUserSchema,
+  basePermissionSchema,
+  baseProjectSchema,
+  InteractionSchema,
+  PostSchema,
+  BranchSchema,
+  ProjectSchema,
+  UserSchema,
+};
