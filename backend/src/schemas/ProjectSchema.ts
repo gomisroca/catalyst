@@ -1,4 +1,5 @@
-import { ProjectSchema } from './BaseSchema.js';
+import { z } from 'zod';
+import { ProjectSchema } from '@/schemas/BaseSchema';
 
 export const createProjectSchema = ProjectSchema.partial().omit({
   id: true,
@@ -21,3 +22,7 @@ export const updateProjectSchema = ProjectSchema.partial().omit({
   createdAt: true,
   updatedAt: true,
 });
+
+export type Project = z.infer<typeof ProjectSchema>;
+export type CreateProjectData = z.infer<typeof createProjectSchema>;
+export type UpdateProjectData = z.infer<typeof updateProjectSchema>;

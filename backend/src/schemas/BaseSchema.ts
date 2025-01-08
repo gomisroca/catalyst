@@ -1,5 +1,91 @@
 import { z } from 'zod';
 
+export enum InteractionType {
+  LIKE = 'LIKE',
+  SHARE = 'SHARE',
+  BOOKMARK = 'BOOKMARK',
+  REPORT = 'REPORT',
+  HIDE = 'HIDE',
+}
+export interface Interaction {
+  createdAt: string;
+  updatedAt: string;
+  type: InteractionType;
+  id: string;
+  userId: string;
+  user: User;
+  postId?: string;
+  branchId?: string;
+}
+export interface BasicUser {
+  id: string;
+  email: string;
+  username: string;
+  nickname: string;
+  avatar: string;
+  role: string;
+}
+export interface User extends BasicUser {
+  postInteractions: Interaction[];
+  branchInteractions: Interaction[];
+  projects: Project[];
+  branches: Branch[];
+  posts: Post[];
+  followedBy: string[];
+}
+export interface Permission {
+  private: boolean;
+  allowedUsers: string[];
+  allowCollaborate: boolean;
+  allowBranch: boolean;
+  allowShare: boolean;
+}
+export interface Post {
+  id: string;
+  content: string;
+  createdAt: string;
+  updatedAt: string;
+  author: User;
+  media: string[];
+  branch: Branch;
+  interactions: Interaction[];
+}
+export interface Branch {
+  project: Project;
+  projectId: string;
+  id: string;
+  name: string;
+  description: string;
+  createdAt: string;
+  updatedAt: string;
+  author: User;
+  default: boolean;
+  posts: Post[];
+  parentBranch: Branch;
+  childBranches: Branch[];
+  permissions: Permission;
+  interactions: Interaction[];
+  popularity: number;
+  activity: number;
+  trendingActivity: boolean;
+  trendingPopularity: boolean;
+}
+export interface Project {
+  id: string;
+  name: string;
+  description: string;
+  avatar: string;
+  createdAt: string;
+  updatedAt: string;
+  author: User;
+  branches: Branch[];
+  permissions: Permission;
+  popularity: number;
+  activity: number;
+  trendingActivity: boolean;
+  trendingPopularity: boolean;
+}
+
 const baseUserSchema = z.object({
   id: z.string(),
   email: z.string().email(),
@@ -20,7 +106,7 @@ const basePermissionSchema = z.object({
 const baseInteractionSchema = z.object({
   createdAt: z.string(),
   updatedAt: z.string(),
-  type: z.nativeEnum(),
+  type: z.nativeEnum(InteractionType),
   id: z.string(),
   userId: z.string(),
   postId: z.string().optional(),
@@ -63,7 +149,7 @@ const baseProjectSchema = z.object({
 });
 
 // Now create the full schemas with relations
-const UserSchema = baseUserSchema.extend({
+const UserSchema: z.ZodType<User> = baseUserSchema.extend({
   followedBy: z.array(z.string()),
   postInteractions: z.lazy(() => z.array(InteractionSchema)),
   branchInteractions: z.lazy(() => z.array(InteractionSchema)),
@@ -76,13 +162,13 @@ const InteractionSchema = baseInteractionSchema.extend({
   user: UserSchema,
 });
 
-const PostSchema = basePostSchema.extend({
+const PostSchema: z.ZodType<Post> = basePostSchema.extend({
   author: UserSchema,
   branch: z.lazy(() => BranchSchema),
   interactions: z.array(InteractionSchema),
 });
 
-const BranchSchema = baseBranchSchema.extend({
+const BranchSchema: z.ZodType<Branch> = baseBranchSchema.extend({
   project: z.lazy(() => ProjectSchema),
   author: UserSchema,
   posts: z.array(PostSchema),
