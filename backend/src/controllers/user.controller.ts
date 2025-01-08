@@ -1,9 +1,9 @@
-import { baseUserSchema } from '../schemas/BaseSchema.js';
-import { UserService } from '../services/user.service.js';
-import { sendError, sendSuccess } from '../utils/standard-responses.js';
-import { getCookie, removeCookie, setCookie } from '../utils/cookies.js';
 import { Request, Response } from 'express';
-import { BasicUser } from '@/schemas/UserSchema.js';
+import { UserService } from '@/services/user.service';
+import { baseUserSchema } from '@/schemas/BaseSchema';
+import { BasicUser } from '@/schemas/UserSchema';
+import { sendError, sendSuccess } from '@/utils/standard-responses';
+import { getCookie, removeCookie, setCookie } from '@/utils/cookies';
 
 export class UserController {
   userService;

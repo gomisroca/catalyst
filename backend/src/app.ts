@@ -10,7 +10,7 @@ import cookieParser from 'cookie-parser';
 import routes from '@/handlers/index';
 import { db } from '@/utils/db';
 import { sendError, sendSuccess } from '@/utils/standard-responses';
-import { rateLimiter } from './middlewares/rate-limiter';
+import { rateLimiter } from '@/middlewares/rate-limiter';
 
 if (process.env.NODE_ENV === 'development') {
   dotenv.config();
@@ -43,6 +43,7 @@ const corsOptions: CorsOptions = {
 };
 
 app.use(express.json({ limit: '5mb' }));
+app.use(express.urlencoded());
 app.use(session(sess));
 app.use(cors(corsOptions));
 app.use(cookieParser());
