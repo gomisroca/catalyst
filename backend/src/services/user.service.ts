@@ -1,15 +1,21 @@
 import jwt from 'jsonwebtoken';
-import { db } from '../utils/db.js';
-import { fetchFromCacheOrDB, usersCache } from '../utils/cache.js';
-import { uploadImage } from '../utils/upload-image.js';
-import parseForm from '../utils/parse-form.js';
+import { PrismaClient } from '@prisma/client';
+import { db } from '@/utils/db';
+import { fetchFromCacheOrDB, usersCache } from '@/utils/cache';
+import { uploadImage } from '@/utils/upload-image';
+import parseForm from '@/utils/parse-form';
+import { UpdateUserData } from '@/schemas/UserSchema';
+import { IncomingMessage } from 'http';
+import convertFormidableToFile from '@/utils/convert-formidable';
 
 export class UserService {
+  private db: PrismaClient;
+
   constructor() {
     this.db = db;
   }
 
-  async findById(id) {
+  async findById(id: string) {
     try {
       const user = await fetchFromCacheOrDB(usersCache, id, () =>
         this.db.user.findUnique({
@@ -64,11 +70,11 @@ export class UserService {
     }
   }
 
-  async findFollowed(userId) {
+  async findFollowed(userId: string) {
     try {
       return await fetchFromCacheOrDB(usersCache, `${userId}-follow`, () =>
         this.db.user.findMany({
-          where: { followedBy: { contains: userId } },
+          where: { followedBy: { has: userId } },
           select: {
             id: true,
             email: true,
@@ -91,14 +97,25 @@ export class UserService {
     }
   }
 
-  async update(id, data) {
+  async update(id: string, data: UpdateUserData) {
     try {
-      const { fields, files } = await parseForm(data);
+      const { fields, files } = await parseForm(data as IncomingMessage);
 
       const currentUser = await this.db.user.findUnique({ where: { id } });
       if (!currentUser) throw new Error('User not found');
 
-      const avatar = files.avatar ? await uploadImage(files.avatar[0]) : currentUser.avatar;
+      const avatarFile = files.avatar?.[0];
+
+      let newAvatar = currentUser.avatar;
+
+      if (avatarFile) {
+        const avatar = await convertFormidableToFile(avatarFile);
+        const uploadedImage = await uploadImage(avatar);
+
+        if (uploadedImage) {
+          newAvatar = uploadedImage;
+        }
+      }
 
       const updatedUser = await this.db.user.update({
         where: { id },
@@ -106,7 +123,7 @@ export class UserService {
           username: fields.username?.[0] || currentUser.username,
           nickname: fields.nickname?.[0] || currentUser.nickname,
           email: fields.email?.[0] || currentUser.email,
-          avatar,
+          avatar: newAvatar,
         },
         select: {
           id: true,
@@ -135,8 +152,8 @@ export class UserService {
           avatar: updatedUser.avatar,
           role: updatedUser.role,
         },
-        process.env.JWT_SECRET,
-        { expiresIn: '1h' }
+        process.env.JWT_ACCESS_SECRET as string,
+        { expiresIn: process.env.JWT_ACCESS_EXPIRY ?? '1h' }
       );
     } catch (error) {
       console.error('Failed to update user:', error);
@@ -144,15 +161,15 @@ export class UserService {
     }
   }
 
-  async delete(id) {
+  async delete(id: string) {
     try {
       const user = await this.db.user.findUnique({ where: { id } });
       if (!user) throw new Error('User not found');
 
       await this.db.user.delete({ where: { id } });
 
-      usersCache.delete(id);
-    } catch (error) {
+      usersCache.del(id);
+    } catch (error: any) {
       console.error('Failed to delete user:', error);
       throw new Error('Failed to delete user: ' + error.message);
     }

@@ -1,14 +1,21 @@
-import { db } from '../utils/db.js';
-import { fetchFromCacheOrDB, projectsCache } from '../utils/cache.js';
-import { uploadImage } from '../utils/upload-image.js';
-import parseForm from '../utils/parse-form.js';
+import { IncomingMessage } from 'http';
+import { PrismaClient } from '@prisma/client';
+import { CreateProjectData, UpdateProjectData } from '@/schemas/ProjectSchema';
+import convertFormidableToFile from '@/utils/convert-formidable';
+import { BasicUser } from '@/schemas/UserSchema';
+import { db } from '@/utils/db';
+import { fetchFromCacheOrDB, projectsCache } from '@/utils/cache';
+import { uploadImage } from '@/utils/upload-image';
+import parseForm from '@/utils/parse-form';
 
 export class ProjectService {
+  private db: PrismaClient;
+
   constructor() {
     this.db = db;
   }
 
-  async findById(id) {
+  async findById(id: string) {
     try {
       const project = await fetchFromCacheOrDB(projectsCache, id, () =>
         this.db.project.findUnique({
@@ -37,20 +44,22 @@ export class ProjectService {
     }
   }
 
-  async create(user, data) {
+  async create(user: BasicUser, data: CreateProjectData) {
     try {
-      const { fields, files } = await parseForm(data);
+      const { fields, files } = await parseForm(data as IncomingMessage);
 
       const permissions = fields.permissions[0]?.split(',') || [];
       const allowedUsers = fields.allowedUsers?.[0]?.split(',') || [];
-      const avatar = await uploadImage(files.avatar?.[0], 'projects');
+      const avatarFile = files.avatar?.[0]!;
+      const avatar = await convertFormidableToFile(avatarFile);
+      const uploadedImage = await uploadImage(avatar, 'projects');
 
       const project = await this.db.project.create({
         data: {
           name: fields.name[0],
           description: fields.description[0],
           authorId: user.id,
-          avatar,
+          avatar: uploadedImage,
         },
       });
 
@@ -96,23 +105,34 @@ export class ProjectService {
     }
   }
 
-  async update(id, data) {
+  async update(id: string, data: UpdateProjectData) {
     try {
-      const { fields, files } = await parseForm(data);
+      const { fields, files } = await parseForm(data as IncomingMessage);
 
       const currentProject = await this.db.project.findUnique({ where: { id } });
       if (!currentProject) throw new Error('Project not found');
 
       const permissions = fields.permissions?.[0]?.split(',') || [];
       const allowedUsers = fields.allowedUsers?.[0]?.split(',') || [];
-      const avatar = files.avatar ? await uploadImage(files.avatar[0], 'projects') : currentProject.avatar;
+      const avatarFile = files.avatar?.[0];
+
+      let newAvatar = currentProject.avatar;
+
+      if (avatarFile) {
+        const avatar = await convertFormidableToFile(avatarFile);
+        const uploadedImage = await uploadImage(avatar);
+
+        if (uploadedImage) {
+          newAvatar = uploadedImage;
+        }
+      }
 
       const updatedProject = await this.db.project.update({
         where: { id },
         data: {
           name: fields.name?.[0] || currentProject.name,
           description: fields.description?.[0] || currentProject.description,
-          avatar,
+          avatar: newAvatar,
         },
         include: { author: true, branches: true, permissions: true },
       });
@@ -137,13 +157,13 @@ export class ProjectService {
     }
   }
 
-  async delete(id) {
+  async delete(id: string) {
     try {
       const project = await this.db.project.findUnique({ where: { id } });
       if (!project) throw new Error('Project not found');
 
       await this.db.project.delete({ where: { id } });
-      projectsCache.delete(id);
+      projectsCache.del(id);
     } catch (error) {
       console.error('Failed to delete project:', error);
       throw new Error('Failed to delete project');

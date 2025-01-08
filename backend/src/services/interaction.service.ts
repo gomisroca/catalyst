@@ -1,11 +1,13 @@
-import { db } from '../utils/db.js';
+import { PrismaClient } from '@prisma/client';
+import { db } from '@/utils/db';
 
 export class InteractionService {
+  private db: PrismaClient;
   constructor() {
     this.db = db;
   }
 
-  async followUser(userId, profileId) {
+  async followUser(userId: string, profileId: string) {
     try {
       const dbSelf = await this.db.user.findUnique({
         where: { id: userId },
@@ -36,7 +38,7 @@ export class InteractionService {
       });
 
       return dbUser;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to follow or unfollow user:', error);
       throw new Error('Failed to follow or unfollow user: ' + error.message);
     }
