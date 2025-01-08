@@ -10,6 +10,7 @@ import Home from '@/routes/home';
 import Project from '@/routes/project';
 import Branch from '@/routes/branch';
 import Profile from '@/routes/profile';
+import CreateProject from '@/routes/create-project';
 // Components Imports
 import Navmenu from '@/components/ui/navmenu';
 
@@ -31,6 +32,10 @@ const router = createBrowserRouter([
   {
     path: '/profile/:profileId',
     element: <Profile />,
+  },
+  {
+    path: 'projects/new',
+    element: <CreateProject />,
   },
 ]);
 
