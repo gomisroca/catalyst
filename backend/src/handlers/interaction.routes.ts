@@ -1,6 +1,6 @@
 import { Router } from 'express';
-import { auth } from '../middlewares/auth.js';
-import { InteractionController } from '../controllers/interaction.controller.js';
+import { auth } from '@/middlewares/auth';
+import { InteractionController } from '@/controllers/interaction.controller';
 
 const router = Router();
 const interactionController = new InteractionController();
