@@ -2,6 +2,8 @@ import { baseUserSchema } from '../schemas/BaseSchema.js';
 import { UserService } from '../services/user.service.js';
 import { sendError, sendSuccess } from '../utils/standard-responses.js';
 import { getCookie, removeCookie, setCookie } from '../utils/cookies.js';
+import { Request, Response } from 'express';
+import { BasicUser } from '@/schemas/UserSchema.js';
 
 export class UserController {
   userService;
@@ -10,78 +12,81 @@ export class UserController {
     this.userService = new UserService();
   }
 
-  healthCheck = (_, res) => {
+  healthCheck = (_: Request, res: Response) => {
     try {
       sendSuccess(res, 'Users Endpoint Healthy');
-    } catch (error) {
+    } catch (error: any) {
       console.log('Failed health check:', error);
       sendError(res, `Failed health check: ${error.message}`);
     }
   };
 
-  getSelf = async (req, res) => {
+  getSelf = async (req: Request, res: Response) => {
     try {
       sendSuccess(res, req.user);
-    } catch (error) {
+    } catch (error: any) {
       console.log('Failed to get self data:', error);
       sendError(res, `Failed to get self data: ${error.message}`);
     }
   };
 
-  getById = async (req, res) => {
+  getById = async (req: Request, res: Response) => {
     try {
       const user = await this.userService.findById(req.params.id);
       if (!user) return sendError(res, 'User not found', 404);
       sendSuccess(res, user);
-    } catch (error) {
+    } catch (error: any) {
       console.log('Failed to get user:', error);
       sendError(res, `Failed to get user: ${error.message}`);
     }
   };
 
-  getFollowed = async (req, res) => {
+  getFollowed = async (req: Request, res: Response) => {
     try {
-      const followedUsers = await this.userService.findFollowed(req.user.id);
+      const followedUsers = await this.userService.findFollowed((req.user as BasicUser).id);
       sendSuccess(res, followedUsers);
-    } catch (error) {
+    } catch (error: any) {
       console.log('Failed to fetch followed users:', error);
       sendError(res, `Failed to fetch followed users: ${error.message}`);
     }
   };
 
-  getAll = async (_, res) => {
+  getAll = async (_: Request, res: Response) => {
     try {
       const users = await this.userService.findAll();
       sendSuccess(res, users);
-    } catch (error) {
+    } catch (error: any) {
       console.log('Failed to fetch users:', error);
       sendError(res, `Failed to fetch users: ${error.message}`);
     }
   };
 
-  update = async (req, res) => {
+  update = async (req: Request, res: Response) => {
     try {
-      const { error } = baseUserSchema.validate(req.body);
-      if (error) return sendError(res, error.details[0].message);
+      const validationResult = baseUserSchema.safeParse(req.body);
+      if (!validationResult.success) return sendError(res, validationResult.error.message);
 
-      const token = await this.userService.update(req.user.id, req.body);
+      const newAccess = await this.userService.update((req.user as BasicUser).id, req.body);
 
-      setCookie(res, '__catalyst__jwt', token);
+      setCookie(res, '__catalyst__accessToken', newAccess, 1000 * 60 * 60);
       sendSuccess(res, 'User updated successfully');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Update error:', error);
       sendError(res, `Failed to update user: ${error.message}`);
     }
   };
 
-  delete = async (req, res) => {
+  delete = async (req: Request, res: Response) => {
     try {
-      await this.userService.delete(req.user.id);
+      await this.userService.delete((req.user as BasicUser).id);
 
-      const cookie = getCookie(req, '__catalyst__jwt');
-      if (cookie) removeCookie(res, '__catalyst__jwt');
+      const accessToken = getCookie(req, '__catalyst__accessToken');
+      if (accessToken) removeCookie(res, '__catalyst__accessToken');
+      const refreshToken = getCookie(req, '__catalyst__refreshToken');
+      if (refreshToken) removeCookie(res, '__catalyst__refreshToken');
+
       sendSuccess(res, 'User deleted successfully');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to delete user:', error);
       sendError(res, `Failed to delete user: ${error.message}`);
     }
