@@ -46,20 +46,17 @@ export class ProjectService {
 
   async create(user: BasicUser, data: CreateProjectData) {
     try {
-      const { fields, files } = await parseForm(data as IncomingMessage);
-
-      const permissions = fields.permissions[0]?.split(',') || [];
-      const allowedUsers = fields.allowedUsers?.[0]?.split(',') || [];
-      const avatarFile = files.avatar?.[0]!;
-      const avatar = await convertFormidableToFile(avatarFile);
+      const avatar = await convertFormidableToFile(data.avatar);
       const uploadedImage = await uploadImage(avatar, 'projects');
 
       const project = await this.db.project.create({
         data: {
-          name: fields.name[0],
-          description: fields.description[0],
+          name: data.name,
+          description: data.description,
           authorId: user.id,
           avatar: uploadedImage,
+          createdAt: new Date(),
+          updatedAt: new Date(),
         },
       });
 
@@ -67,11 +64,11 @@ export class ProjectService {
         this.db.permissions.create({
           data: {
             projectId: project.id,
-            private: permissions.includes('private'),
-            allowCollaborate: permissions.includes('allowCollaborate'),
-            allowBranch: permissions.includes('allowBranch'),
-            allowShare: permissions.includes('allowShare'),
-            allowedUsers: allowedUsers.length ? allowedUsers : undefined,
+            private: data.permissions.includes('private'),
+            allowCollaborate: data.permissions.includes('allowCollaborate'),
+            allowBranch: data.permissions.includes('allowBranch'),
+            allowShare: data.permissions.includes('allowShare'),
+            allowedUsers: data.allowedUsers.length > 0 ? data.allowedUsers : undefined,
           },
         }),
         this.db.branch.create({
@@ -88,11 +85,11 @@ export class ProjectService {
       await this.db.permissions.create({
         data: {
           branchId: mainBranch.id,
-          private: permissions.includes('private'),
-          allowCollaborate: permissions.includes('allowCollaborate'),
-          allowBranch: permissions.includes('allowBranch'),
-          allowShare: permissions.includes('allowShare'),
-          allowedUsers: allowedUsers.length ? allowedUsers : undefined,
+          private: data.permissions.includes('private'),
+          allowCollaborate: data.permissions.includes('allowCollaborate'),
+          allowBranch: data.permissions.includes('allowBranch'),
+          allowShare: data.permissions.includes('allowShare'),
+          allowedUsers: data.allowedUsers.length > 0 ? data.allowedUsers : undefined,
         },
       });
 
@@ -107,19 +104,12 @@ export class ProjectService {
 
   async update(id: string, data: UpdateProjectData) {
     try {
-      const { fields, files } = await parseForm(data as IncomingMessage);
-
       const currentProject = await this.db.project.findUnique({ where: { id } });
       if (!currentProject) throw new Error('Project not found');
 
-      const permissions = fields.permissions?.[0]?.split(',') || [];
-      const allowedUsers = fields.allowedUsers?.[0]?.split(',') || [];
-      const avatarFile = files.avatar?.[0];
-
       let newAvatar = currentProject.avatar;
-
-      if (avatarFile) {
-        const avatar = await convertFormidableToFile(avatarFile);
+      if (data.avatar) {
+        const avatar = await convertFormidableToFile(data.avatar);
         const uploadedImage = await uploadImage(avatar);
 
         if (uploadedImage) {
@@ -130,23 +120,26 @@ export class ProjectService {
       const updatedProject = await this.db.project.update({
         where: { id },
         data: {
-          name: fields.name?.[0] || currentProject.name,
-          description: fields.description?.[0] || currentProject.description,
+          name: data.name || currentProject.name,
+          description: data.description || currentProject.description,
           avatar: newAvatar,
+          updatedAt: new Date(),
         },
         include: { author: true, branches: true, permissions: true },
       });
 
-      await this.db.permissions.update({
-        where: { projectId: id },
-        data: {
-          private: permissions.includes('private'),
-          allowCollaborate: permissions.includes('allowCollaborate'),
-          allowBranch: permissions.includes('allowBranch'),
-          allowShare: permissions.includes('allowShare'),
-          allowedUsers: allowedUsers.length ? allowedUsers : undefined,
-        },
-      });
+      if (data.permissions) {
+        await this.db.permissions.update({
+          where: { projectId: id },
+          data: {
+            private: data.permissions.includes('private'),
+            allowCollaborate: data.permissions.includes('allowCollaborate'),
+            allowBranch: data.permissions.includes('allowBranch'),
+            allowShare: data.permissions.includes('allowShare'),
+            allowedUsers: data.allowedUsers && data.allowedUsers.length > 0 ? data.allowedUsers : undefined,
+          },
+        });
+      }
 
       projectsCache.set(updatedProject.id, updatedProject);
 

@@ -1,26 +1,20 @@
 import { z } from 'zod';
 import { ProjectSchema } from '@/schemas/BaseSchema';
 
-export const createProjectSchema = ProjectSchema.partial().omit({
-  id: true,
-  trendingActivity: true,
-  trendingPopularity: true,
-  activity: true,
-  popularity: true,
-  createdAt: true,
-  updatedAt: true,
-  author: true,
-  branches: true,
+export const createProjectSchema = z.object({
+  name: z.string(),
+  description: z.string(),
+  avatar: z.any(),
+  permissions: z.array(z.string()),
+  allowedUsers: z.array(z.string()),
 });
 
-export const updateProjectSchema = ProjectSchema.partial().omit({
-  id: true,
-  trendingActivity: true,
-  trendingPopularity: true,
-  activity: true,
-  popularity: true,
-  createdAt: true,
-  updatedAt: true,
+export const updateProjectSchema = z.object({
+  name: z.string().optional(),
+  description: z.string().optional(),
+  avatar: z.any().optional(),
+  permissions: z.array(z.string()).optional(),
+  allowedUsers: z.array(z.string()).optional(),
 });
 
 export type Project = z.infer<typeof ProjectSchema>;
