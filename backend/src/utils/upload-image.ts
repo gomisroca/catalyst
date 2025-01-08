@@ -1,22 +1,14 @@
-import supabase from './supabase.js';
+import supabase from '@/utils/supabase';
 import { v4 as uuidv4 } from 'uuid';
-import { checkFileType, checkFileSize } from './upload-checks.js';
+import { checkFileType, checkFileSize } from '@/utils/upload-checks';
 
-async function getToken(id, bucket) {
+async function getToken(id: string, bucket: string) {
   const { data } = await supabase.storage.from(bucket).createSignedUploadUrl(`${id}.png`);
   return data?.token;
 }
 
-async function convertBase64ToFile(dataUrl, id) {
-  const res = await fetch(dataUrl);
-  const blob = await res.blob();
-  return new File([blob], id + '.png', { type: 'image/png' });
-}
-
-export async function uploadImage(image, bucket = 'avatars') {
+export async function uploadImage(file: File, bucket = 'avatars'): Promise<string | null> {
   try {
-    const id = uuidv4();
-    const file = await convertBase64ToFile(image, id);
     const isImage = checkFileType(file);
     if (!isImage) {
       return null;
@@ -26,6 +18,7 @@ export async function uploadImage(image, bucket = 'avatars') {
       return null;
     }
 
+    const id = uuidv4();
     const token = await getToken(id, bucket);
     if (token) {
       const { data } = await supabase.storage.from(bucket).uploadToSignedUrl(`${id}.png`, token, file);
@@ -33,12 +26,14 @@ export async function uploadImage(image, bucket = 'avatars') {
         return data?.fullPath;
       }
     }
+
+    return null;
   } catch (_error) {
     throw new Error('Failed to upload image');
   }
 }
 
-async function fetchImageAsBlob(url) {
+async function fetchImageAsBlob(url: string) {
   try {
     const response = await fetch(url);
     if (!response.ok) {
@@ -51,7 +46,7 @@ async function fetchImageAsBlob(url) {
   }
 }
 
-export async function uploadImageFromUrl(imageUrl, bucket = 'avatars') {
+export async function uploadImageFromUrl(imageUrl: string, bucket: string = 'avatars') {
   try {
     // Generate a unique ID for the file
     const id = uuidv4();
