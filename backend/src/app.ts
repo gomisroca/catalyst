@@ -1,14 +1,16 @@
-import express from 'express';
-import session from 'express-session';
+import express, { NextFunction, Request, Response } from 'express';
+import session, { SessionOptions } from 'express-session';
 import { PrismaSessionStore } from '@quixo3/prisma-session-store';
 import passport from 'passport';
-import cors from 'cors';
+import cors, { CorsOptions } from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
 import dotenv from 'dotenv';
 import cookieParser from 'cookie-parser';
-import routes from './handlers/index.js';
-import { db } from './utils/db.js';
+import routes from '@/handlers/index';
+import { db } from '@/utils/db';
+import { sendError, sendSuccess } from '@/utils/standard-responses';
+import { rateLimiter } from './middlewares/rate-limiter';
 
 if (process.env.NODE_ENV === 'development') {
   dotenv.config();
@@ -16,8 +18,8 @@ if (process.env.NODE_ENV === 'development') {
 
 const app = express();
 
-const sess = {
-  secret: process.env.SESSION_SECRET,
+const sess: SessionOptions = {
+  secret: process.env.SESSION_SECRET as string,
   cookie: {
     maxAge: 7 * 24 * 60 * 60 * 1000,
   },
@@ -32,12 +34,12 @@ const sess = {
 
 if (process.env.NODE_ENV === 'production') {
   app.set('trust proxy', 1);
-  sess.cookie.secure = true;
+  (sess.cookie as session.CookieOptions).secure = true;
 }
 
-const corsOptions = {
+const corsOptions: CorsOptions = {
   credentials: true,
-  origin: [process.env.FRONTEND_ORIGIN],
+  origin: [process.env.FRONTEND_ORIGIN as string],
 };
 
 app.use(express.json({ limit: '5mb' }));
@@ -46,16 +48,19 @@ app.use(cors(corsOptions));
 app.use(cookieParser());
 app.use(morgan('combined'));
 app.use(helmet());
+app.use(rateLimiter);
 app.use(passport.initialize());
 app.use(passport.session());
 
-app.get('/', (req, res) => res.send('Welcome to the Catalyst API. This page serves as a health check.'));
+app.get('/', (_, res: Response) =>
+  sendSuccess(res, 'Welcome to the Catalyst API. This page serves as a health check.')
+);
 app.use('/', routes);
 
 // Error handling middleware
-app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).json({ error: 'Something broke!' });
+app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
+  console.log(err);
+  sendError(res, `Something broke: ${err.message}`);
 });
 
 app.listen(process.env.PORT, () => {

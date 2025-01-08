@@ -1,9 +1,11 @@
 import path from 'path';
-import { defineConfig } from 'vite';
+import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
   test: {
-    setupFiles: './tests/setup.js',
+    exclude: ['e2e', 'node_modules'],
+    environment: 'jsdom',
+    setupFiles: './src/tests/setup.ts',
     globals: true,
   },
   resolve: {
