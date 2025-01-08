@@ -2,13 +2,7 @@ import { z } from 'zod';
 import apiService from '@/api/config';
 import { ENDPOINTS } from '@/api/endpoints';
 import { ProjectSchema } from '@/api/schemas/BaseSchema';
-import {
-  createProjectSchema,
-  updateProjectSchema,
-  type Project,
-  type CreateProjectData,
-  type UpdateProjectData,
-} from '@/api/schemas/ProjectSchema';
+import { type Project } from '@/api/schemas/ProjectSchema';
 
 export const projectService = {
   getProject: async (id: string) => {
@@ -33,7 +27,6 @@ export const projectService = {
 
   createProject: async (projectData: FormData) => {
     try {
-      createProjectSchema.parse(projectData);
       const response = await apiService.post<Project>(ENDPOINTS.PROJECTS.CREATE, projectData);
       return ProjectSchema.parse(response);
     } catch (error) {
@@ -44,7 +37,6 @@ export const projectService = {
 
   updateProject: async (id: string, projectData: FormData) => {
     try {
-      updateProjectSchema.parse(projectData);
       const response = await apiService.put<unknown>(ENDPOINTS.PROJECTS.UPDATE(id), projectData);
       return ProjectSchema.parse(response);
     } catch (error) {
@@ -56,6 +48,7 @@ export const projectService = {
   deleteProject: async (id: string) => {
     try {
       await apiService.delete<void>(ENDPOINTS.PROJECTS.DELETE(id));
+      return id;
     } catch (error) {
       console.error('Failed to delete project:', error);
       throw error;
@@ -63,4 +56,4 @@ export const projectService = {
   },
 };
 
-export type { Project, CreateProjectData, UpdateProjectData };
+export type { Project };
