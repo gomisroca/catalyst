@@ -2,7 +2,7 @@ import { z } from 'zod';
 import apiService from '@/api/config';
 import { ENDPOINTS } from '@/api/endpoints';
 import { ProjectSchema } from '@/api/schemas/BaseSchema';
-import { type Project } from '@/api/schemas/ProjectSchema';
+import { type Project, type CreateProjectData, type UpdateProjectData } from '@/api/schemas/ProjectSchema';
 
 export const projectService = {
   getProject: async (id: string) => {
@@ -56,4 +56,4 @@ export const projectService = {
   },
 };
 
-export type { Project };
+export type { Project, CreateProjectData, UpdateProjectData };

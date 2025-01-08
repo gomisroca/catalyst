@@ -1,34 +1,37 @@
 // Base Imports
-import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { CreateProjectData, createProjectSchema } from '@/api/schemas/ProjectSchema';
 // Hook Imports
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useGetFollowedUsers } from '@/hooks/users/useGetFollowedUsers';
-import { createProject } from '@/lib/projects';
+import { useCreateProject } from '@/hooks/projects/useCreateProject';
 // UI Imports
 import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { Switch } from '@/components/ui/switch';
-import MultipleSelector from '@/components/ui/multiple-selector';
+import MultipleSelector, { Option } from '@/components/ui/multiple-selector';
 import { Checkbox } from '@/components/ui/checkbox';
+import Loading from '@/components/ui/loading';
+import Error from '@/components/ui/error';
 
-const formSchema = z.object({
-  name: z.string().min(1),
-  description: z.string().min(1),
-  avatar: z.any(),
-  permissions: z.array(z.string()),
-  allowedUsers: z.array(z.any()).optional(),
-  branchName: z.string().optional(),
-  branchDescription: z.string().optional(),
-});
+export default function CreateProject() {
+  const { data: follows, isLoading: followsPending, error: followsError } = useGetFollowedUsers();
+  const {
+    mutate: createProject,
+    isPending: createPending,
+    isSuccess: createSuccess,
+    error: createError,
+  } = useCreateProject();
 
-export function ProjectUploadForm({ onSubmitSuccess }: { onSubmitSuccess: () => void }) {
-  const { data: follows } = useGetFollowedUsers();
-  const [branchFields, setBranchFields] = useState<boolean>(false);
+  const [options, setOptions] = useState<Option[]>([]);
   const [usePrivate, setUsePrivate] = useState<boolean>(false);
 
+  useEffect(() => {
+    if (follows) {
+      setOptions(follows.map((user) => ({ value: user.id, label: user.username })));
+    }
+  }, [follows]);
   const permissions = [
     { id: 'private', label: 'Private' },
     { id: 'allowBranch', label: 'Allow Branches' },
@@ -36,8 +39,8 @@ export function ProjectUploadForm({ onSubmitSuccess }: { onSubmitSuccess: () => 
     { id: 'allowShare', label: 'Allow Sharing' },
   ];
 
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
+  const form = useForm<CreateProjectData>({
+    resolver: zodResolver(createProjectSchema),
     defaultValues: {
       name: '',
       description: '',
@@ -45,29 +48,25 @@ export function ProjectUploadForm({ onSubmitSuccess }: { onSubmitSuccess: () => 
     },
   });
 
-  async function onSubmit(values: z.infer<typeof formSchema>) {
+  async function onSubmit(values: CreateProjectData) {
+    console.log(values);
+
     const data = new FormData();
     data.append('name', values.name);
     data.append('description', values.description);
-    data.append('avatar', values.avatar);
+    if (values.avatar) data.append('avatar', values.avatar);
     data.append('permissions', values.permissions.join());
     if (values.allowedUsers) {
       for (const user of values.allowedUsers) {
         data.append('allowedUsers', user.value);
       }
     }
-    if (values.branchName && values.branchDescription) {
-      data.append('branchName', values.branchName);
-      data.append('branchDescription', values.branchDescription);
-    }
 
-    const res = await createProject(accessToken, data);
-    if (!res.ok) {
-      const fail = await res.json();
-    } else {
-      setTimeout(() => onSubmitSuccess(), 2000);
-    }
+    createProject(data);
   }
+
+  if (followsPending) return <Loading />;
+  if (followsError) return <Error message={followsError.message} />;
   return (
     <>
       <Form {...form}>
@@ -165,7 +164,7 @@ export function ProjectUploadForm({ onSubmitSuccess }: { onSubmitSuccess: () => 
                   <MultipleSelector
                     value={field.value}
                     onChange={field.onChange}
-                    defaultOptions={follows}
+                    defaultOptions={options}
                     placeholder="Select users you'd like to give access to..."
                   />
                   <FormMessage />
@@ -173,43 +172,19 @@ export function ProjectUploadForm({ onSubmitSuccess }: { onSubmitSuccess: () => 
               )}
             />
           )}
-          <div className="flex items-center gap-2">
-            <FormLabel>Create Main Branch?</FormLabel>
-            <Switch checked={branchFields} onCheckedChange={() => setBranchFields(!branchFields)} />
-          </div>
-          {branchFields && (
-            <>
-              <FormField
-                control={form.control}
-                name="branchName"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Main Branch Name</FormLabel>
-                    <FormControl>
-                      <Input {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="branchDescription"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Main Branch Description</FormLabel>
-                    <FormControl>
-                      <Input {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </>
-          )}
-          <Button type="submit" className="mt-4">
-            Submit
+          <Button type="submit" className="mt-4" disabled={createPending}>
+            {createPending ? 'Creating...' : 'Submit'}
           </Button>
+          {createError && (
+            <p className="mt-2 text-red-500" role="alert">
+              {createError.message}
+            </p>
+          )}
+          {createSuccess && (
+            <p className="mt-2 text-green-500" role="alert">
+              The project was created successfully!
+            </p>
+          )}
         </form>
       </Form>
     </>
