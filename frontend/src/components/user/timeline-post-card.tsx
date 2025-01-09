@@ -12,8 +12,8 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { BsQuestion } from 'react-icons/bs';
 import { Eye } from 'lucide-react';
 // Component Imports
-import PostCarousel from '@/components/project/post-carousel';
-import PostInteractions from '@/components/project/post-interactions';
+import PostCarousel from '@/components/post/post-carousel';
+import PostInteractions from '@/components/post/post-interactions';
 
 export default function TimelinePostCard({ post }: { post: Post }) {
   const { data: user } = useGetSelf();
