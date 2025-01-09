@@ -11,6 +11,7 @@ import Project from '@/routes/project';
 import Branch from '@/routes/branch';
 import Profile from '@/routes/profile';
 import CreateProject from '@/routes/create-project';
+import UpdateProject from '@/routes/update-project';
 // Components Imports
 import Navmenu from '@/components/ui/navmenu';
 
@@ -23,6 +24,10 @@ const router = createBrowserRouter([
     path: '/:projectId',
     element: <Project />,
     children: [
+      {
+        path: 'update',
+        element: <UpdateProject />,
+      },
       {
         path: ':branchId',
         element: <Branch />,
