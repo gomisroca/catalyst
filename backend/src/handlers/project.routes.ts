@@ -24,14 +24,14 @@ PUT - Update Project
 REQ - Project Data
 RES - 200 - Project
 */
-router.get('/:id', auth, projectController.update);
+router.put('/:id', auth, projectController.update);
 
 /*
 GET - Delete Project
 REQ - None
 RES - 200
 */
-router.get('/:id', auth, projectController.delete);
+router.delete('/:id', auth, projectController.delete);
 
 /*
 GET - All Projects
@@ -45,6 +45,6 @@ POST - Create Project
 REQ - Project Data
 RES - 200 - Project
 */
-router.get('/', auth, projectController.create);
+router.post('/', auth, projectController.create);
 
 export default router;
