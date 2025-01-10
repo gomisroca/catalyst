@@ -92,10 +92,29 @@ export class BranchService {
           allowShare: data.permissions.includes('allowShare'),
           allowedUsers: data.allowedUsers.length > 0 ? data.allowedUsers : undefined,
         },
-      }),
-        branchesCache.set(branch.id, branch);
+      });
 
-      return branch;
+      const finalizedBranch = await this.db.branch.findUnique({
+        where: { id: branch.id },
+        include: {
+          author: true,
+          posts: {
+            include: {
+              author: true,
+              interactions: {
+                include: {
+                  user: true,
+                },
+              },
+            },
+          },
+          permissions: true,
+          interactions: { include: { user: true } },
+        },
+      });
+      branchesCache.set(branch.id, finalizedBranch);
+
+      return finalizedBranch;
     } catch (error) {
       console.error('Failed to create branch:', error);
       throw new Error('Failed to create branch');
