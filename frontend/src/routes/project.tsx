@@ -13,9 +13,6 @@ import Error from '@/components/ui/error';
 import Loading from '@/components/ui/loading';
 import { Pencil } from 'lucide-react';
 import { FiPlus } from 'react-icons/fi';
-import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
-// Component Imports
-import { BranchUploadForm } from '@/components/branch/branch-upload-form';
 
 // Utility Functions
 const isPublicOrAuthor = (branch: Branch, user?: BasicUser) =>
@@ -37,22 +34,17 @@ const filterAndSortBranches = (branches: Branch[], user?: BasicUser) => {
 };
 
 // Branch Creation Dialog
-function CreateBranchDialog({ project }: { project: Project }) {
-  const [open, setOpen] = useState(false);
-
-  const closeDialog = () => setOpen(false);
+function CreateBranchButton({ project }: { project: Project }) {
+  const navigate = useNavigate();
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild className="w-full">
-        <Button variant="outline" className="mb-2 flex w-full items-center">
-          <FiPlus className="mr-2 h-4 w-4" /> Add Branch
-        </Button>
-      </DialogTrigger>
-      <DialogContent className="w-5/6 rounded-md">
-        <BranchUploadForm onSubmitSuccess={closeDialog} project={project} />
-      </DialogContent>
-    </Dialog>
+    <Button
+      variant="outline"
+      className="mb-2 flex w-full items-center"
+      onClick={() => navigate(`/projects/${project.id}/new`)}
+    >
+      <FiPlus className="mr-2 h-4 w-4" /> Add Branch
+    </Button>
   );
 }
 
@@ -115,7 +107,7 @@ function BranchSelection({ project, branches, user }: { project: Project; branch
             </SelectTrigger>
             <SelectContent>
               {(project.author.id === user?.id || project.permissions.allowBranch) && (
-                <CreateBranchDialog project={project} />
+                <CreateBranchButton project={project} />
               )}
               <SelectItem className="hidden" value="null">
                 --
@@ -131,7 +123,7 @@ function BranchSelection({ project, branches, user }: { project: Project; branch
       ) : (
         <>
           <span>This project has no branches yet.</span>
-          <CreateBranchDialog project={project} />
+          <CreateBranchButton project={project} />
         </>
       )}
     </CardFooter>
