@@ -25,6 +25,7 @@ export const ENDPOINTS = {
   },
   BRANCHES: {
     LIST: '/branches',
+    LISTBYPROJECT: (projectId: string) => `/branches/byProject/${projectId}`,
     DETAIL: (id: string) => `/branches/${id}`,
     CREATE: '/branches',
     UPDATE: (id: string) => `/branches/${id}`,
@@ -32,6 +33,7 @@ export const ENDPOINTS = {
   },
   POSTS: {
     LIST: '/posts',
+    LISTBYBRANCH: (branchId: string) => `/posts/byBranch/${branchId}`,
     DETAIL: (id: string) => `/posts/${id}`,
     CREATE: '/posts',
     UPDATE: (id: string) => `/posts/${id}`,

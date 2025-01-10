@@ -41,6 +41,16 @@ export class BranchController {
     }
   };
 
+  getAllByProject = async (req: Request, res: Response) => {
+    try {
+      const branches = await this.branchService.findAllByProject(req.params.projectId);
+      sendSuccess(res, branches);
+    } catch (error: any) {
+      console.error('Failed to fetch branches:', error);
+      sendError(res, `Failed to fetch branches: ${error.message}`);
+    }
+  };
+
   create = async (req: Request, res: Response) => {
     try {
       const validationResult = createBranchSchema.safeParse(req.body);

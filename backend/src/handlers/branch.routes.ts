@@ -13,6 +13,13 @@ RES - 200
 router.get('/health', branchController.healthCheck);
 
 /*
+GET - All Branches in a Project
+REQ - None
+RES - 200 - Branch[]
+*/
+router.get('/byProject/:projectId', branchController.getAllByProject);
+
+/*
 GET - Specific Branch
 REQ - None
 RES - 200 - Branch

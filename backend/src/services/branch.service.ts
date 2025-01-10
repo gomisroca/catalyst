@@ -70,6 +70,38 @@ export class BranchService {
     }
   }
 
+  async findAllByProject(projectId: string) {
+    try {
+      if (!projectId) throw new Error('Project ID is required');
+      const project = await this.db.project.findUnique({ where: { id: projectId } });
+      if (!project) throw new Error('Project not found');
+
+      return await fetchFromCacheOrDB(branchesCache, `branches-${projectId}`, () =>
+        this.db.branch.findMany({
+          where: { projectId },
+          include: {
+            author: true,
+            posts: {
+              include: {
+                author: true,
+                interactions: {
+                  include: {
+                    user: true,
+                  },
+                },
+              },
+            },
+            permissions: true,
+            interactions: { include: { user: true } },
+          },
+        })
+      );
+    } catch (error) {
+      console.error(`Failed to fetch branches for project ${projectId}:`, error);
+      throw new Error(`Failed to fetch branches for project ${projectId}`);
+    }
+  }
+
   async create(user: BasicUser, data: CreateBranchData) {
     try {
       const branch = await this.db.branch.create({
