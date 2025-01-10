@@ -24,16 +24,14 @@ export const ENDPOINTS = {
     DELETE: (id: string) => `/projects/${id}`,
   },
   BRANCHES: {
-    LIST: '/branches',
-    LISTBYPROJECT: (projectId: string) => `/branches/byProject/${projectId}`,
+    LIST: (projectId?: string) => (projectId ? `/branches?projectId=${projectId}` : `/branches`),
     DETAIL: (id: string) => `/branches/${id}`,
     CREATE: '/branches',
     UPDATE: (id: string) => `/branches/${id}`,
     DELETE: (id: string) => `/branches/${id}`,
   },
   POSTS: {
-    LIST: '/posts',
-    LISTBYBRANCH: (branchId: string) => `/posts/byBranch/${branchId}`,
+    LIST: (branchId?: string) => (branchId ? `/posts?branchId=${branchId}` : `/posts`),
     DETAIL: (id: string) => `/posts/${id}`,
     CREATE: '/posts',
     UPDATE: (id: string) => `/posts/${id}`,

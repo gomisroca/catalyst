@@ -31,19 +31,10 @@ export class BranchController {
     }
   };
 
-  getAll = async (_: Request, res: Response) => {
+  getAll = async (req: Request, res: Response) => {
+    const { projectId } = req.query;
     try {
-      const branches = await this.branchService.findAll();
-      sendSuccess(res, branches);
-    } catch (error: any) {
-      console.error('Failed to fetch branches:', error);
-      sendError(res, `Failed to fetch branches: ${error.message}`);
-    }
-  };
-
-  getAllByProject = async (req: Request, res: Response) => {
-    try {
-      const branches = await this.branchService.findAllByProject(req.params.projectId);
+      const branches = await this.branchService.findAll(projectId as string);
       sendSuccess(res, branches);
     } catch (error: any) {
       console.error('Failed to fetch branches:', error);
