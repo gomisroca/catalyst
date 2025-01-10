@@ -1,7 +1,6 @@
 import { Request, Response } from 'express';
 import { sendError, sendSuccess } from '@/utils/standard-responses';
 import { BranchService } from '@/services/branch.service';
-import parseForm from '@/utils/parse-form';
 import { BasicUser } from '@/schemas/UserSchema';
 import { createBranchSchema, updateBranchSchema } from '@/schemas/BranchSchema';
 
@@ -44,20 +43,10 @@ export class BranchController {
 
   create = async (req: Request, res: Response) => {
     try {
-      const { fields } = await parseForm(req);
-
-      const branchData = {
-        projectId: fields.projectId[0],
-        name: fields.name[0],
-        description: fields.description[0],
-        permissions: fields.permissions ? fields.permissions[0].split(',') : [],
-        allowedUsers: fields.allowedUsers?.[0]?.split(',') ?? [],
-      };
-
-      const validationResult = createBranchSchema.safeParse(branchData);
+      const validationResult = createBranchSchema.safeParse(req.body);
       if (!validationResult.success) return sendError(res, validationResult.error.message);
 
-      await this.branchService.create(req.user as BasicUser, branchData);
+      await this.branchService.create(req.user as BasicUser, req.body);
       sendSuccess(res, 'Branch created successfully');
     } catch (error: any) {
       console.error('Failed to create branch:', error);
@@ -67,19 +56,10 @@ export class BranchController {
 
   update = async (req: Request, res: Response) => {
     try {
-      const { fields } = await parseForm(req);
-
-      const branchData = {
-        name: fields.name[0],
-        description: fields.description[0],
-        permissions: fields.permissions ? fields.permissions[0].split(',') : [],
-        allowedUsers: fields.allowedUsers?.[0]?.split(',') ?? [],
-      };
-
-      const validationResult = updateBranchSchema.safeParse(branchData);
+      const validationResult = updateBranchSchema.safeParse(req.body);
       if (!validationResult.success) return sendError(res, validationResult.error.message);
 
-      await this.branchService.update(req.params.id, branchData);
+      await this.branchService.update(req.params.id, req.body);
       sendSuccess(res, 'Branch updated successfully');
     } catch (error: any) {
       console.error('Failed to update branch:', error);
