@@ -83,7 +83,7 @@ export class BranchService {
         },
       });
 
-      this.db.permissions.create({
+      await this.db.permissions.create({
         data: {
           branchId: branch.id,
           private: data.permissions.includes('private'),
