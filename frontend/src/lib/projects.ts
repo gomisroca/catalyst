@@ -1,39 +1,3 @@
-export async function getProjects(): Promise<Project[]> {
-  const res = await fetch(`${import.meta.env.VITE_BACKEND_ORIGIN}/projects/`);
-  return res.json() as Promise<Project[]>;
-}
-
-export async function getProject(projectId: string): Promise<Project> {
-  const res = await fetch(`${import.meta.env.VITE_BACKEND_ORIGIN}/projects/${projectId}/`);
-  return res.json() as Promise<Project>;
-}
-
-export async function getBranch(branchId: string): Promise<Branch> {
-  const res = await fetch(`${import.meta.env.VITE_BACKEND_ORIGIN}/projects/branch/${branchId}/`);
-  return res.json() as Promise<Branch>;
-}
-
-export async function createProject(accessToken: string, projectData: FormData) {
-  const res = await fetch(`${import.meta.env.VITE_BACKEND_ORIGIN}/projects`, {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-    },
-    body: projectData,
-  });
-  return res;
-}
-
-export async function updateProject(accessToken: string, projectData: FormData, projectId: string) {
-  const res = await fetch(`${import.meta.env.VITE_BACKEND_ORIGIN}/projects/${projectId}/`, {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-    },
-    body: projectData,
-  });
-  return res;
-}
 interface BranchData {
   name: string;
   description: string;

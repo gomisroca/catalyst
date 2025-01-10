@@ -20,12 +20,10 @@ function calculateScore(project: Project) {
 }
 
 function filterPrivateProjects(projects: Project[], user?: BasicUser) {
-  return (
-    projects.filter(
-      (proj) =>
-        proj.permissions.private === false ||
-        (user && (proj.author.id === user.id || proj.permissions.allowedUsers.includes(user.id)))
-    ) ?? []
+  return projects.filter(
+    (proj) =>
+      proj.permissions.private === false ||
+      (user && (proj.author.id === user.id || proj.permissions.allowedUsers.includes(user.id)))
   );
 }
 
