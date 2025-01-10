@@ -27,14 +27,14 @@ export const ENDPOINTS = {
     LIST: '/branches',
     DETAIL: (id: string) => `/branches/${id}`,
     CREATE: '/branches',
-    UPDATE: '/branches',
-    DELETE: '/branches',
+    UPDATE: (id: string) => `/branches/${id}`,
+    DELETE: (id: string) => `/branches/${id}`,
   },
   POSTS: {
     LIST: '/posts',
     DETAIL: (id: string) => `/posts/${id}`,
     CREATE: '/posts',
-    UPDATE: '/posts',
-    DELETE: '/posts',
+    UPDATE: (id: string) => `/posts/${id}`,
+    DELETE: (id: string) => `/posts/${id}`,
   },
 };
