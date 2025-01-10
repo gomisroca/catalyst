@@ -4,32 +4,33 @@ import { zodResolver } from '@hookform/resolvers/zod';
 // Hook Imports
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
+import { createBranch } from '@/lib/projects';
 import { useGetFollowedUsers } from '@/hooks/users/useGetFollowedUsers';
-import { updateBranch } from '@/lib/projects';
+import { useGetSelf } from '@/hooks/users/useGetSelf';
 // UI Imports
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import MultipleSelector, { Option } from '@/components/ui/multiple-selector';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
-import Loading from '../ui/loading';
-import Error from '../ui/error';
+import MultipleSelector, { Option } from '@/components/ui/multiple-selector';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import Loading from '@/components/ui/loading';
+import Error from '@/components/ui/error';
 
 interface BranchData {
   name: string;
   description: string;
+  parentBranch: string;
   projectId: string;
   permissions: string[];
   allowedUsers: Option[] | undefined;
 }
 
-export function BranchEditForm({ branch, onSubmitSuccess }: { branch: Branch; onSubmitSuccess: () => void }) {
+export default function CreateBranch() {
+  const { data: user, isLoading: userLoading, error: userError } = useGetSelf();
   const { data: follows, isLoading: followsLoading, error: followsError } = useGetFollowedUsers();
 
-  const trueKeys: string[] = Object.keys(branch.permissions).filter(
-    (key) => branch.permissions[key as keyof Permission] == true
-  );
-  const [usePrivate, setUsePrivate] = useState<boolean>(trueKeys.includes('private'));
+  const [usePrivate, setUsePrivate] = useState<boolean>(false);
 
   const permissions = [
     { id: 'private', label: 'Private' },
@@ -41,21 +42,25 @@ export function BranchEditForm({ branch, onSubmitSuccess }: { branch: Branch; on
   const formSchema = z.object({
     name: z.string().min(1),
     description: z.string().min(1),
+    parentBranch: z.string(),
     permissions: z.array(z.string()),
     allowedUsers: z.array(z.any()).optional(),
   });
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      name: branch.name,
-      description: branch.description,
-      permissions: trueKeys,
+      name: '',
+      description: '',
+      parentBranch: 'none',
+      permissions: ['allowBranch', 'allowCollaborate', 'allowShare'],
     },
   });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     const data: BranchData = {
-      projectId: branch.projectId,
+      projectId: project.id,
+      parentBranch: values.parentBranch,
       name: values.name,
       description: values.description,
       permissions: values.permissions,
@@ -65,14 +70,19 @@ export function BranchEditForm({ branch, onSubmitSuccess }: { branch: Branch; on
       data.allowedUsers = values.allowedUsers;
     }
 
-    const res = await updateBranch(accessToken, data, branch.id);
+    const res = await createBranch(accessToken, data, project.id);
+    if (!res.ok) {
+      const fail = await res.json();
+    } else {
+      setTimeout(() => onSubmitSuccess(), 2000);
+    }
   }
 
-  if (followsLoading) {
+  if (userLoading || followsLoading) {
     return <Loading />;
   }
-  if (followsError) {
-    return <Error message={followsError?.message} />;
+  if (userError || followsError) {
+    return <Error message={userError?.message || followsError?.message} />;
   }
   return (
     <Form {...form}>
@@ -99,6 +109,39 @@ export function BranchEditForm({ branch, onSubmitSuccess }: { branch: Branch; on
               <FormControl>
                 <Input {...field} />
               </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="parentBranch"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Parent Branch</FormLabel>
+              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  <SelectItem value={'none'}>None</SelectItem>
+                  {project.branches.map((branch) =>
+                    branch.permissions.private ? (
+                      (branch.author.id == user?.id || branch.permissions.allowedUsers.includes(user?.id)) && (
+                        <SelectItem key={branch.id} value={branch.id}>
+                          {branch.name}
+                        </SelectItem>
+                      )
+                    ) : (
+                      <SelectItem key={branch.id} value={branch.id}>
+                        {branch.name}
+                      </SelectItem>
+                    )
+                  )}
+                </SelectContent>
+              </Select>
               <FormMessage />
             </FormItem>
           )}
@@ -161,8 +204,6 @@ export function BranchEditForm({ branch, onSubmitSuccess }: { branch: Branch; on
         <Button type="submit" className="mt-4">
           Submit
         </Button>
-        {failState && <div className="m-auto text-destructive">{failState}</div>}
-        {successState && <div className="m-auto">{successState}</div>}
       </form>
     </Form>
   );

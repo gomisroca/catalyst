@@ -11,6 +11,10 @@ import Project from '@/routes/project';
 import Branch from '@/routes/branch';
 import Profile from '@/routes/profile';
 import CreateProject from '@/routes/create-project';
+import UpdateProject from '@/routes/update-project';
+import CreateBranch from '@/routes/create-branch';
+import UpdateBranch from '@/routes/update-branch';
+import CreatePost from '@/routes/create-post';
 // Components Imports
 import Navmenu from '@/components/ui/navmenu';
 
@@ -24,8 +28,26 @@ const router = createBrowserRouter([
     element: <Project />,
     children: [
       {
+        path: 'update',
+        element: <UpdateProject />,
+      },
+      {
+        path: 'new',
+        element: <CreateBranch />,
+      },
+      {
         path: ':branchId',
         element: <Branch />,
+        children: [
+          {
+            path: 'update',
+            element: <UpdateBranch />,
+          },
+          {
+            path: 'new',
+            element: <CreatePost />,
+          },
+        ],
       },
     ],
   },
@@ -34,7 +56,7 @@ const router = createBrowserRouter([
     element: <Profile />,
   },
   {
-    path: 'projects/new',
+    path: 'new',
     element: <CreateProject />,
   },
 ]);

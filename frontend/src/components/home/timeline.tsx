@@ -14,9 +14,9 @@ import { FiFolderPlus } from 'react-icons/fi';
 import Loading from '@/components/ui/loading';
 import Error from '@/components/ui/error';
 // Component Imports
-import TimelineProjectCard from '@/components/user/timeline-project-card';
-import TimelineBranchCard from '@/components/user/timeline-branch-card';
-import TimelinePostCard from '@/components/user/timeline-post-card';
+import TimelineBranchCard from '@/components/branch/timeline-branch-card';
+import TimelinePostCard from '@/components/post/timeline-post-card';
+import ProjectCard from '@/components/project/project-card';
 
 interface InteractionOrProjectOrBranchOrPost {
   createdAt?: string;
@@ -192,7 +192,7 @@ export default function HomeTimeline() {
                 {obj.author && (obj.author.nickname || obj.author.username)} created a project
               </CardDescription>
               <CardContent className="p-2">
-                <TimelineProjectCard project={obj as Project} />
+                <ProjectCard project={obj as Project} />
               </CardContent>
             </Card>
           ) : null

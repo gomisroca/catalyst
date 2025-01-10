@@ -14,11 +14,11 @@ import { Button } from '@/components/ui/button';
 import { Pencil } from 'lucide-react';
 import { MdKeyboardArrowRight } from 'react-icons/md';
 // Component Imports
-import CreatePostButton from '@/components/project/create-post-button';
-import PostMain from '@/components/project/post-main';
-import BranchInteractions from '@/components/project/branch-interactions';
+import CreatePostButton from '@/components/post/create-post-button';
+import PostMain from '@/components/post/post-main';
+import BranchInteractions from '@/components/branch/branch-interactions';
 import PaginationWrapper from '@/components/pagination-wrapper';
-import { BranchEditForm } from '@/components/project/branch-edit-form';
+import { BranchEditForm } from '@/components/branch/branch-edit-form';
 
 export default function Branch() {
   const [open, setOpen] = useState(false);

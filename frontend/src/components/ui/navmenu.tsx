@@ -35,7 +35,7 @@ export default function Navmenu() {
             <DialogContent className="w-5/6 rounded-md">{user ? <UserSettingsForm /> : <SignInForm />}</DialogContent>
           </Dialog>
           {user && (
-            <Button size="icon" variant={'outline'} onClick={() => navigate('/projects/new')}>
+            <Button size="icon" variant={'outline'} onClick={() => navigate('/new')}>
               <FiFolderPlus />
             </Button>
           )}

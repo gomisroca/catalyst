@@ -4,9 +4,9 @@ import { Link } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { useGetSelf } from '@/hooks/users/useGetSelf';
 // Component Imports
-import PostCarousel from '@/components/project/post-carousel';
-import { PostEditForm } from '@/components/project/post-edit-form';
-import PostInteractions from '@/components/project/post-interactions';
+import PostCarousel from '@/components/post/post-carousel';
+import { PostEditForm } from '@/components/post/post-edit-form';
+import PostInteractions from '@/components/post/post-interactions';
 // UI Imports
 import { Card, CardContent, CardDescription, CardFooter, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';

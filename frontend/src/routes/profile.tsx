@@ -5,7 +5,6 @@ import { AiOutlineBranches } from 'react-icons/ai';
 import { FaRegFileAlt } from 'react-icons/fa';
 import { IoMdHeartDislike, IoMdHeartEmpty } from 'react-icons/io';
 // Services Imports
-import { useQueryClient } from '@tanstack/react-query';
 import { useGetUser } from '@/hooks/users/useGetUser';
 import { useGetSelf } from '@/hooks/users/useGetSelf';
 import { useFollowUser } from '@/hooks/interactions/useFollowUser';
@@ -14,11 +13,13 @@ import { Card, CardContent, CardDescription, CardTitle } from '@/components/ui/c
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
+import Error from '@/components/ui/error';
+import Loading from '@/components/ui/loading';
 // Components Imports
 import ProfileTimeline from '@/components/user/profile-timeline';
-import TimelineBranchCard from '@/components/user/timeline-branch-card';
-import TimelineProjectCard from '@/components/user/timeline-project-card';
-import TimelinePostCard from '@/components/user/timeline-post-card';
+import ProjectCard from '@/components/project/project-card';
+import TimelineBranchCard from '@/components/branch/timeline-branch-card';
+import TimelinePostCard from '@/components/post/timeline-post-card';
 
 function ProjectDialog({ projects }: { projects: Project[] }) {
   return (
@@ -31,7 +32,7 @@ function ProjectDialog({ projects }: { projects: Project[] }) {
       <DialogContent className="max-h-3/4 w-5/6 max-w-none overflow-y-scroll rounded-md px-1 pb-1 pt-10">
         {projects.map((project) => (
           <div key={project.id}>
-            <TimelineProjectCard project={project} />
+            <ProjectCard project={project} />
           </div>
         ))}
       </DialogContent>
@@ -103,31 +104,14 @@ function FollowSection({ user, profile }: { user?: BasicUser; profile: User }) {
 }
 
 export default function Profile() {
-  const queryClient = useQueryClient();
   const { data: user } = useGetSelf();
   const { profileId } = useParams();
-
-  if (!profileId) return <div>No profile ID provided.</div>;
+  if (!profileId) return <Error message="No profile ID provided." />;
   const { data: profile, isLoading, error } = useGetUser(profileId);
 
-  if (isLoading) {
-    return <div className="flex h-full items-center justify-center">Loading...</div>;
-  }
-  if (error) {
-    return (
-      <div className="flex h-full flex-col items-center justify-center text-center">
-        <p className="mb-4 text-red-500">{error.message}</p>
-        <Button onClick={() => queryClient.refetchQueries({ queryKey: ['getUser', 'users', profileId] })}>Retry</Button>
-      </div>
-    );
-  }
-  if (!profile) {
-    return (
-      <div className="flex h-full items-center justify-center">
-        <p>No profile data found.</p>
-      </div>
-    );
-  }
+  if (isLoading) return <Loading />;
+  if (error) return <Error message={error.message} />;
+  if (!profile) return <Error message="Profile not found." />;
   return (
     <Card className="w-full p-4">
       <div className="flex items-center gap-2 p-4">

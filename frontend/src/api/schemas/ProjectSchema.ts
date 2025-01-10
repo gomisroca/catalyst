@@ -10,10 +10,10 @@ export const createProjectSchema = z.object({
 });
 
 export const updateProjectSchema = z.object({
-  name: z.string().optional(),
-  description: z.string().optional(),
-  avatar: z.any().optional(),
-  permissions: z.array(z.string()).optional(),
+  name: z.string(),
+  description: z.string(),
+  avatar: z.any(),
+  permissions: z.array(z.string()),
   allowedUsers: z.array(z.object({ value: z.string(), label: z.string() })).optional(),
 });
 

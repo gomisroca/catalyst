@@ -11,7 +11,7 @@ import { Button } from '@/components/ui/button';
 import { BsActivity, BsFire, BsQuestion } from 'react-icons/bs';
 import { Eye } from 'lucide-react';
 // Component Imports
-import BranchInteractions from '@/components/project/branch-interactions';
+import BranchInteractions from '@/components/branch/branch-interactions';
 
 export default function TimelineBranchCard({ branch }: { branch: Branch }) {
   const { data: user } = useGetSelf();

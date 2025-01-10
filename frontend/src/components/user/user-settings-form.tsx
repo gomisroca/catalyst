@@ -6,6 +6,8 @@ import { UpdateUserData, updateUserSchema } from '@/api/schemas/UserSchema';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import Error from '@/components/ui/error';
+import Loading from '@/components/ui/loading';
 // Hook Imports
 import { useGetSelf } from '@/hooks/users/useGetSelf';
 import { useUpdateUser } from '@/hooks/users/useUpdateUser';
@@ -33,16 +35,8 @@ export function UserSettingsForm() {
 
     updateUser(data);
   }
-  if (userPending) {
-    return <div className="flex h-full items-center justify-center">Loading...</div>;
-  }
-  if (userError) {
-    return (
-      <div className="flex h-full flex-col items-center justify-center text-center">
-        <p className="mb-4 text-red-500">{userError?.message || updateError?.message}</p>
-      </div>
-    );
-  }
+  if (userPending) return <Loading />;
+  if (userError) return <Error message={userError.message} />;
   return (
     <>
       <Form {...form}>

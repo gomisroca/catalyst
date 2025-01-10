@@ -10,9 +10,9 @@ import { FaRegFileAlt } from 'react-icons/fa';
 import { AiOutlineBranches } from 'react-icons/ai';
 import { FiFolderPlus } from 'react-icons/fi';
 // Component Imports
-import TimelineBranchCard from '@/components/user/timeline-branch-card';
-import TimelinePostCard from '@/components/user/timeline-post-card';
-import TimelineProjectCard from '@/components/user/timeline-project-card';
+import ProjectCard from '@/components/project/project-card';
+import TimelineBranchCard from '@/components/branch/timeline-branch-card';
+import TimelinePostCard from '@/components/post/timeline-post-card';
 import PaginationWrapper from '@/components/pagination-wrapper';
 
 interface InteractionOrProjectOrBranchOrPost {
@@ -174,7 +174,7 @@ export default function ProfileTimeline({ profile }: { profile: User }) {
                 {profile.nickname || profile.username} created a project
               </CardDescription>
               <CardContent className="p-2">
-                <TimelineProjectCard project={obj as Project} />
+                <ProjectCard project={obj as Project} />
               </CardContent>
             </Card>
           ) : null

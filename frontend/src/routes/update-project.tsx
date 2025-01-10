@@ -1,40 +1,53 @@
 // Base Imports
 import { zodResolver } from '@hookform/resolvers/zod';
-import { CreateProjectData, createProjectSchema } from '@/api/schemas/ProjectSchema';
+import { UpdateProjectData, updateProjectSchema } from '@/api/schemas/ProjectSchema';
 // Hook Imports
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { useParams } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { useGetFollowedUsers } from '@/hooks/users/useGetFollowedUsers';
-import { useCreateProject } from '@/hooks/projects/useCreateProject';
+import { useGetProject } from '@/hooks/projects/useGetProject';
+import { useUpdateProject } from '@/hooks/projects/useUpdateProject';
 // UI Imports
+import MultipleSelector from '@/components/ui/multiple-selector';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import MultipleSelector from '@/components/ui/multiple-selector';
-import { Checkbox } from '@/components/ui/checkbox';
 import Loading from '@/components/ui/loading';
 import Error from '@/components/ui/error';
 
-export default function CreateProject() {
-  // Fetch logged-in user follows
+export default function UpdateProject() {
+  // Get ID from URL Params
+  const { projectId } = useParams();
+  if (!projectId) return <Error message="No project ID provided." />;
+
+  // Fetch current project data and logged-in user follows
+  const { data: project, isLoading, error } = useGetProject(projectId);
   const { data: follows, isLoading: followsPending, error: followsError } = useGetFollowedUsers();
+  if (followsPending || isLoading) return <Loading />;
+  if (followsError || error) return <Error message={followsError?.message || error?.message} />;
+  if (!project) return <Error message="No project found." />;
 
-  // Create project mutation
+  // Update project mutation
   const {
-    mutate: createProject,
-    isPending: createPending,
-    isSuccess: createSuccess,
-    error: createError,
-  } = useCreateProject();
+    mutate: updateProject,
+    isPending: updatePending,
+    isSuccess: updateSuccess,
+    error: updateError,
+  } = useUpdateProject();
 
-  // Map permissions to be used in form
+  // Map current permissions to be used in form
   const permissions = [
     { id: 'private', label: 'Private' },
     { id: 'allowBranch', label: 'Allow Branches' },
     { id: 'allowCollaborate', label: 'Allow Collaborations' },
     { id: 'allowShare', label: 'Allow Sharing' },
   ];
-  const [usePrivate, setUsePrivate] = useState<boolean>(false);
+  const permissionKeys: string[] = Object.keys(project.permissions).filter(
+    (key) => project.permissions[key as keyof Permission] == true
+  );
+  const [usePrivate, setUsePrivate] = useState<boolean>(permissionKeys.includes('private'));
   const handleCheckboxChange = (checked: boolean, id: string) => {
     if (id === 'private') setUsePrivate(!usePrivate);
     form.setValue(
@@ -46,24 +59,34 @@ export default function CreateProject() {
   // Map user followers to be used in form
   const options = follows?.map((user) => ({ value: user.id, label: user.username })) || [];
 
-  // Init form with default values
-  const form = useForm<CreateProjectData>({
-    resolver: zodResolver(createProjectSchema),
+  // Init form with current project values
+  const form = useForm<UpdateProjectData>({
+    resolver: zodResolver(updateProjectSchema),
     defaultValues: {
-      name: '',
-      description: '',
-      permissions: ['allowBranch', 'allowCollaborate', 'allowShare'],
+      name: project.name,
+      description: project.description,
+      permissions: permissionKeys,
     },
   });
+  useEffect(() => {
+    if (project) {
+      form.reset({
+        name: project.name,
+        description: project.description,
+        permissions: permissionKeys,
+      });
+    }
+  }, [project, form]);
 
-  // On submit, pass the data as FormData
-  async function onSubmit(values: CreateProjectData) {
+  // On submit, assert the project was fetched, and pass the updated data as FormData
+  async function onSubmit(values: UpdateProjectData) {
+    if (!project) return;
     console.log(values);
 
     const data = new FormData();
     data.append('name', values.name);
     data.append('description', values.description);
-    if (values.avatar) data.append('avatar', values.avatar);
+    data.append('avatar', values.avatar);
     data.append('permissions', values.permissions.join());
     if (values.allowedUsers) {
       for (const user of values.allowedUsers) {
@@ -71,11 +94,9 @@ export default function CreateProject() {
       }
     }
 
-    createProject(data);
+    updateProject({ id: project.id, projectData: data });
   }
 
-  if (followsPending) return <Loading />;
-  if (followsError) return <Error message={followsError.message} />;
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-4">
@@ -110,6 +131,15 @@ export default function CreateProject() {
           name="avatar"
           render={({ field: { value, onChange, ...fieldProps } }) => (
             <FormItem>
+              {project.avatar ? (
+                <img
+                  className="rounded-sm"
+                  src={`${import.meta.env.VITE_IMG_ROOT + project.avatar}`}
+                  alt="Project Avatar"
+                />
+              ) : (
+                <p>No avatar uploaded</p>
+              )}
               <FormLabel>Avatar</FormLabel>
               <FormControl>
                 <Input
@@ -127,6 +157,7 @@ export default function CreateProject() {
             </FormItem>
           )}
         />
+
         <FormField
           control={form.control}
           name="permissions"
@@ -175,17 +206,17 @@ export default function CreateProject() {
             )}
           />
         )}
-        <Button type="submit" className="mt-4" disabled={createPending}>
-          {createPending ? 'Creating...' : 'Submit'}
+        <Button type="submit" className="mt-4" disabled={updatePending}>
+          {updatePending ? 'Updating...' : 'Submit'}
         </Button>
-        {createError && (
+        {updateError && (
           <p className="mt-2 text-red-500" role="alert">
-            {createError.message}
+            {updateError.message}
           </p>
         )}
-        {createSuccess && (
+        {updateSuccess && (
           <p className="mt-2 text-green-500" role="alert">
-            The project was created successfully!
+            The project was updated successfully!
           </p>
         )}
       </form>
