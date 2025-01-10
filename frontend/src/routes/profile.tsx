@@ -17,9 +17,9 @@ import Error from '@/components/ui/error';
 import Loading from '@/components/ui/loading';
 // Components Imports
 import ProfileTimeline from '@/components/user/profile-timeline';
-import TimelineBranchCard from '@/components/user/timeline-branch-card';
-import TimelineProjectCard from '@/components/user/timeline-project-card';
-import TimelinePostCard from '@/components/user/timeline-post-card';
+import ProjectCard from '@/components/project/project-card';
+import TimelineBranchCard from '@/components/branch/timeline-branch-card';
+import TimelinePostCard from '@/components/post/timeline-post-card';
 
 function ProjectDialog({ projects }: { projects: Project[] }) {
   return (
@@ -32,7 +32,7 @@ function ProjectDialog({ projects }: { projects: Project[] }) {
       <DialogContent className="max-h-3/4 w-5/6 max-w-none overflow-y-scroll rounded-md px-1 pb-1 pt-10">
         {projects.map((project) => (
           <div key={project.id}>
-            <TimelineProjectCard project={project} />
+            <ProjectCard project={project} />
           </div>
         ))}
       </DialogContent>

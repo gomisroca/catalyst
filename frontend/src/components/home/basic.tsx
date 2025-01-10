@@ -5,7 +5,7 @@ import { useGetProjects } from '@/hooks/projects/useGetProjects';
 import Loading from '@/components/ui/loading';
 import Error from '@/components/ui/error';
 // Component Imports
-import { ProjectCard } from '@/components/project/project-card';
+import ProjectCard from '@/components/project/project-card';
 
 // Util Functions
 function calculateScore(project: Project) {

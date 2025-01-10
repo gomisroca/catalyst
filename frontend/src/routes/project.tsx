@@ -1,18 +1,16 @@
 // Hook Imports
 import { useEffect, useState } from 'react';
-import { Link, Outlet, useNavigate, useParams } from 'react-router-dom';
+import { Outlet, useNavigate, useParams } from 'react-router-dom';
 import { useGetSelf } from '@/hooks/users/useGetSelf';
 import { useGetProject } from '@/hooks/projects/useGetProject';
 // UI Imports
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Card, CardContent, CardDescription, CardFooter, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { BsActivity, BsFire } from 'react-icons/bs';
 import { Button } from '@/components/ui/button';
 import Error from '@/components/ui/error';
 import Loading from '@/components/ui/loading';
-import { Pencil } from 'lucide-react';
 import { FiPlus } from 'react-icons/fi';
+import ProjectDetails from '@/components/project/project-details';
 
 // Utility Functions
 const isPublicOrAuthor = (branch: Branch, user?: BasicUser) =>
@@ -45,40 +43,6 @@ function CreateBranchButton({ project }: { project: Project }) {
     >
       <FiPlus className="mr-2 h-4 w-4" /> Add Branch
     </Button>
-  );
-}
-
-// Project Details
-function ProjectDetails({ project, user }: { project: Project; user?: BasicUser }) {
-  const navigate = useNavigate();
-  return (
-    <div className="flex items-center gap-2 px-4">
-      <Avatar className="rounded-md">
-        <AvatarImage className="rounded-sm" src={`${import.meta.env.VITE_IMG_ROOT + project.avatar}`} />
-        <AvatarFallback>{project.name[0]}</AvatarFallback>
-      </Avatar>
-      <div>
-        <CardDescription>
-          {project.author.nickname || project.author.username}
-          <Link to={`/profile/${project.author.id}`} className="hover:text-gray-500" data-testid="author-link">
-            @{project.author.username}
-          </Link>
-        </CardDescription>
-        <CardTitle className="flex gap-2">
-          {project.name}
-          {project.trendingActivity && <BsActivity className="text-green-500" />}
-          {project.trendingPopularity && <BsFire className="text-orange-500" />}
-          {user?.id === project.author.id && (
-            <Button asChild variant="outline" onClick={() => navigate(`/${project.id}/update`)}>
-              <Pencil className="h-4 w-4" />
-            </Button>
-          )}
-        </CardTitle>
-        <CardDescription className="flex gap-1">
-          {new Date(project.createdAt).toLocaleDateString()}•{new Date(project.updatedAt).toLocaleDateString()}
-        </CardDescription>
-      </div>
-    </div>
   );
 }
 
