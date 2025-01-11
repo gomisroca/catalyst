@@ -14,9 +14,7 @@ async function refreshToken(refreshToken: string) {
     const { id } = payload;
 
     const user = await db.user.findUnique({
-      where: {
-        id,
-      },
+      where: { id },
     });
     if (!user) throw new Error('User not found');
 
@@ -82,5 +80,57 @@ export const auth = async (req: Request, res: Response, next: NextFunction) => {
   } catch (error: any) {
     console.log('Authentication middleware error:', error);
     return sendError(res, 'Authentication failed', 500);
+  }
+};
+
+export const optionalAuth = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const access = getCookie(req, '__catalyst__accessToken');
+    if (!access) {
+      req.user = undefined;
+      return next();
+    }
+
+    try {
+      const user = jwt.verify(access, process.env.JWT_ACCESS_SECRET as string);
+      req.user = user as BasicUser;
+      return next();
+    } catch (error: any) {
+      if (error.name === 'TokenExpiredError') {
+        console.log('Access token expired, attempting refresh...');
+        const refresh = getCookie(req, '__catalyst__refreshToken');
+        if (!refresh) {
+          // Refresh token is missing, continue without a user
+          req.user = undefined;
+          return next();
+        }
+
+        try {
+          // Attempt to refresh the access token
+          const newAccess = await refreshToken(refresh);
+
+          // Set the new access token in cookies
+          setCookie(res, '__catalyst__accessToken', newAccess, 1000 * 60 * 60);
+
+          // Verify and attach the new user payload
+          const user = jwt.verify(newAccess, process.env.JWT_ACCESS_SECRET as string);
+          req.user = user as BasicUser;
+
+          return next();
+        } catch (refreshError: any) {
+          console.log('Failed to refresh access token:', refreshError);
+          req.user = undefined; // Continue without a user
+          return next();
+        }
+      }
+      // Handle other JWT verification errors
+      console.log('Token verification error:', error);
+      req.user = undefined; // Continue without a user
+      return next();
+    }
+  } catch (error: any) {
+    console.log('Optional authentication middleware error:', error);
+    req.user = undefined; // Continue without a user
+    return next();
   }
 };
