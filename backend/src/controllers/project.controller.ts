@@ -32,9 +32,10 @@ export class ProjectController {
     }
   };
 
-  getAll = async (_: Request, res: Response) => {
+  getAll = async (req: Request, res: Response) => {
+    const { userId } = req.query;
     try {
-      const projects = await this.projectService.findAll();
+      const projects = await this.projectService.findAll(userId as string);
       sendSuccess(res, projects);
     } catch (error: any) {
       console.error('Failed to fetch projects:', error);

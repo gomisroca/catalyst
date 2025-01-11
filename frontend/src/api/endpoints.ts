@@ -17,21 +17,30 @@ export const ENDPOINTS = {
     FOLLOW: (id: string) => `/interactions/user/${id}/follow`,
   },
   PROJECTS: {
-    LIST: '/projects',
+    LIST: (params?: { userId?: string }) => {
+      const query = new URLSearchParams(params as Record<string, string>).toString();
+      return query ? `/projects?${query}` : '/projects';
+    },
     DETAIL: (id: string) => `/projects/${id}`,
     CREATE: '/projects',
     UPDATE: (id: string) => `/projects/${id}`,
     DELETE: (id: string) => `/projects/${id}`,
   },
   BRANCHES: {
-    LIST: (projectId?: string) => (projectId ? `/branches?projectId=${projectId}` : `/branches`),
+    LIST: (params?: { projectId?: string; userId?: string }) => {
+      const query = new URLSearchParams(params as Record<string, string>).toString();
+      return query ? `/branches?${query}` : '/branches';
+    },
     DETAIL: (id: string) => `/branches/${id}`,
     CREATE: '/branches',
     UPDATE: (id: string) => `/branches/${id}`,
     DELETE: (id: string) => `/branches/${id}`,
   },
   POSTS: {
-    LIST: (branchId?: string) => (branchId ? `/posts?branchId=${branchId}` : `/posts`),
+    LIST: (params?: { branchId?: string; userId?: string }) => {
+      const query = new URLSearchParams(params as Record<string, string>).toString();
+      return query ? `/posts?${query}` : '/posts';
+    },
     DETAIL: (id: string) => `/posts/${id}`,
     CREATE: '/posts',
     UPDATE: (id: string) => `/posts/${id}`,

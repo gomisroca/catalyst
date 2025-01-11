@@ -15,9 +15,9 @@ export const projectService = {
     }
   },
 
-  getProjects: async () => {
+  getProjects: async ({ userId }: { userId?: string }) => {
     try {
-      const response = await apiService.get<Project[]>(ENDPOINTS.PROJECTS.LIST);
+      const response = await apiService.get<Project[]>(ENDPOINTS.PROJECTS.LIST({ userId }));
       return z.array(ProjectSchema).parse(response);
     } catch (error) {
       console.error('Failed to get projects:', error);
