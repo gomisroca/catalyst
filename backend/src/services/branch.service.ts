@@ -43,47 +43,38 @@ export class BranchService {
     }
   }
 
-  async findAll(projectId?: string) {
+  async findAll(projectId?: string, userId?: string) {
     try {
+      const cacheKey = projectId ? `branches-project-${projectId}` : userId ? `branches-author-${userId}` : 'branches';
+
+      const whereClause: Record<string, any> = {};
       if (projectId) {
-        return await fetchFromCacheOrDB(branchesCache, `branches-${projectId}`, () =>
-          this.db.branch.findMany({
-            where: { projectId },
-            include: {
-              author: true,
-              posts: {
-                include: {
-                  author: true,
-                  interactions: {
-                    include: {
-                      user: true,
-                    },
-                  },
-                },
-              },
-              permissions: true,
-              interactions: { include: { user: true } },
-            },
-          })
-        );
+        whereClause.projectId = projectId;
       }
-      return await fetchFromCacheOrDB(branchesCache, 'branches', () =>
-        this.db.branch.findMany({
+      if (userId) {
+        whereClause.authorId = userId;
+      }
+
+      const includeOptions = {
+        author: true,
+        posts: {
           include: {
             author: true,
-            posts: {
+            interactions: {
               include: {
-                author: true,
-                interactions: {
-                  include: {
-                    user: true,
-                  },
-                },
+                user: true,
               },
             },
-            permissions: true,
-            interactions: { include: { user: true } },
           },
+        },
+        permissions: true,
+        interactions: { include: { user: true } },
+      };
+
+      return await fetchFromCacheOrDB(branchesCache, cacheKey, () =>
+        this.db.branch.findMany({
+          where: Object.keys(whereClause).length ? whereClause : undefined,
+          include: includeOptions,
         })
       );
     } catch (error) {
