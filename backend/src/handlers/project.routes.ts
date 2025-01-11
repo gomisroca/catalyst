@@ -35,7 +35,7 @@ router.delete('/:id', auth, projectController.delete);
 
 /*
 GET - All Projects
-REQ - None
+REQ - User ID?
 RES - 200 - Project[]
 */
 router.get('/', projectController.getAll);

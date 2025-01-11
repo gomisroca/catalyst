@@ -31,8 +31,16 @@ export class ProjectService {
     }
   }
 
-  async findAll() {
+  async findAll(userId?: string) {
     try {
+      if (userId) {
+        return await fetchFromCacheOrDB(projectsCache, `projects-${userId}`, () =>
+          this.db.project.findMany({
+            where: { authorId: userId },
+            include: { author: true, branches: true, permissions: true },
+          })
+        );
+      }
       return await fetchFromCacheOrDB(projectsCache, 'projects', () =>
         this.db.project.findMany({
           include: { author: true, branches: true, permissions: true },
