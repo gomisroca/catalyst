@@ -1,89 +1,82 @@
 // Base Imports
-import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { CreateBranchFormData, createBranchFormSchema } from '@/api/schemas/BranchSchema';
 // Hook Imports
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { createBranch } from '@/lib/projects';
+import { useCreateBranch } from '@/hooks/branches/useCreateBranch';
+import { useParams } from 'react-router-dom';
 import { useGetFollowedUsers } from '@/hooks/users/useGetFollowedUsers';
-import { useGetSelf } from '@/hooks/users/useGetSelf';
 // UI Imports
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
-import MultipleSelector, { Option } from '@/components/ui/multiple-selector';
+import MultipleSelector from '@/components/ui/multiple-selector';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import Loading from '@/components/ui/loading';
 import Error from '@/components/ui/error';
 
-interface BranchData {
-  name: string;
-  description: string;
-  parentBranch: string;
-  projectId: string;
-  permissions: string[];
-  allowedUsers: Option[] | undefined;
-}
-
 export default function CreateBranch() {
-  const { data: user, isLoading: userLoading, error: userError } = useGetSelf();
+  const { projectId } = useParams();
+  if (!projectId) return <Error message="No project ID provided." />;
+
+  // Fetch logged-in user follows
   const { data: follows, isLoading: followsLoading, error: followsError } = useGetFollowedUsers();
 
-  const [usePrivate, setUsePrivate] = useState<boolean>(false);
+  // Create branch mutation
+  const {
+    mutate: createBranch,
+    isPending: createPending,
+    isSuccess: createSuccess,
+    error: createError,
+  } = useCreateBranch();
 
+  // Map permissions to be used in form
   const permissions = [
     { id: 'private', label: 'Private' },
     { id: 'allowBranch', label: 'Allow Branches' },
     { id: 'allowCollaborate', label: 'Allow Collaborations' },
     { id: 'allowShare', label: 'Allow Sharing' },
   ];
+  const [usePrivate, setUsePrivate] = useState<boolean>(false);
+  const handleCheckboxChange = (checked: boolean, id: string) => {
+    if (id === 'private') setUsePrivate(!usePrivate);
+    form.setValue(
+      'permissions',
+      checked ? [...form.getValues('permissions'), id] : form.getValues('permissions').filter((value) => value !== id)
+    );
+  };
 
-  const formSchema = z.object({
-    name: z.string().min(1),
-    description: z.string().min(1),
-    parentBranch: z.string(),
-    permissions: z.array(z.string()),
-    allowedUsers: z.array(z.any()).optional(),
-  });
+  // Map user followers to be used in form
+  const options = follows?.map((user) => ({ value: user.id, label: user.username })) || [];
 
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
+  // Init form with default values
+  const form = useForm<CreateBranchFormData>({
+    resolver: zodResolver(createBranchFormSchema),
     defaultValues: {
       name: '',
       description: '',
-      parentBranch: 'none',
       permissions: ['allowBranch', 'allowCollaborate', 'allowShare'],
     },
   });
 
-  async function onSubmit(values: z.infer<typeof formSchema>) {
-    const data: BranchData = {
-      projectId: project.id,
-      parentBranch: values.parentBranch,
+  // On submit, pass the data
+  async function onSubmit(values: CreateBranchFormData) {
+    console.log(values);
+
+    const data = {
+      projectId: projectId!,
       name: values.name,
       description: values.description,
       permissions: values.permissions,
-      allowedUsers: undefined,
+      allowedUsers: values.allowedUsers ? values.allowedUsers.map((user) => user.value) : undefined,
     };
-    if (values.allowedUsers) {
-      data.allowedUsers = values.allowedUsers;
-    }
 
-    const res = await createBranch(accessToken, data, project.id);
-    if (!res.ok) {
-      const fail = await res.json();
-    } else {
-      setTimeout(() => onSubmitSuccess(), 2000);
-    }
+    createBranch(data);
   }
 
-  if (userLoading || followsLoading) {
-    return <Loading />;
-  }
-  if (userError || followsError) {
-    return <Error message={userError?.message || followsError?.message} />;
-  }
+  if (followsLoading) return <Loading />;
+  if (followsError) return <Error message={followsError?.message} />;
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-4">
@@ -115,39 +108,6 @@ export default function CreateBranch() {
         />
         <FormField
           control={form.control}
-          name="parentBranch"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Parent Branch</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  <SelectItem value={'none'}>None</SelectItem>
-                  {project.branches.map((branch) =>
-                    branch.permissions.private ? (
-                      (branch.author.id == user?.id || branch.permissions.allowedUsers.includes(user?.id)) && (
-                        <SelectItem key={branch.id} value={branch.id}>
-                          {branch.name}
-                        </SelectItem>
-                      )
-                    ) : (
-                      <SelectItem key={branch.id} value={branch.id}>
-                        {branch.name}
-                      </SelectItem>
-                    )
-                  )}
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
           name="permissions"
           render={() => (
             <FormItem>
@@ -163,14 +123,7 @@ export default function CreateBranch() {
                         <FormControl>
                           <Checkbox
                             checked={field.value?.includes(permission.id)}
-                            onCheckedChange={(checked: boolean) => {
-                              if (permission.id == 'private') {
-                                setUsePrivate(!usePrivate);
-                              }
-                              return checked
-                                ? field.onChange([...field.value, permission.id])
-                                : field.onChange(field.value?.filter((value) => value !== permission.id));
-                            }}
+                            onCheckedChange={(checked: boolean) => handleCheckboxChange(checked, permission.id)}
                           />
                         </FormControl>
                         <FormLabel className="font-normal">{permission.label}</FormLabel>
@@ -193,7 +146,7 @@ export default function CreateBranch() {
                 <MultipleSelector
                   value={field.value}
                   onChange={field.onChange}
-                  defaultOptions={follows}
+                  defaultOptions={options}
                   placeholder="Select users you'd like to give access to..."
                 />
                 <FormMessage />
@@ -201,9 +154,19 @@ export default function CreateBranch() {
             )}
           />
         )}
-        <Button type="submit" className="mt-4">
-          Submit
+        <Button type="submit" className="mt-4" disabled={createPending}>
+          {createPending ? 'Creating...' : 'Submit'}
         </Button>
+        {createError && (
+          <p className="mt-2 text-red-500" role="alert">
+            {createError.message}
+          </p>
+        )}
+        {createSuccess && (
+          <p className="mt-2 text-green-500" role="alert">
+            The branch was created successfully!
+          </p>
+        )}
       </form>
     </Form>
   );

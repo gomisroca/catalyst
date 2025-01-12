@@ -1,79 +1,98 @@
 // Base Imports
-import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { UpdateBranchFormData, updateBranchFormSchema } from '@/api/schemas/BranchSchema';
 // Hook Imports
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useGetFollowedUsers } from '@/hooks/users/useGetFollowedUsers';
-import { updateBranch } from '@/lib/projects';
+import { useParams } from 'react-router-dom';
+import { useGetBranch } from '@/hooks/branches/useGetBranch';
+import { useUpdateBranch } from '@/hooks/branches/useUpdateBranch';
 // UI Imports
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import MultipleSelector, { Option } from '@/components/ui/multiple-selector';
+import MultipleSelector from '@/components/ui/multiple-selector';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import Loading from '@/components/ui/loading';
 import Error from '@/components/ui/error';
 
-interface BranchData {
-  name: string;
-  description: string;
-  projectId: string;
-  permissions: string[];
-  allowedUsers: Option[] | undefined;
-}
-
 export default function UpdateBranch() {
-  const { data: follows, isLoading: followsLoading, error: followsError } = useGetFollowedUsers();
+  // Get ID from URL Params
+  const { branchId } = useParams();
+  if (!branchId) return <Error message="No branch ID provided." />;
 
-  const trueKeys: string[] = Object.keys(branch.permissions).filter(
-    (key) => branch.permissions[key as keyof Permission] == true
-  );
-  const [usePrivate, setUsePrivate] = useState<boolean>(trueKeys.includes('private'));
+  // Fetch current branch data and logged-in user follows
+  const { data: branch, isLoading, error } = useGetBranch(branchId);
+  const { data: follows, isLoading: followsPending, error: followsError } = useGetFollowedUsers();
+  if (followsPending || isLoading) return <Loading />;
+  if (followsError || error) return <Error message={followsError?.message || error?.message} />;
+  if (!branch) return <Error message="No branch found." />;
 
+  // Update branch mutation
+  const {
+    mutate: updateBranch,
+    isPending: updatePending,
+    isSuccess: updateSuccess,
+    error: updateError,
+  } = useUpdateBranch();
+
+  // Map current permissions to be used in form
   const permissions = [
     { id: 'private', label: 'Private' },
     { id: 'allowBranch', label: 'Allow Branches' },
     { id: 'allowCollaborate', label: 'Allow Collaborations' },
     { id: 'allowShare', label: 'Allow Sharing' },
   ];
+  const permissionKeys: string[] = Object.keys(branch.permissions).filter(
+    (key) => branch.permissions[key as keyof Permission] == true
+  );
+  const [usePrivate, setUsePrivate] = useState<boolean>(permissionKeys.includes('private'));
+  const handleCheckboxChange = (checked: boolean, id: string) => {
+    if (id === 'private') setUsePrivate(!usePrivate);
+    form.setValue(
+      'permissions',
+      checked ? [...form.getValues('permissions'), id] : form.getValues('permissions').filter((value) => value !== id)
+    );
+  };
 
-  const formSchema = z.object({
-    name: z.string().min(1),
-    description: z.string().min(1),
-    permissions: z.array(z.string()),
-    allowedUsers: z.array(z.any()).optional(),
-  });
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
+  // Map user followers to be used in form
+  const options = follows?.map((user) => ({ value: user.id, label: user.username })) || [];
+
+  const form = useForm<UpdateBranchFormData>({
+    resolver: zodResolver(updateBranchFormSchema),
     defaultValues: {
       name: branch.name,
       description: branch.description,
-      permissions: trueKeys,
+      permissions: permissionKeys,
     },
   });
+  useEffect(() => {
+    if (branch) {
+      form.reset({
+        name: branch.name,
+        description: branch.description,
+        permissions: permissionKeys,
+      });
+    }
+  }, [branch, form]);
 
-  async function onSubmit(values: z.infer<typeof formSchema>) {
-    const data: BranchData = {
+  // On submit, assert branch project was fetched, and pass the updated data
+  async function onSubmit(values: UpdateBranchFormData) {
+    if (!branch) return;
+    console.log(values);
+
+    const data = {
       projectId: branch.projectId,
       name: values.name,
       description: values.description,
       permissions: values.permissions,
-      allowedUsers: undefined,
+      allowedUsers: values.allowedUsers ? values.allowedUsers.map((user) => user.value) : undefined,
     };
-    if (values.allowedUsers) {
-      data.allowedUsers = values.allowedUsers;
-    }
 
-    const res = await updateBranch(accessToken, data, branch.id);
+    updateBranch({ id: branch.id, branchData: data });
   }
 
-  if (followsLoading) {
-    return <Loading />;
-  }
-  if (followsError) {
-    return <Error message={followsError?.message} />;
-  }
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-4">
@@ -120,14 +139,7 @@ export default function UpdateBranch() {
                         <FormControl>
                           <Checkbox
                             checked={field.value?.includes(permission.id)}
-                            onCheckedChange={(checked: boolean) => {
-                              if (permission.id == 'private') {
-                                setUsePrivate(!usePrivate);
-                              }
-                              return checked
-                                ? field.onChange([...field.value, permission.id])
-                                : field.onChange(field.value?.filter((value) => value !== permission.id));
-                            }}
+                            onCheckedChange={(checked: boolean) => handleCheckboxChange(checked, permission.id)}
                           />
                         </FormControl>
                         <FormLabel className="font-normal">{permission.label}</FormLabel>
@@ -150,7 +162,7 @@ export default function UpdateBranch() {
                 <MultipleSelector
                   value={field.value}
                   onChange={field.onChange}
-                  defaultOptions={follows}
+                  defaultOptions={options}
                   placeholder="Select users you'd like to give access to..."
                 />
                 <FormMessage />
@@ -158,11 +170,19 @@ export default function UpdateBranch() {
             )}
           />
         )}
-        <Button type="submit" className="mt-4">
-          Submit
+        <Button type="submit" className="mt-4" disabled={updatePending}>
+          {updatePending ? 'Updating...' : 'Submit'}
         </Button>
-        {failState && <div className="m-auto text-destructive">{failState}</div>}
-        {successState && <div className="m-auto">{successState}</div>}
+        {updateError && (
+          <p className="mt-2 text-red-500" role="alert">
+            {updateError.message}
+          </p>
+        )}
+        {updateSuccess && (
+          <p className="mt-2 text-green-500" role="alert">
+            The branch was updated successfully!
+          </p>
+        )}
       </form>
     </Form>
   );
