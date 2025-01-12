@@ -11,7 +11,7 @@ import { AiOutlineBranches } from 'react-icons/ai';
 import { FiFolderPlus } from 'react-icons/fi';
 // Component Imports
 import ProjectCard from '@/components/project/project-card';
-import TimelineBranchCard from '@/components/branch/timeline-branch-card';
+import BranchCard from '@/components/branch/branch-card';
 import TimelinePostCard from '@/components/post/timeline-post-card';
 import PaginationWrapper from '@/components/pagination-wrapper';
 
@@ -120,7 +120,7 @@ export default function ProfileTimeline({ profile }: { profile: User }) {
                     {obj.branchId && obj.branch ? (
                       <>
                         <Link to={`/${obj.branch.projectId}/${obj.branch.id}/`}>
-                          <TimelineBranchCard branch={obj.branch} />
+                          <BranchCard branch={obj.branch} />
                         </Link>
                       </>
                     ) : obj.postId && obj.post ? (
@@ -139,7 +139,7 @@ export default function ProfileTimeline({ profile }: { profile: User }) {
                   </CardDescription>
                   <CardContent className="p-2">
                     {obj.branchId && obj.branch ? (
-                      <TimelineBranchCard branch={obj.branch} />
+                      <BranchCard branch={obj.branch} />
                     ) : obj.postId && obj.post ? (
                       <TimelinePostCard post={obj.post} />
                     ) : null}
@@ -164,7 +164,7 @@ export default function ProfileTimeline({ profile }: { profile: User }) {
                 {profile.nickname || profile.username} created a branch
               </CardDescription>
               <CardContent className="p-2">
-                <TimelineBranchCard branch={obj as Branch} />
+                <BranchCard branch={obj as Branch} />
               </CardContent>
             </Card>
           ) : obj.name && !obj.projectId ? (

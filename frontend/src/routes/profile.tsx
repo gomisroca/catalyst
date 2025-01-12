@@ -18,7 +18,7 @@ import Loading from '@/components/ui/loading';
 // Components Imports
 import ProfileTimeline from '@/components/user/profile-timeline';
 import ProjectCard from '@/components/project/project-card';
-import TimelineBranchCard from '@/components/branch/timeline-branch-card';
+import BranchCard from '@/components/branch/branch-card';
 import TimelinePostCard from '@/components/post/timeline-post-card';
 
 function ProjectDialog({ projects }: { projects: Project[] }) {
@@ -50,9 +50,7 @@ function BranchDialog({ branches }: { branches: Branch[] }) {
       </DialogTrigger>
       <DialogContent className="max-h-3/4 w-5/6 max-w-none overflow-y-scroll rounded-md px-1 pb-1 pt-10">
         {branches.map((branch) => (
-          <div key={branch.id}>
-            <TimelineBranchCard branch={branch} />
-          </div>
+          <BranchCard key={branch.id} branch={branch} />
         ))}
       </DialogContent>
     </Dialog>
