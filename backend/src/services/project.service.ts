@@ -5,6 +5,7 @@ import { BasicUser } from '@/schemas/UserSchema';
 import { db } from '@/utils/db';
 import { fetchFromCacheOrDB, projectsCache } from '@/utils/cache';
 import { uploadImage } from '@/utils/upload-image';
+import filterByPermissions from '@/utils/filter-permissions';
 
 const includeOptions = {
   author: true,
@@ -19,14 +20,20 @@ export class ProjectService {
     this.db = db;
   }
 
-  async findById(id: string) {
+  async findById(id: string, user?: BasicUser) {
     try {
+      const whereClause = {
+        ...filterByPermissions(user),
+        id, // Ensure we filter by ID as well
+      };
+
       const project = await fetchFromCacheOrDB(projectsCache, id, () =>
         this.db.project.findUnique({
-          where: { id },
+          where: whereClause,
           include: includeOptions,
         })
       );
+
       if (!project) throw new Error('Project not found');
       return project;
     } catch (error) {
@@ -35,11 +42,14 @@ export class ProjectService {
     }
   }
 
-  async findAll(userId?: string) {
+  async findAll(userId?: string, user?: BasicUser) {
     try {
       const cacheKey = userId ? `projects-author-${userId}` : 'projects';
 
-      const whereClause: Record<string, any> = {};
+      const whereClause = {
+        ...filterByPermissions(user),
+      };
+      // Additional filtering by author
       if (userId) {
         whereClause.authorId = userId;
       }
@@ -56,7 +66,7 @@ export class ProjectService {
     }
   }
 
-  async create(user: BasicUser, data: CreateProjectData) {
+  async create(data: CreateProjectData, user: BasicUser) {
     try {
       const avatar = await convertFormidableToFile(data.avatar);
       const uploadedImage = await uploadImage(avatar, 'projects');
@@ -115,10 +125,11 @@ export class ProjectService {
     }
   }
 
-  async update(id: string, data: UpdateProjectData) {
+  async update(id: string, data: UpdateProjectData, user: BasicUser) {
     try {
       const currentProject = await this.db.project.findUnique({ where: { id } });
       if (!currentProject) throw new Error('Project not found');
+      if (currentProject.authorId !== user.id) throw new Error('You are not the author of this project');
 
       let newAvatar = currentProject.avatar;
       if (data.avatar) {
@@ -163,10 +174,11 @@ export class ProjectService {
     }
   }
 
-  async delete(id: string) {
+  async delete(id: string, user: BasicUser) {
     try {
       const project = await this.db.project.findUnique({ where: { id } });
       if (!project) throw new Error('Project not found');
+      if (project.authorId !== user.id) throw new Error('You are not the author of this project');
 
       await this.db.project.delete({ where: { id } });
       projectsCache.del(id);
