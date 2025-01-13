@@ -3,6 +3,7 @@ import { db } from '@/utils/db';
 import { branchesCache, fetchFromCacheOrDB } from '@/utils/cache';
 import { BasicUser } from '@/schemas/UserSchema';
 import { CreateBranchData, UpdateBranchData } from '@/schemas/BranchSchema';
+import filterByPermissions from '@/utils/filter-permissions';
 
 const includeOptions = {
   author: true,
@@ -27,14 +28,20 @@ export class BranchService {
     this.db = db;
   }
 
-  async findById(id: string) {
+  async findById(id: string, user?: BasicUser) {
     try {
+      const whereClause = {
+        ...filterByPermissions(user),
+        id, // Ensure we filter by ID as well
+      };
+
       const branch = await fetchFromCacheOrDB(branchesCache, id, () =>
         this.db.branch.findUnique({
-          where: { id },
+          where: whereClause,
           include: includeOptions,
         })
       );
+
       if (!branch) throw new Error('Branch not found');
       return branch;
     } catch (error) {
@@ -43,11 +50,13 @@ export class BranchService {
     }
   }
 
-  async findAll(projectId?: string, userId?: string) {
+  async findAll(projectId?: string, userId?: string, user?: BasicUser) {
     try {
       const cacheKey = projectId ? `branches-project-${projectId}` : userId ? `branches-author-${userId}` : 'branches';
 
-      const whereClause: Record<string, any> = {};
+      const whereClause = {
+        ...filterByPermissions(user),
+      };
       if (projectId) {
         whereClause.projectId = projectId;
       }
@@ -67,7 +76,7 @@ export class BranchService {
     }
   }
 
-  async create(user: BasicUser, data: CreateBranchData) {
+  async create(data: CreateBranchData, user: BasicUser) {
     try {
       const branch = await this.db.branch.create({
         data: {
@@ -118,10 +127,11 @@ export class BranchService {
     }
   }
 
-  async update(id: string, data: UpdateBranchData) {
+  async update(id: string, data: UpdateBranchData, user: BasicUser) {
     try {
       const currentBranch = await this.db.branch.findUnique({ where: { id } });
       if (!currentBranch) throw new Error('Branch not found');
+      if (currentBranch.authorId !== user.id) throw new Error('You are not the author of this branch');
 
       const updatedBranch = await this.db.branch.update({
         where: { id },
@@ -155,10 +165,11 @@ export class BranchService {
     }
   }
 
-  async delete(id: string) {
+  async delete(id: string, user: BasicUser) {
     try {
       const branch = await this.db.branch.findUnique({ where: { id } });
       if (!branch) throw new Error('Branch not found');
+      if (branch.authorId !== user.id) throw new Error('You are not the author of this branch');
 
       await this.db.branch.delete({ where: { id } });
       branchesCache.del(id);
