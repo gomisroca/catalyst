@@ -14,6 +14,18 @@ import PostMain from '@/components/post/post-main';
 import BranchInteractions from '@/components/branch/branch-interactions';
 import BranchDetails from '@/components/branch/branch-details';
 
+// Utility Functions
+const hasNoNegativeInteraction = (post: Post, user?: BasicUser) =>
+  !user ||
+  !post.interactions.some(
+    (interaction) => (interaction.type === 'REPORT' || interaction.type === 'HIDE') && interaction.user.id === user.id
+  );
+
+const filterAndSortPosts = (posts: Post[], user?: BasicUser) => {
+  if (!posts) return [];
+  return posts.filter((post) => hasNoNegativeInteraction(post, user));
+};
+
 // Post Creation Dialog
 function CreatePostButton({ branch }: { branch: Branch }) {
   const navigate = useNavigate();
@@ -39,6 +51,7 @@ export default function Branch() {
   if (error) return <Error message={error.message} />;
   if (!branch) return <Error message="Branch not found" />;
 
+  const posts = filterAndSortPosts(branch.posts, user);
   return (
     <div className="flex w-full flex-col gap-2">
       <Card className="w-full p-4">
@@ -54,10 +67,8 @@ export default function Branch() {
                 (branch.permissions.allowCollaborate && branch.project.permissions.allowCollaborate)) && (
                 <CreatePostButton branch={branch} />
               )}
-            {branch.posts.map((post) => (
-              <div key={post.id}>
-                <PostMain post={post} branch={branch} />
-              </div>
+            {posts.map((post) => (
+              <PostMain key={post.id} post={post} branch={branch} />
             ))}
           </div>
         </CardContent>
