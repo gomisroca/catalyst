@@ -1,10 +1,24 @@
 import { PrismaClient } from '@prisma/client';
 import { db } from '@/utils/db';
 import { branchesCache, fetchFromCacheOrDB } from '@/utils/cache';
-import convertFormidableToFile from '@/utils/convert-formidable';
-import { uploadImage } from '@/utils/upload-image';
 import { BasicUser } from '@/schemas/UserSchema';
 import { CreateBranchData, UpdateBranchData } from '@/schemas/BranchSchema';
+
+const includeOptions = {
+  author: true,
+  posts: {
+    include: {
+      author: true,
+      interactions: {
+        include: {
+          user: true,
+        },
+      },
+    },
+  },
+  permissions: true,
+  interactions: { include: { user: true } },
+};
 
 export class BranchService {
   private db: PrismaClient;
@@ -18,21 +32,7 @@ export class BranchService {
       const branch = await fetchFromCacheOrDB(branchesCache, id, () =>
         this.db.branch.findUnique({
           where: { id },
-          include: {
-            author: true,
-            posts: {
-              include: {
-                author: true,
-                interactions: {
-                  include: {
-                    user: true,
-                  },
-                },
-              },
-            },
-            permissions: true,
-            interactions: { include: { user: true } },
-          },
+          include: includeOptions,
         })
       );
       if (!branch) throw new Error('Branch not found');
@@ -54,22 +54,6 @@ export class BranchService {
       if (userId) {
         whereClause.authorId = userId;
       }
-
-      const includeOptions = {
-        author: true,
-        posts: {
-          include: {
-            author: true,
-            interactions: {
-              include: {
-                user: true,
-              },
-            },
-          },
-        },
-        permissions: true,
-        interactions: { include: { user: true } },
-      };
 
       return await fetchFromCacheOrDB(branchesCache, cacheKey, () =>
         this.db.branch.findMany({
@@ -146,21 +130,7 @@ export class BranchService {
           description: data.description || currentBranch.description,
           updatedAt: new Date(),
         },
-        include: {
-          author: true,
-          posts: {
-            include: {
-              author: true,
-              interactions: {
-                include: {
-                  user: true,
-                },
-              },
-            },
-          },
-          permissions: true,
-          interactions: { include: { user: true } },
-        },
+        include: includeOptions,
       });
 
       if (data.permissions) {
