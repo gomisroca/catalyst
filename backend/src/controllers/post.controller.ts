@@ -23,7 +23,7 @@ export class PostController {
 
   getById = async (req: Request, res: Response) => {
     try {
-      const post = await this.postService.findById(req.params.id);
+      const post = await this.postService.findById(req.params.id, req.user as BasicUser);
       if (!post) return sendError(res, 'Post not found', 404);
       sendSuccess(res, post);
     } catch (error: any) {
@@ -35,7 +35,7 @@ export class PostController {
   getAll = async (req: Request, res: Response) => {
     const { branchId, userId } = req.query;
     try {
-      const posts = await this.postService.findAll(branchId as string, userId as string);
+      const posts = await this.postService.findAll(branchId as string, userId as string, req.user as BasicUser);
       sendSuccess(res, posts);
     } catch (error: any) {
       console.error('Failed to fetch posts:', error);
@@ -56,7 +56,7 @@ export class PostController {
       const validationResult = createPostSchema.safeParse(postData);
       if (!validationResult.success) return sendError(res, validationResult.error.message);
 
-      await this.postService.create(req.user as BasicUser, postData);
+      await this.postService.create(postData, req.user as BasicUser);
       sendSuccess(res, 'Post created successfully');
     } catch (error: any) {
       console.error('Failed to create post:', error);
@@ -76,7 +76,7 @@ export class PostController {
       const validationResult = updatePostSchema.safeParse(postData);
       if (!validationResult.success) return sendError(res, validationResult.error.message);
 
-      await this.postService.update(req.params.id, postData);
+      await this.postService.update(req.params.id, postData, req.user as BasicUser);
       sendSuccess(res, 'Post updated successfully');
     } catch (error: any) {
       console.error('Failed to update post:', error);
@@ -86,7 +86,7 @@ export class PostController {
 
   delete = async (req: Request, res: Response) => {
     try {
-      await this.postService.delete(req.params.id);
+      await this.postService.delete(req.params.id, req.user as BasicUser);
       sendSuccess(res, 'Post deleted successfully');
     } catch (error: any) {
       console.error('Failed to delete post:', error);

@@ -1,5 +1,5 @@
 import { PostController } from '@/controllers/post.controller';
-import { auth } from '@/middlewares/auth';
+import { auth, optionalAuth } from '@/middlewares/auth';
 import { Router } from 'express';
 
 const router = Router();
@@ -16,7 +16,7 @@ GET - Specific Post
 REQ - None
 RES - 200 - Post
 */
-router.get('/:id', postController.getById);
+router.get('/:id', optionalAuth, postController.getById);
 
 /*
 PUT - Update Post
@@ -37,7 +37,7 @@ GET - All Posts
 REQ - Branch ID?, User ID?
 RES - 200 - Post[]
 */
-router.get('/', postController.getAll);
+router.get('/', optionalAuth, postController.getAll);
 
 /*
 POST - Create Post
