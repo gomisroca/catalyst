@@ -43,25 +43,38 @@ export class BranchService {
     }
   }
 
-  async findAll() {
+  async findAll(projectId?: string, userId?: string) {
     try {
-      return await fetchFromCacheOrDB(branchesCache, 'branches', () =>
-        this.db.branch.findMany({
+      const cacheKey = projectId ? `branches-project-${projectId}` : userId ? `branches-author-${userId}` : 'branches';
+
+      const whereClause: Record<string, any> = {};
+      if (projectId) {
+        whereClause.projectId = projectId;
+      }
+      if (userId) {
+        whereClause.authorId = userId;
+      }
+
+      const includeOptions = {
+        author: true,
+        posts: {
           include: {
             author: true,
-            posts: {
+            interactions: {
               include: {
-                author: true,
-                interactions: {
-                  include: {
-                    user: true,
-                  },
-                },
+                user: true,
               },
             },
-            permissions: true,
-            interactions: { include: { user: true } },
           },
+        },
+        permissions: true,
+        interactions: { include: { user: true } },
+      };
+
+      return await fetchFromCacheOrDB(branchesCache, cacheKey, () =>
+        this.db.branch.findMany({
+          where: Object.keys(whereClause).length ? whereClause : undefined,
+          include: includeOptions,
         })
       );
     } catch (error) {
@@ -83,7 +96,7 @@ export class BranchService {
         },
       });
 
-      this.db.permissions.create({
+      await this.db.permissions.create({
         data: {
           branchId: branch.id,
           private: data.permissions.includes('private'),
@@ -92,10 +105,29 @@ export class BranchService {
           allowShare: data.permissions.includes('allowShare'),
           allowedUsers: data.allowedUsers.length > 0 ? data.allowedUsers : undefined,
         },
-      }),
-        branchesCache.set(branch.id, branch);
+      });
 
-      return branch;
+      const finalizedBranch = await this.db.branch.findUnique({
+        where: { id: branch.id },
+        include: {
+          author: true,
+          posts: {
+            include: {
+              author: true,
+              interactions: {
+                include: {
+                  user: true,
+                },
+              },
+            },
+          },
+          permissions: true,
+          interactions: { include: { user: true } },
+        },
+      });
+      branchesCache.set(branch.id, finalizedBranch);
+
+      return finalizedBranch;
     } catch (error) {
       console.error('Failed to create branch:', error);
       throw new Error('Failed to create branch');

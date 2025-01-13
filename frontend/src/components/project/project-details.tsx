@@ -26,7 +26,7 @@ function ProjectDetails({ project, user }: { project: Project; user?: BasicUser 
           {project.trendingPopularity && <BsFire className="text-orange-500" />}
           {user?.id === project.author.id && (
             <Link to={`/${project.id}/update`}>
-              <Pencil className="h-4 w-4" />
+              <Pencil aria-label="Edit project" className="h-4 w-4" />
             </Link>
           )}
         </CardTitle>

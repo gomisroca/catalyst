@@ -35,7 +35,7 @@ router.delete('/:id', auth, branchController.delete);
 
 /*
 GET - All Branches
-REQ - None
+REQ - Project ID?
 RES - 200 - Branch[]
 */
 router.get('/', branchController.getAll);

@@ -46,7 +46,7 @@ function weightedShuffle(projects: Project[], user?: BasicUser) {
 
 export default function HomeBasic() {
   const { data: user, isLoading: userLoading, error: userError } = useGetSelf();
-  const { data: projects, isLoading: projectsLoading, error: projectsError } = useGetProjects();
+  const { data: projects, isLoading: projectsLoading, error: projectsError } = useGetProjects({});
 
   if (userLoading || projectsLoading) return <Loading />;
   if (userError || projectsError) return <Error message={userError?.message || projectsError?.message} />;

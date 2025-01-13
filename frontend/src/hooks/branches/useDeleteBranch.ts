@@ -1,15 +1,15 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { projectService } from '@/api/services/projectService';
+import { branchService } from '@/api/services/branchService';
 
-export const useDeleteProject = () => {
+export const useDeleteBranch = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: (id: string) => {
-      return projectService.deleteProject(id);
+      return branchService.deleteBranch(id);
     },
     onSuccess: (id) => {
-      queryClient.invalidateQueries({ queryKey: ['projects', id] });
+      queryClient.invalidateQueries({ queryKey: ['branches', id] });
     },
     retry: 1, // Retry once on failure
   });
