@@ -1,4 +1,3 @@
-import { IncomingMessage } from 'http';
 import { PrismaClient } from '@prisma/client';
 import { CreateProjectData, UpdateProjectData } from '@/schemas/ProjectSchema';
 import convertFormidableToFile from '@/utils/convert-formidable';
@@ -6,7 +5,12 @@ import { BasicUser } from '@/schemas/UserSchema';
 import { db } from '@/utils/db';
 import { fetchFromCacheOrDB, projectsCache } from '@/utils/cache';
 import { uploadImage } from '@/utils/upload-image';
-import parseForm from '@/utils/parse-form';
+
+const includeOptions = {
+  author: true,
+  branches: true,
+  permissions: true,
+};
 
 export class ProjectService {
   private db: PrismaClient;
@@ -20,7 +24,7 @@ export class ProjectService {
       const project = await fetchFromCacheOrDB(projectsCache, id, () =>
         this.db.project.findUnique({
           where: { id },
-          include: { author: true, branches: true, permissions: true },
+          include: includeOptions,
         })
       );
       if (!project) throw new Error('Project not found');
@@ -33,17 +37,17 @@ export class ProjectService {
 
   async findAll(userId?: string) {
     try {
+      const cacheKey = userId ? `projects-author-${userId}` : 'projects';
+
+      const whereClause: Record<string, any> = {};
       if (userId) {
-        return await fetchFromCacheOrDB(projectsCache, `projects-${userId}`, () =>
-          this.db.project.findMany({
-            where: { authorId: userId },
-            include: { author: true, branches: true, permissions: true },
-          })
-        );
+        whereClause.authorId = userId;
       }
-      return await fetchFromCacheOrDB(projectsCache, 'projects', () =>
+
+      return await fetchFromCacheOrDB(projectsCache, cacheKey, () =>
         this.db.project.findMany({
-          include: { author: true, branches: true, permissions: true },
+          where: Object.keys(whereClause).length ? whereClause : undefined,
+          include: includeOptions,
         })
       );
     } catch (error) {
@@ -66,6 +70,7 @@ export class ProjectService {
           createdAt: new Date(),
           updatedAt: new Date(),
         },
+        include: includeOptions,
       });
 
       const [_, mainBranch] = await this.db.$transaction([
@@ -133,7 +138,7 @@ export class ProjectService {
           avatar: newAvatar,
           updatedAt: new Date(),
         },
-        include: { author: true, branches: true, permissions: true },
+        include: includeOptions,
       });
 
       if (data.permissions) {

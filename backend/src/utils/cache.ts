@@ -3,6 +3,7 @@ import NodeCache from 'node-cache';
 export const usersCache = new NodeCache({ stdTTL: 60 * 5 });
 export const projectsCache = new NodeCache({ stdTTL: 60 * 5 });
 export const branchesCache = new NodeCache({ stdTTL: 60 * 5 });
+export const postsCache = new NodeCache({ stdTTL: 60 * 5 });
 
 /**
  * Fetch data from cache or execute a database query if not found in cache.
