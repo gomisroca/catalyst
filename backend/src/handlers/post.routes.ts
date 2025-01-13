@@ -11,4 +11,11 @@ RES - 200
 */
 router.get('/health', postController.healthCheck);
 
+/*
+GET - All Posts
+REQ - Branch ID?, User ID?
+RES - 200 - Post[]
+*/
+router.get('/', postController.getAll);
+
 export default router;
