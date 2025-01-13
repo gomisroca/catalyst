@@ -1,6 +1,9 @@
 import { Request, Response } from 'express';
 import { sendError, sendSuccess } from '@/utils/standard-responses';
 import { PostService } from '@/services/post.service';
+import { BasicUser } from '@/schemas/UserSchema';
+import parseForm from '@/utils/parse-form';
+import { createPostSchema, updatePostSchema } from '@/schemas/PostSchema';
 
 export class PostController {
   postService;
@@ -37,6 +40,57 @@ export class PostController {
     } catch (error: any) {
       console.error('Failed to fetch posts:', error);
       sendError(res, `Failed to fetch posts: ${error.message}`);
+    }
+  };
+
+  create = async (req: Request, res: Response) => {
+    try {
+      const { fields, files } = await parseForm(req);
+
+      const postData = {
+        branchId: fields.branchId[0],
+        content: fields.content[0],
+        media: files.media ?? [],
+      };
+
+      const validationResult = createPostSchema.safeParse(postData);
+      if (!validationResult.success) return sendError(res, validationResult.error.message);
+
+      await this.postService.create(req.user as BasicUser, postData);
+      sendSuccess(res, 'Post created successfully');
+    } catch (error: any) {
+      console.error('Failed to create post:', error);
+      sendError(res, `Failed to create post: ${error.message}`);
+    }
+  };
+
+  update = async (req: Request, res: Response) => {
+    try {
+      const { fields, files } = await parseForm(req);
+
+      const postData = {
+        content: fields.content[0],
+        media: files.media ?? [],
+      };
+
+      const validationResult = updatePostSchema.safeParse(postData);
+      if (!validationResult.success) return sendError(res, validationResult.error.message);
+
+      await this.postService.update(req.params.id, postData);
+      sendSuccess(res, 'Post updated successfully');
+    } catch (error: any) {
+      console.error('Failed to update post:', error);
+      sendError(res, `Failed to update post: ${error.message}`);
+    }
+  };
+
+  delete = async (req: Request, res: Response) => {
+    try {
+      await this.postService.delete(req.params.id);
+      sendSuccess(res, 'Post deleted successfully');
+    } catch (error: any) {
+      console.error('Failed to delete post:', error);
+      sendError(res, `Failed to delete post: ${error.message}`);
     }
   };
 }
