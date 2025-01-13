@@ -70,6 +70,7 @@ export class ProjectService {
           createdAt: new Date(),
           updatedAt: new Date(),
         },
+        include: includeOptions,
       });
 
       const [_, mainBranch] = await this.db.$transaction([
