@@ -32,6 +32,7 @@ export class BranchService {
     try {
       const whereClause = {
         ...filterByPermissions(user),
+        project: filterByPermissions(user),
         id, // Ensure we filter by ID as well
       };
 
@@ -57,6 +58,7 @@ export class BranchService {
       const whereClause = {
         ...filterByPermissions(user),
       };
+      whereClause.project = filterByPermissions(user);
       if (projectId) {
         whereClause.projectId = projectId;
       }
