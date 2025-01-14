@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { auth } from '@/middlewares/auth';
+import { auth, optionalAuth } from '@/middlewares/auth';
 import { ProjectController } from '@/controllers/project.controller';
 
 const router = Router();
@@ -17,7 +17,7 @@ GET - Specific Project
 REQ - None
 RES - 200 - Project
 */
-router.get('/:id', projectController.getById);
+router.get('/:id', optionalAuth, projectController.getById);
 
 /*
 PUT - Update Project
@@ -38,7 +38,7 @@ GET - All Projects
 REQ - User ID?
 RES - 200 - Project[]
 */
-router.get('/', projectController.getAll);
+router.get('/', optionalAuth, projectController.getAll);
 
 /*
 POST - Create Project

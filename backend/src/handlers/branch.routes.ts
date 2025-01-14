@@ -1,5 +1,5 @@
 import { BranchController } from '@/controllers/branch.controller';
-import { auth } from '@/middlewares/auth';
+import { auth, optionalAuth } from '@/middlewares/auth';
 import { Router } from 'express';
 
 const router = Router();
@@ -17,7 +17,7 @@ GET - Specific Branch
 REQ - None
 RES - 200 - Branch
 */
-router.get('/:id', branchController.getById);
+router.get('/:id', optionalAuth, branchController.getById);
 
 /*
 PUT - Update Branch
@@ -38,7 +38,7 @@ GET - All Branches
 REQ - Project ID?, User ID?
 RES - 200 - Branch[]
 */
-router.get('/', branchController.getAll);
+router.get('/', optionalAuth, branchController.getAll);
 
 /*
 POST - Create Branch

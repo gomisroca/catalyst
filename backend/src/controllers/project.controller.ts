@@ -23,8 +23,9 @@ export class ProjectController {
 
   getById = async (req: Request, res: Response) => {
     try {
-      const project = await this.projectService.findById(req.params.id);
+      const project = await this.projectService.findById(req.params.id, req.user as BasicUser);
       if (!project) return sendError(res, 'Project not found', 404);
+
       sendSuccess(res, project);
     } catch (error: any) {
       console.error('Failed to get project:', error);
@@ -35,7 +36,7 @@ export class ProjectController {
   getAll = async (req: Request, res: Response) => {
     const { userId } = req.query;
     try {
-      const projects = await this.projectService.findAll(userId as string);
+      const projects = await this.projectService.findAll(userId as string, req.user as BasicUser);
       sendSuccess(res, projects);
     } catch (error: any) {
       console.error('Failed to fetch projects:', error);
@@ -63,7 +64,7 @@ export class ProjectController {
       const validationResult = createProjectSchema.safeParse(projectData);
       if (!validationResult.success) return sendError(res, validationResult.error.message);
 
-      await this.projectService.create(req.user as BasicUser, projectData);
+      await this.projectService.create(projectData, req.user as BasicUser);
       sendSuccess(res, 'Project created successfully');
     } catch (error: any) {
       console.error('Failed to create project:', error);
@@ -91,7 +92,7 @@ export class ProjectController {
       const validationResult = updateProjectSchema.safeParse(projectData);
       if (!validationResult.success) return sendError(res, validationResult.error.message);
 
-      await this.projectService.update(req.params.id, projectData);
+      await this.projectService.update(req.params.id, projectData, req.user as BasicUser);
       sendSuccess(res, 'Project updated successfully');
     } catch (error: any) {
       console.error('Failed to update project:', error);
@@ -101,7 +102,7 @@ export class ProjectController {
 
   delete = async (req: Request, res: Response) => {
     try {
-      await this.projectService.delete(req.params.id);
+      await this.projectService.delete(req.params.id, req.user as BasicUser);
       sendSuccess(res, 'Project deleted successfully');
     } catch (error: any) {
       console.error('Failed to delete project:', error);

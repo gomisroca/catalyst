@@ -5,6 +5,7 @@ import convertFormidableToFile from '@/utils/convert-formidable';
 import { uploadImage } from '@/utils/upload-image';
 import { CreatePostData, UpdatePostData } from '@/schemas/PostSchema';
 import { BasicUser } from '@/schemas/UserSchema';
+import filterByPermissions from '@/utils/filter-permissions';
 
 const includeOptions = {
   author: true,
@@ -22,19 +23,15 @@ export class PostService {
     this.db = db;
   }
 
-  async findById(id: string) {
+  async findById(id: string, user: BasicUser) {
     try {
       const post = await fetchFromCacheOrDB(postsCache, id, () =>
         this.db.post.findUnique({
-          where: { id },
-          include: {
-            author: true,
-            interactions: {
-              include: {
-                user: true,
-              },
-            },
+          where: {
+            id,
+            branch: filterByPermissions(user),
           },
+          include: includeOptions,
         })
       );
       if (!post) throw new Error('Post not found');
@@ -45,7 +42,7 @@ export class PostService {
     }
   }
 
-  async findAll(branchId?: string, userId?: string) {
+  async findAll(branchId?: string, userId?: string, user?: BasicUser) {
     try {
       const cacheKey = branchId ? `posts-branch-${branchId}` : userId ? `posts-author-${userId}` : 'posts';
 
@@ -59,7 +56,10 @@ export class PostService {
 
       return await fetchFromCacheOrDB(postsCache, cacheKey, () =>
         this.db.post.findMany({
-          where: Object.keys(whereClause).length ? whereClause : undefined,
+          where: {
+            ...whereClause,
+            branch: filterByPermissions(user),
+          },
           include: includeOptions,
         })
       );
@@ -69,7 +69,7 @@ export class PostService {
     }
   }
 
-  async create(user: BasicUser, data: CreatePostData) {
+  async create(data: CreatePostData, user: BasicUser) {
     try {
       const mediaArr: string[] = [];
       if (data.media && data.media.length > 0) {
@@ -103,10 +103,11 @@ export class PostService {
     }
   }
 
-  async update(id: string, data: UpdatePostData) {
+  async update(id: string, data: UpdatePostData, user: BasicUser) {
     try {
       const currentPost = await this.db.post.findUnique({ where: { id } });
       if (!currentPost) throw new Error('Post not found');
+      if (currentPost.authorId !== user.id) throw new Error('You are not the author of this post');
 
       const mediaArr: string[] = [];
       if (data.media && data.media.length > 0) {
@@ -138,10 +139,11 @@ export class PostService {
     }
   }
 
-  async delete(id: string) {
+  async delete(id: string, user: BasicUser) {
     try {
       const post = await this.db.post.findUnique({ where: { id } });
       if (!post) throw new Error('Post not found');
+      if (post.authorId !== user.id) throw new Error('You are not the author of this post');
 
       await this.db.post.delete({ where: { id } });
       postsCache.del(id);
