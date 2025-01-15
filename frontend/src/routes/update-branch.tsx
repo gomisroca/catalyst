@@ -8,6 +8,7 @@ import { useGetFollowedUsers } from '@/hooks/users/useGetFollowedUsers';
 import { useParams } from 'react-router-dom';
 import { useGetBranch } from '@/hooks/branches/useGetBranch';
 import { useUpdateBranch } from '@/hooks/branches/useUpdateBranch';
+import { useGetSelf } from '@/hooks/users/useGetSelf';
 // UI Imports
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import MultipleSelector from '@/components/ui/multiple-selector';
@@ -18,6 +19,7 @@ import Loading from '@/components/ui/loading';
 import Error from '@/components/ui/error';
 
 export default function UpdateBranch() {
+  const { data: user, isLoading: userPending, error: userError } = useGetSelf();
   // Get ID from URL Params
   const { branchId } = useParams();
   if (!branchId) return <Error message="No branch ID provided." />;
@@ -79,7 +81,7 @@ export default function UpdateBranch() {
 
   // On submit, assert branch project was fetched, and pass the updated data
   async function onSubmit(values: UpdateBranchFormData) {
-    if (!branch) return;
+    if (!branch || !user) return;
     console.log(values);
 
     const data = {
@@ -93,6 +95,10 @@ export default function UpdateBranch() {
     updateBranch({ id: branch.id, branchData: data });
   }
 
+  if (userPending) return <Loading />;
+  if (userError) return <Error message={userError.message} />;
+  if (!user) return <Error message="You must be logged in to update a branch." />;
+  if (user.id !== branch.author.id) return <Error message="You are not authorized to update this branch." />;
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-4">

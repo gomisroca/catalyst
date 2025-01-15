@@ -6,6 +6,7 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useGetFollowedUsers } from '@/hooks/users/useGetFollowedUsers';
 import { useCreateProject } from '@/hooks/projects/useCreateProject';
+import { useGetSelf } from '@/hooks/users/useGetSelf';
 // UI Imports
 import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
@@ -16,6 +17,7 @@ import Loading from '@/components/ui/loading';
 import Error from '@/components/ui/error';
 
 export default function CreateProject() {
+  const { data: user, isLoading: userPending, error: userError } = useGetSelf();
   // Fetch logged-in user follows
   const { data: follows, isLoading: followsPending, error: followsError } = useGetFollowedUsers();
 
@@ -58,6 +60,7 @@ export default function CreateProject() {
 
   // On submit, pass the data as FormData
   async function onSubmit(values: CreateProjectData) {
+    if (!user) return;
     console.log(values);
 
     const data = new FormData();
@@ -74,8 +77,9 @@ export default function CreateProject() {
     createProject(data);
   }
 
-  if (followsPending) return <Loading />;
-  if (followsError) return <Error message={followsError.message} />;
+  if (userPending || followsPending) return <Loading />;
+  if (userError || followsError) return <Error message={userError?.message || followsError?.message} />;
+  if (!user) return <Error message="You must be logged in to create a project." />;
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-4">

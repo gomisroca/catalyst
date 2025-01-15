@@ -8,6 +8,7 @@ import { useForm } from 'react-hook-form';
 import { useGetFollowedUsers } from '@/hooks/users/useGetFollowedUsers';
 import { useGetProject } from '@/hooks/projects/useGetProject';
 import { useUpdateProject } from '@/hooks/projects/useUpdateProject';
+import { useGetSelf } from '@/hooks/users/useGetSelf';
 // UI Imports
 import MultipleSelector from '@/components/ui/multiple-selector';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -18,6 +19,7 @@ import Loading from '@/components/ui/loading';
 import Error from '@/components/ui/error';
 
 export default function UpdateProject() {
+  const { data: user, isLoading: userPending, error: userError } = useGetSelf();
   // Get ID from URL Params
   const { projectId } = useParams();
   if (!projectId) return <Error message="No project ID provided." />;
@@ -80,7 +82,7 @@ export default function UpdateProject() {
 
   // On submit, assert the project was fetched, and pass the updated data as FormData
   async function onSubmit(values: UpdateProjectData) {
-    if (!project) return;
+    if (!project || !user) return;
     console.log(values);
 
     const data = new FormData();
@@ -97,6 +99,10 @@ export default function UpdateProject() {
     updateProject({ id: project.id, projectData: data });
   }
 
+  if (userPending) return <Loading />;
+  if (userError) return <Error message={userError.message} />;
+  if (!user) return <Error message="You must be logged in to update a project." />;
+  if (user.id !== project.author.id) return <Error message="You are not authorized to update this project." />;
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-4">

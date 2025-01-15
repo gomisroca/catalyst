@@ -53,7 +53,7 @@ export default function UpdatePost() {
 
   // On submit, assert the post was fetched, and pass the updated data as FormData
   async function onSubmit(values: UpdatePostData) {
-    if (!post) return;
+    if (!post || !user) return;
     console.log(values);
 
     const data = new FormData();
