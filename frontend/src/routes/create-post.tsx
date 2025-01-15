@@ -33,6 +33,7 @@ export default function CreatePost() {
 
   // On submit, pass the data as FormData
   async function onSubmit(values: CreatePostData) {
+    if (!user) return;
     console.log(values);
 
     const data = new FormData();
