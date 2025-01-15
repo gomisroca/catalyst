@@ -25,7 +25,7 @@ export const postService = {
     }
   },
 
-  createPost: async (postData: CreatePostData) => {
+  createPost: async (postData: FormData) => {
     try {
       const response = await apiService.post<Post>(ENDPOINTS.POSTS.CREATE, postData);
       return PostSchema.parse(response);
@@ -35,7 +35,7 @@ export const postService = {
     }
   },
 
-  updatePost: async (id: string, postData: UpdatePostData) => {
+  updatePost: async (id: string, postData: FormData) => {
     try {
       const response = await apiService.put<Post>(ENDPOINTS.POSTS.UPDATE(id), postData);
       return PostSchema.parse(response);
