@@ -15,6 +15,7 @@ import UpdateProject from '@/routes/update-project';
 import CreateBranch from '@/routes/create-branch';
 import UpdateBranch from '@/routes/update-branch';
 import CreatePost from '@/routes/create-post';
+import UpdatePost from '@/routes/update-post';
 // Components Imports
 import Navmenu from '@/components/ui/navmenu';
 
@@ -46,6 +47,15 @@ const router = createBrowserRouter([
           {
             path: 'new',
             element: <CreatePost />,
+          },
+          {
+            path: ':postId',
+            children: [
+              {
+                path: 'update',
+                element: <UpdatePost />,
+              },
+            ],
           },
         ],
       },

@@ -15,7 +15,7 @@ import Loading from '@/components/ui/loading';
 import Error from '@/components/ui/error';
 // Component Imports
 import BranchCard from '@/components/branch/branch-card';
-import TimelinePostCard from '@/components/post/timeline-post-card';
+import PostCard from '@/components/post/post-card';
 import ProjectCard from '@/components/project/project-card';
 
 interface InteractionOrProjectOrBranchOrPost {
@@ -142,7 +142,7 @@ export default function HomeTimeline() {
                       </>
                     ) : obj.postId && obj.post ? (
                       <Link to={`/${obj.post.branch.projectId}/${obj.post.branch.id}/`}>
-                        <TimelinePostCard post={obj.post} />
+                        <PostCard post={obj.post} />
                       </Link>
                     ) : null}
                   </CardContent>
@@ -159,7 +159,7 @@ export default function HomeTimeline() {
                     {obj.branchId && obj.branch ? (
                       <BranchCard branch={obj.branch} />
                     ) : obj.postId && obj.post ? (
-                      <TimelinePostCard post={obj.post} />
+                      <PostCard post={obj.post} />
                     ) : null}
                   </CardContent>
                 </>
@@ -172,7 +172,7 @@ export default function HomeTimeline() {
                 {obj.author && (obj.author.nickname || obj.author.username)} posted
               </CardDescription>
               <CardContent className="p-2">
-                <TimelinePostCard post={obj as Post} />
+                <PostCard post={obj as Post} />
               </CardContent>
             </Card>
           ) : obj.projectId ? (

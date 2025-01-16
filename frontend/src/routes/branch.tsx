@@ -10,15 +10,15 @@ import Loading from '@/components/ui/loading';
 import Error from '@/components/ui/error';
 import { FiPlus } from 'react-icons/fi';
 // Component Imports
-import PostMain from '@/components/post/post-main';
 import BranchInteractions from '@/components/branch/branch-interactions';
 import BranchDetails from '@/components/branch/branch-details';
+import PostCard from '@/components/post/post-card';
 
 // Utility Functions
 const hasNoNegativeInteraction = (post: Post, user?: BasicUser) =>
   !user ||
   !post.interactions.some(
-    (interaction) => (interaction.type === 'REPORT' || interaction.type === 'HIDE') && interaction.user.id === user.id
+    (interaction) => ['REPORT', 'HIDE'].includes(interaction.type) && interaction.user.id === user?.id
   );
 
 const filterAndSortPosts = (posts: Post[], user?: BasicUser) => {
@@ -68,7 +68,7 @@ export default function Branch() {
                 <CreatePostButton branch={branch} />
               )}
             {posts.map((post) => (
-              <PostMain key={post.id} post={post} branch={branch} />
+              <PostCard key={post.id} post={post} />
             ))}
           </div>
         </CardContent>

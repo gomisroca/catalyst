@@ -19,7 +19,7 @@ import Loading from '@/components/ui/loading';
 import ProfileTimeline from '@/components/user/profile-timeline';
 import ProjectCard from '@/components/project/project-card';
 import BranchCard from '@/components/branch/branch-card';
-import TimelinePostCard from '@/components/post/timeline-post-card';
+import PostCard from '@/components/post/post-card';
 
 function ProjectDialog({ projects }: { projects: Project[] }) {
   return (
@@ -68,7 +68,7 @@ function PostDialog({ posts }: { posts: Post[] }) {
       <DialogContent className="max-h-3/4 w-5/6 max-w-none overflow-y-scroll rounded-md px-1 pb-1 pt-10">
         {posts.map((post) => (
           <div key={post.id}>
-            <TimelinePostCard post={post} />
+            <PostCard post={post} />
           </div>
         ))}
       </DialogContent>

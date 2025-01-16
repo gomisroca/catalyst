@@ -49,7 +49,7 @@ export const branchService = {
       const validationResult = updateBranchSchema.safeParse(branchData);
       if (!validationResult.success) throw new Error(validationResult.error.message);
 
-      const response = await apiService.put<unknown>(ENDPOINTS.BRANCHES.UPDATE(id), branchData);
+      const response = await apiService.put<Branch>(ENDPOINTS.BRANCHES.UPDATE(id), branchData);
       return BranchSchema.parse(response);
     } catch (error) {
       console.error('Failed to update branch:', error);

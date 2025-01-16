@@ -37,7 +37,7 @@ export const projectService = {
 
   updateProject: async (id: string, projectData: FormData) => {
     try {
-      const response = await apiService.put<unknown>(ENDPOINTS.PROJECTS.UPDATE(id), projectData);
+      const response = await apiService.put<Project>(ENDPOINTS.PROJECTS.UPDATE(id), projectData);
       return ProjectSchema.parse(response);
     } catch (error) {
       console.error('Failed to update project:', error);

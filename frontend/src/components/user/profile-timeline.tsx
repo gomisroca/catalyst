@@ -12,7 +12,7 @@ import { FiFolderPlus } from 'react-icons/fi';
 // Component Imports
 import ProjectCard from '@/components/project/project-card';
 import BranchCard from '@/components/branch/branch-card';
-import TimelinePostCard from '@/components/post/timeline-post-card';
+import PostCard from '@/components/post/post-card';
 import PaginationWrapper from '@/components/pagination-wrapper';
 
 interface InteractionOrProjectOrBranchOrPost {
@@ -125,7 +125,7 @@ export default function ProfileTimeline({ profile }: { profile: User }) {
                       </>
                     ) : obj.postId && obj.post ? (
                       <Link to={`/${obj.post.branch.projectId}/${obj.post.branch.id}/`}>
-                        <TimelinePostCard post={obj.post} />
+                        <PostCard post={obj.post} />
                       </Link>
                     ) : null}
                   </CardContent>
@@ -141,7 +141,7 @@ export default function ProfileTimeline({ profile }: { profile: User }) {
                     {obj.branchId && obj.branch ? (
                       <BranchCard branch={obj.branch} />
                     ) : obj.postId && obj.post ? (
-                      <TimelinePostCard post={obj.post} />
+                      <PostCard post={obj.post} />
                     ) : null}
                   </CardContent>
                 </>
@@ -154,7 +154,7 @@ export default function ProfileTimeline({ profile }: { profile: User }) {
                 {profile.nickname || profile.username} posted
               </CardDescription>
               <CardContent className="p-2">
-                <TimelinePostCard post={obj as Post} />
+                <PostCard post={obj as Post} />
               </CardContent>
             </Card>
           ) : obj.projectId ? (

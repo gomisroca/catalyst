@@ -7,6 +7,7 @@ import { useForm } from 'react-hook-form';
 import { useCreateBranch } from '@/hooks/branches/useCreateBranch';
 import { useParams } from 'react-router-dom';
 import { useGetFollowedUsers } from '@/hooks/users/useGetFollowedUsers';
+import { useGetSelf } from '@/hooks/users/useGetSelf';
 // UI Imports
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -17,11 +18,12 @@ import Loading from '@/components/ui/loading';
 import Error from '@/components/ui/error';
 
 export default function CreateBranch() {
+  const { data: user, isLoading: userPending, error: userError } = useGetSelf();
   const { projectId } = useParams();
   if (!projectId) return <Error message="No project ID provided." />;
 
   // Fetch logged-in user follows
-  const { data: follows, isLoading: followsLoading, error: followsError } = useGetFollowedUsers();
+  const { data: follows, isLoading: followsPending, error: followsError } = useGetFollowedUsers();
 
   // Create branch mutation
   const {
@@ -62,6 +64,7 @@ export default function CreateBranch() {
 
   // On submit, pass the data
   async function onSubmit(values: CreateBranchFormData) {
+    if (!user) return;
     console.log(values);
 
     const data = {
@@ -75,8 +78,9 @@ export default function CreateBranch() {
     createBranch(data);
   }
 
-  if (followsLoading) return <Loading />;
-  if (followsError) return <Error message={followsError?.message} />;
+  if (userPending || followsPending) return <Loading />;
+  if (userError || followsError) return <Error message={userError?.message || followsError?.message} />;
+  if (!user) return <Error message="You must be logged in to create a branch." />;
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-4">
