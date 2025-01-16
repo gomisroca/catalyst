@@ -15,6 +15,8 @@ export const ENDPOINTS = {
   },
   INTERACTIONS: {
     FOLLOW: (id: string) => `/interactions/user/${id}/follow`,
+    BRANCH: (id: string, interaction: string) => `/interactions/branch/${id}?type=${interaction}`,
+    POST: (id: string, interaction: string) => `/interactions/post/${id}?type=${interaction}`,
   },
   PROJECTS: {
     LIST: (params?: { userId?: string }) => {
