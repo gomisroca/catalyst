@@ -25,8 +25,19 @@ export class InteractionController {
       if (!user) return sendError(res, 'User not found', 404);
       sendSuccess(res, user);
     } catch (error: any) {
-      console.error('Failed to follow or unfollow user:', error);
-      sendError(res, `Failed to follow or unfollow user: ${error.message}`);
+      console.error('Failed to follow user:', error);
+      sendError(res, `Failed to follow user: ${error.message}`);
+    }
+  };
+
+  unfollowUser = async (req: Request, res: Response) => {
+    try {
+      const user = await this.interactionService.unfollowUser((req.user as BasicUser).id, req.params.id);
+      if (!user) return sendError(res, 'User not found', 404);
+      sendSuccess(res, user);
+    } catch (error: any) {
+      console.error('Failed to unfollow user:', error);
+      sendError(res, `Failed to unfollow user: ${error.message}`);
     }
   };
 }
