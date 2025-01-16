@@ -13,10 +13,17 @@ RES - 200
 router.get('/health', interactionController.healthCheck);
 
 /*
-GET - Follow or Unfollow User
+GET - Follow User
 REQ - 
 RES - 200 - User
 */
 router.get('/user/:id/follow', auth, interactionController.followUser);
+
+/*
+GET - Unfollow User
+REQ - 
+RES - 200 - User
+*/
+router.delete('/user/:id/follow', auth, interactionController.unfollowUser);
 
 export default router;
