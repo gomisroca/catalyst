@@ -21,7 +21,7 @@ const isPublicOrAuthor = (branch: Branch, user?: BasicUser) =>
 const hasNoNegativeInteraction = (branch: Branch, user?: BasicUser) =>
   !user ||
   !branch.interactions.some(
-    (interaction) => (interaction.type === 'REPORT' || interaction.type === 'HIDE') && interaction.user.id === user.id
+    (interaction) => ['REPORT', 'HIDE'].includes(interaction.type) && interaction.user.id === user?.id
   );
 
 const filterAndSortBranches = (branches: Branch[], user?: BasicUser) => {
