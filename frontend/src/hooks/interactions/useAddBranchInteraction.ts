@@ -1,15 +1,25 @@
 import { interactionService } from '@/api/services/interactionService';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient, UseMutationOptions } from '@tanstack/react-query';
 
-export const useAddBranchInteraction = () => {
+type AddBranchInteractionVariables = {
+  branchId: string;
+  interaction: string;
+};
+
+type AddBranchInteractionResponse = Interaction;
+
+export const useAddBranchInteraction = (
+  options?: UseMutationOptions<AddBranchInteractionResponse, Error, AddBranchInteractionVariables>
+) => {
   const queryClient = useQueryClient();
 
-  return useMutation({
+  return useMutation<AddBranchInteractionResponse, Error, AddBranchInteractionVariables>({
     mutationFn: ({ branchId, interaction }: { branchId: string; interaction: string }) => {
       return interactionService.addBranchInteraction(branchId, interaction);
     },
-    onSuccess: (_, { branchId }) => {
-      queryClient.invalidateQueries({ queryKey: ['getBranch', 'branches', branchId] });
+    onSuccess: (data, variables, context) => {
+      queryClient.invalidateQueries({ queryKey: ['getBranch', 'branches', variables.branchId] });
+      options?.onSuccess?.(data, variables, context);
     },
     onError: (error, { interaction }) => {
       console.error(`Failed to add ${interaction} to branch:`, error);

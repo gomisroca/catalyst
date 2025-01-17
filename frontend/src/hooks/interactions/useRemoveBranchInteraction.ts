@@ -1,15 +1,25 @@
 import { interactionService } from '@/api/services/interactionService';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, UseMutationOptions, useQueryClient } from '@tanstack/react-query';
 
-export const useRemoveBranchInteraction = () => {
+type RemoveBranchInteractionVariables = {
+  branchId: string;
+  interaction: string;
+};
+
+type RemoveBranchInteractionResponse = Interaction;
+
+export const useRemoveBranchInteraction = (
+  options?: UseMutationOptions<RemoveBranchInteractionResponse, Error, RemoveBranchInteractionVariables>
+) => {
   const queryClient = useQueryClient();
 
-  return useMutation({
+  return useMutation<RemoveBranchInteractionResponse, Error, RemoveBranchInteractionVariables>({
     mutationFn: ({ branchId, interaction }: { branchId: string; interaction: string }) => {
       return interactionService.removeBranchInteraction(branchId, interaction);
     },
-    onSuccess: (_, { branchId }) => {
-      queryClient.invalidateQueries({ queryKey: ['getBranch', 'branches', branchId] });
+    onSuccess: (data, variables, context) => {
+      queryClient.invalidateQueries({ queryKey: ['getBranch', 'branches', variables.branchId] });
+      options?.onSuccess?.(data, variables, context);
     },
     onError: (error, { interaction }) => {
       console.error(`Failed to remove ${interaction} from branch:`, error);
