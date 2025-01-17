@@ -8,6 +8,7 @@ import { IoMdHeartDislike, IoMdHeartEmpty } from 'react-icons/io';
 import { useGetUser } from '@/hooks/users/useGetUser';
 import { useGetSelf } from '@/hooks/users/useGetSelf';
 import { useFollowUser } from '@/hooks/interactions/useFollowUser';
+import { useUnfollowUser } from '@/hooks/interactions/useUnfollorUser';
 // UI Imports
 import { Card, CardContent, CardDescription, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -78,9 +79,14 @@ function PostDialog({ posts }: { posts: Post[] }) {
 
 function FollowSection({ user, profile }: { user?: BasicUser; profile: User }) {
   const { mutate: followUser, isPending: followLoading } = useFollowUser();
+  const { mutate: unfollowUser, isPending: unfollowLoading } = useUnfollowUser();
 
   const handleFollow = () => {
     followUser({ userId: profile.id });
+  };
+
+  const handleUnfollow = () => {
+    unfollowUser({ userId: profile.id });
   };
 
   if (!user) return null;
@@ -89,7 +95,7 @@ function FollowSection({ user, profile }: { user?: BasicUser; profile: User }) {
       {user?.id === profile.id ? (
         <span className="text-sm">This is you!</span>
       ) : profile?.followedBy && profile?.followedBy.includes(user.id) ? (
-        <Button asChild onClick={() => handleFollow()} disabled={followLoading}>
+        <Button asChild onClick={() => handleUnfollow()} disabled={unfollowLoading}>
           <IoMdHeartDislike className="cursor-pointer hover:text-gray-500" />
         </Button>
       ) : (
