@@ -1,7 +1,7 @@
 import apiService from '@/api/config';
 import { ENDPOINTS } from '@/api/endpoints';
 import { type User } from '@/api/schemas/UserSchema';
-import { BranchSchema, PostSchema, UserSchema } from '@/api/schemas/BaseSchema';
+import { InteractionSchema, UserSchema } from '@/api/schemas/BaseSchema';
 
 export const interactionService = {
   followUser: async (profileId: string) => {
@@ -26,8 +26,8 @@ export const interactionService = {
 
   addBranchInteraction: async (branchId: string, interaction: string) => {
     try {
-      const response = await apiService.get<Branch>(ENDPOINTS.INTERACTIONS.BRANCH(branchId, interaction));
-      return BranchSchema.parse(response);
+      const response = await apiService.get<Interaction>(ENDPOINTS.INTERACTIONS.BRANCH(branchId, interaction));
+      return InteractionSchema.parse(response);
     } catch (error) {
       console.error('Failed to add branch interaction:', error);
       throw error;
@@ -36,8 +36,8 @@ export const interactionService = {
 
   removeBranchInteraction: async (branchId: string, interaction: string) => {
     try {
-      const response = await apiService.delete<Branch>(ENDPOINTS.INTERACTIONS.BRANCH(branchId, interaction));
-      return BranchSchema.parse(response);
+      const response = await apiService.delete<Interaction>(ENDPOINTS.INTERACTIONS.BRANCH(branchId, interaction));
+      return InteractionSchema.parse(response);
     } catch (error) {
       console.error('Failed to remove branch interaction:', error);
       throw error;
@@ -46,8 +46,8 @@ export const interactionService = {
 
   addPostInteraction: async (postId: string, interaction: string) => {
     try {
-      const response = await apiService.get<Post>(ENDPOINTS.INTERACTIONS.POST(postId, interaction));
-      return PostSchema.parse(response);
+      const response = await apiService.get<Interaction>(ENDPOINTS.INTERACTIONS.POST(postId, interaction));
+      return InteractionSchema.parse(response);
     } catch (error) {
       console.error('Failed to add post interaction:', error);
       throw error;
@@ -56,8 +56,8 @@ export const interactionService = {
 
   removePostInteraction: async (postId: string, interaction: string) => {
     try {
-      const response = await apiService.delete<Post>(ENDPOINTS.INTERACTIONS.POST(postId, interaction));
-      return PostSchema.parse(response);
+      const response = await apiService.delete<Interaction>(ENDPOINTS.INTERACTIONS.POST(postId, interaction));
+      return InteractionSchema.parse(response);
     } catch (error) {
       console.error('Failed to remove post interaction:', error);
       throw error;
