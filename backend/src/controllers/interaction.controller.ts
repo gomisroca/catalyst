@@ -3,6 +3,8 @@ import { InteractionService } from '@/services/interaction.service';
 import { sendError, sendSuccess } from '@/utils/standard-responses';
 import { BasicUser } from '@/schemas/UserSchema';
 
+const INTERACTIONS = ['LIKE', 'SHARE', 'BOOKMARK', 'REPORT', 'HIDE'];
+
 export class InteractionController {
   interactionService;
 
@@ -38,6 +40,70 @@ export class InteractionController {
     } catch (error: any) {
       console.error('Failed to unfollow user:', error);
       sendError(res, `Failed to unfollow user: ${error.message}`);
+    }
+  };
+
+  addBranchInteraction = async (req: Request, res: Response) => {
+    const { interaction } = req.query;
+    try {
+      if (!INTERACTIONS.includes(interaction as string)) return sendError(res, 'Invalid interaction', 400);
+      const newInteraction = await this.interactionService.addBranchInteraction(
+        (req.user as BasicUser).id,
+        req.params.id,
+        interaction as InteractionType
+      );
+      sendSuccess(res, newInteraction);
+    } catch (error: any) {
+      console.error('Failed to add branch interaction:', error);
+      sendError(res, `Failed to add branch interaction: ${error.message}`);
+    }
+  };
+
+  removeBranchInteraction = async (req: Request, res: Response) => {
+    const { interaction } = req.query;
+    try {
+      if (!INTERACTIONS.includes(interaction as string)) return sendError(res, 'Invalid interaction', 400);
+      const removedInteraction = await this.interactionService.removeBranchInteraction(
+        (req.user as BasicUser).id,
+        req.params.id,
+        interaction as InteractionType
+      );
+      sendSuccess(res, removedInteraction);
+    } catch (error: any) {
+      console.error('Failed to remove branch interaction:', error);
+      sendError(res, `Failed to remove branch interaction: ${error.message}`);
+    }
+  };
+
+  addPostInteraction = async (req: Request, res: Response) => {
+    const { interaction } = req.query;
+    try {
+      if (!INTERACTIONS.includes(interaction as string)) return sendError(res, 'Invalid interaction', 400);
+      const newInteraction = await this.interactionService.addPostInteraction(
+        (req.user as BasicUser).id,
+        req.params.id,
+        interaction as InteractionType
+      );
+      sendSuccess(res, newInteraction);
+    } catch (error: any) {
+      console.error('Failed to add post interaction:', error);
+      sendError(res, `Failed to add post interaction: ${error.message}`);
+    }
+  };
+
+  removePostInteraction = async (req: Request, res: Response) => {
+    const { interaction } = req.query;
+    try {
+      if (!INTERACTIONS.includes(interaction as string)) return sendError(res, 'Invalid interaction', 400);
+      const removedInteraction = await this.interactionService.removePostInteraction(
+        (req.user as BasicUser).id,
+        req.params.id,
+        interaction as InteractionType
+      );
+      sendSuccess(res, removedInteraction);
+    } catch (error: any) {
+      console.error('Failed to remove post interaction:', error);
+      sendError(res, `Failed to remove post interaction: ${error.message}`);
     }
   };
 }
