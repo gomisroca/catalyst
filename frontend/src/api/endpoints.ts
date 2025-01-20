@@ -19,7 +19,7 @@ export const ENDPOINTS = {
     POST: (id: string, interaction: string) => `/interactions/post/${id}?type=${interaction}`,
   },
   PROJECTS: {
-    LIST: (params?: { userId?: string }) => {
+    LIST: (params?: { userId?: string; cursor?: string | null; limit?: number }) => {
       const query = new URLSearchParams(params as Record<string, string>).toString();
       return query ? `/projects?${query}` : '/projects';
     },
