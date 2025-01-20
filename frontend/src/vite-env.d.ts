@@ -1,5 +1,11 @@
 /// <reference types="vite/client" />
 
+interface PaginatedResponse<T> {
+  data: T;
+  nextCursor: string | null;
+  hasNextPage: boolean;
+}
+
 enum InteractionType {
   LIKE = 'LIKE',
   SHARE = 'SHARE',
