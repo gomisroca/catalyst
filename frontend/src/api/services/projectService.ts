@@ -15,10 +15,16 @@ export const projectService = {
     }
   },
 
-  getProjects: async ({ userId }: { userId?: string }) => {
+  getProjects: async ({ userId, cursor, limit }: { userId: string; cursor: string | null; limit?: number }) => {
     try {
-      const response = await apiService.get<Project[]>(ENDPOINTS.PROJECTS.LIST({ userId }));
-      return z.array(ProjectSchema).parse(response);
+      const response = await apiService.get<PaginatedResponse<Project[]>>(
+        ENDPOINTS.PROJECTS.LIST({ userId, cursor, limit })
+      );
+      return {
+        data: z.array(ProjectSchema).parse(response.data),
+        nextCursor: response.nextCursor,
+        hasNextPage: response.hasNextPage,
+      };
     } catch (error) {
       console.error('Failed to get projects:', error);
       throw error;
