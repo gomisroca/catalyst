@@ -76,7 +76,7 @@ const queryClient = new QueryClient();
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <QueryClientProvider client={queryClient}>
-      <div className="bg-gradient min-h-screen">
+      <div className="min-h-screen bg-neutral-100 dark:bg-neutral-900">
         <Navmenu />
         <div className="flex items-center justify-center p-2 md:p-10 lg:p-20">
           <RouterProvider router={router} />
