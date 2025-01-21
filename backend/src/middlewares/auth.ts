@@ -23,7 +23,7 @@ async function refreshToken(refreshToken: string) {
         id: user.id,
         email: user.email,
         username: user.username,
-        nickname: user.nickname,
+        nickname: user.nickname ?? user.username,
         avatar: user.avatar,
         role: user.role,
       },
