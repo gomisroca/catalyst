@@ -24,6 +24,7 @@ async function apiFetch<T>(endpoint: string, options: RequestOptions = {}): Prom
     const response = await fetch(url, {
       ...options,
       headers,
+      credentials: 'include',
     });
 
     if (!response.ok) {
