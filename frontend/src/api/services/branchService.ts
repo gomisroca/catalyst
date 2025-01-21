@@ -13,8 +13,8 @@ import {
 export const branchService = {
   getBranch: async (id: string) => {
     try {
-      const response = await apiService.get<Branch>(ENDPOINTS.BRANCHES.DETAIL(id));
-      return BranchSchema.parse(response);
+      const res = await apiService.get<Res<Branch>>(ENDPOINTS.BRANCHES.DETAIL(id));
+      return BranchSchema.parse(res.data);
     } catch (error) {
       console.error('Failed to get branch:', error);
       throw error;
@@ -23,8 +23,8 @@ export const branchService = {
 
   getBranches: async ({ projectId, userId }: { projectId?: string; userId?: string }) => {
     try {
-      const response = await apiService.get<Branch[]>(ENDPOINTS.BRANCHES.LIST({ projectId, userId }));
-      return z.array(BranchSchema).parse(response);
+      const res = await apiService.get<Res<Branch[]>>(ENDPOINTS.BRANCHES.LIST({ projectId, userId }));
+      return z.array(BranchSchema).parse(res.data);
     } catch (error) {
       console.error('Failed to get branches:', error);
       throw error;
@@ -36,8 +36,8 @@ export const branchService = {
       const validationResult = createBranchSchema.safeParse(branchData);
       if (!validationResult.success) throw new Error(validationResult.error.message);
 
-      const response = await apiService.post<Branch>(ENDPOINTS.BRANCHES.CREATE, branchData);
-      return BranchSchema.parse(response);
+      const res = await apiService.post<Res<Branch>>(ENDPOINTS.BRANCHES.CREATE, branchData);
+      return BranchSchema.parse(res.data);
     } catch (error) {
       console.error('Failed to create branch:', error);
       throw error;
@@ -49,8 +49,8 @@ export const branchService = {
       const validationResult = updateBranchSchema.safeParse(branchData);
       if (!validationResult.success) throw new Error(validationResult.error.message);
 
-      const response = await apiService.put<Branch>(ENDPOINTS.BRANCHES.UPDATE(id), branchData);
-      return BranchSchema.parse(response);
+      const res = await apiService.put<Res<Branch>>(ENDPOINTS.BRANCHES.UPDATE(id), branchData);
+      return BranchSchema.parse(res.data);
     } catch (error) {
       console.error('Failed to update branch:', error);
       throw error;
