@@ -1,9 +1,13 @@
 /// <reference types="vite/client" />
 
-interface PaginatedResponse<T> {
+interface PaginatedRes<T> {
   data: T;
   nextCursor: string | null;
   hasNextPage: boolean;
+}
+
+interface Res<T> {
+  data: T;
 }
 
 enum InteractionType {
@@ -28,7 +32,7 @@ interface BasicUser {
   id: string;
   email: string;
   username: string;
-  nickname: string;
+  nickname: string | null;
   avatar: string;
   role: string;
 }
