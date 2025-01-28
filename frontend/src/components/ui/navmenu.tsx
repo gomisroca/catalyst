@@ -17,27 +17,27 @@ export default function Navmenu() {
 
   return (
     <>
-      <header>
-        <div className="m-auto flex w-fit gap-1 p-4">
+      <header className="m-auto flex w-fit gap-1 p-4">
+        <nav>
           <a href="/">
             <Button className="w-[40px]" size="icon" variant={'outline'}>
               <span className="sr-only">Home</span>
               <Home className="w-[40px]" />
             </Button>
           </a>
-          <ModeToggle />
-          <Dialog>
-            {user ? <UserMenuButton user={user} /> : <SignInButton />}
-            <DialogContent className="w-5/6 rounded-md">{user ? <UserSettingsForm /> : <SignInForm />}</DialogContent>
-          </Dialog>
-          {user && (
-            <a href="/new">
-              <Button size="icon" variant={'outline'}>
-                <FiFolderPlus />
-              </Button>
-            </a>
-          )}
-        </div>
+        </nav>
+        <ModeToggle />
+        <Dialog>
+          {user ? <UserMenuButton user={user} /> : <SignInButton />}
+          <DialogContent className="w-5/6 rounded-md">{user ? <UserSettingsForm /> : <SignInForm />}</DialogContent>
+        </Dialog>
+        {user && (
+          <a href="/new">
+            <Button size="icon" variant={'outline'}>
+              <FiFolderPlus />
+            </Button>
+          </a>
+        )}
       </header>
     </>
   );
