@@ -24,6 +24,7 @@ interface UserLoginDetails {
   profile: {
     email: string;
     username?: string;
+    nickname?: string;
     id: string;
   };
   accessToken: string;
@@ -103,6 +104,7 @@ async function handleUserLogin({
   user = await db.user.create({
     data: {
       username: profile.username || randomUUID(),
+      nickname: profile.nickname ?? profile.username,
       email,
       avatar: newAvatar,
       [providerIdField]: profile.id,
@@ -120,6 +122,7 @@ type StrategyOptions = Record<string, any>;
 type ProfileParser = (profile: any) => {
   email: string;
   username?: string;
+  nickname?: string;
   avatarUrl: string;
   id: string;
 };
@@ -164,6 +167,7 @@ setupStrategy(
   (profile: DiscordProfile) => ({
     email: profile.email!,
     username: profile.username,
+    nickname: profile.username,
     avatarUrl: `https://cdn.discordapp.com/avatars/${profile.id}/${profile.avatar}.jpg`,
     id: profile.id,
   })
@@ -181,6 +185,7 @@ setupStrategy(
   (profile: FacebookProfile) => ({
     email: profile.emails![0]?.value,
     username: profile.displayName,
+    nickname: profile.displayName,
     avatarUrl: profile.photos![0]?.value,
     id: profile.id,
   })
@@ -199,6 +204,7 @@ setupStrategy(
   (profile: GoogleProfile) => ({
     email: profile._json.email!,
     username: profile.displayName,
+    nickname: profile.displayName,
     avatarUrl: profile._json.picture!,
     id: profile.id,
   })
