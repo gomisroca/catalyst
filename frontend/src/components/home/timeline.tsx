@@ -1,6 +1,5 @@
 // Util Imports
 import { Link } from 'react-router-dom';
-import PaginationWrapper from '@/components/pagination-wrapper';
 // Hook Imports
 import { useEffect, useState } from 'react';
 import { useGetSelf } from '@/hooks/users/useGetSelf';
@@ -53,9 +52,6 @@ export default function HomeTimeline() {
   const [page, setPage] = useState<number>(1);
   const pageCount = 5;
 
-  const handlePageChange = (page: number) => {
-    setPage(page);
-  };
   useEffect(() => {
     function paginate(timeline: InteractionOrProjectOrBranchOrPost[]) {
       const paginated = timeline.slice((page - 1) * pageCount, page * pageCount);
@@ -119,9 +115,6 @@ export default function HomeTimeline() {
   }
   return (
     <div className="flex w-full flex-col gap-4">
-      {timeline && timeline.length > pageCount && (
-        <PaginationWrapper onPageChange={handlePageChange} page={page} pageCount={pageCount} data={timeline} />
-      )}
       {paginatedTimeline &&
         paginatedTimeline.map((obj) =>
           obj.type == 'LIKE' || obj.type == 'SHARE' ? (
