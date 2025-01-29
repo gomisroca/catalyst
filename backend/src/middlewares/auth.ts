@@ -41,8 +41,27 @@ async function refreshToken(refreshToken: string) {
 export const auth = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const access = getCookie(req, '__catalyst__accessToken');
-    if (!access) {
-      return sendError(res, 'Access token is missing', 401);
+    const refresh = getCookie(req, '__catalyst__refreshToken');
+    if (!access && !refresh) {
+      return sendError(res, 'Access and refresh tokens are missing', 401);
+    } else if (!access) {
+      console.log('Access token expired, attempting refresh...');
+      try {
+        // Attempt to refresh the access token
+        const newAccess = await refreshToken(refresh);
+
+        // Set the new access token in cookies
+        setCookie(res, '__catalyst__accessToken', newAccess, 1000 * 60 * 60);
+
+        // Verify and attach the new user payload
+        const user = jwt.verify(newAccess, process.env.JWT_ACCESS_SECRET as string);
+        req.user = user;
+
+        return next();
+      } catch (refreshError: any) {
+        console.log('Failed to refresh access token:', refreshError);
+        return sendError(res, 'Failed to refresh access token', 403);
+      }
     }
     try {
       const user = jwt.verify(access, process.env.JWT_ACCESS_SECRET as string);
@@ -86,9 +105,29 @@ export const auth = async (req: Request, res: Response, next: NextFunction) => {
 export const optionalAuth = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const access = getCookie(req, '__catalyst__accessToken');
-    if (!access) {
+    const refresh = getCookie(req, '__catalyst__refreshToken');
+
+    if (!access && !refresh) {
       req.user = undefined;
       return next();
+    } else if (!access) {
+      console.log('Access token expired, attempting refresh...');
+      try {
+        // Attempt to refresh the access token
+        const newAccess = await refreshToken(refresh);
+
+        // Set the new access token in cookies
+        setCookie(res, '__catalyst__accessToken', newAccess, 1000 * 60 * 60);
+
+        // Verify and attach the new user payload
+        const user = jwt.verify(newAccess, process.env.JWT_ACCESS_SECRET as string);
+        req.user = user;
+
+        return next();
+      } catch (refreshError: any) {
+        console.log('Failed to refresh access token:', refreshError);
+        return sendError(res, 'Failed to refresh access token', 403);
+      }
     }
 
     try {
