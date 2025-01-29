@@ -24,7 +24,7 @@ export const ENDPOINTS = {
       return query ? `projects?${query}` : 'projects';
     },
     DETAIL: (id: string) => `projects/${id}`,
-    CREATE: '/projects',
+    CREATE: 'projects',
     UPDATE: (id: string) => `projects/${id}`,
     DELETE: (id: string) => `projects/${id}`,
   },
@@ -34,7 +34,7 @@ export const ENDPOINTS = {
       return query ? `branches?${query}` : 'branches';
     },
     DETAIL: (id: string) => `branches/${id}`,
-    CREATE: '/branches',
+    CREATE: 'branches',
     UPDATE: (id: string) => `branches/${id}`,
     DELETE: (id: string) => `branches/${id}`,
   },

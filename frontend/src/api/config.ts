@@ -4,16 +4,10 @@ interface RequestOptions extends RequestInit {
   headers?: HeadersInit;
 }
 
-// Default headers for all requests
-const defaultHeaders: HeadersInit = {
-  'Content-Type': 'application/json',
-};
-
 // Helper function to handle API calls
 async function apiFetch<T>(endpoint: string, options: RequestOptions = {}): Promise<T> {
   // Merge default and custom headers
   const headers: HeadersInit = {
-    ...defaultHeaders,
     ...options.headers,
   };
 
@@ -51,7 +45,7 @@ const apiService = {
   post: <T>(endpoint: string, body: unknown, options?: RequestOptions) =>
     apiFetch<T>(endpoint, {
       method: 'POST',
-      body: JSON.stringify(body),
+      body: body,
       ...options,
     }),
 

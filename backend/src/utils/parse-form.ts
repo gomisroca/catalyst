@@ -9,6 +9,8 @@ import { IncomingMessage } from 'http';
 export default function parseForm(
   req: IncomingMessage
 ): Promise<{ fields: Record<string, any>; files: formidable.Files }> {
+  console.log('Content-Type:', req.headers['content-type']); // Debug log
+
   const form = formidable({
     multiples: true,
     keepExtensions: true,
@@ -17,8 +19,11 @@ export default function parseForm(
   return new Promise((resolve, reject) => {
     form.parse(req, (err, fields, files) => {
       if (err) {
+        console.error('Formidable error:', err); // Debug log
         return reject(err);
       }
+      console.log('Parsed fields:', fields); // Debug log
+      console.log('Parsed files:', files); // Debug log
       resolve({ fields, files });
     });
   });

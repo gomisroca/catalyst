@@ -53,6 +53,7 @@ export class ProjectController {
         cursor,
         limit,
       });
+      console.log(projects);
       sendSuccess(res, projects);
     } catch (error: any) {
       console.error('Failed to fetch projects:', error);
@@ -62,8 +63,12 @@ export class ProjectController {
 
   create = async (req: Request, res: Response) => {
     try {
-      const { fields, files } = await parseForm(req);
+      // Ensure the request is multipart/form-data
+      if (!req.headers['content-type']?.includes('multipart/form-data')) {
+        return sendError(res, 'Invalid Content-Type. Use multipart/form-data');
+      }
 
+      const { fields, files } = await parseForm(req);
       if (!files.avatar || files.avatar.length === 0) {
         return sendError(res, 'Avatar file is required');
       }
