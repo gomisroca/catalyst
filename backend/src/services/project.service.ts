@@ -59,7 +59,6 @@ export class ProjectService {
         ...filterByPermissions(user),
         ...(userId && { authorId: userId }),
       };
-      console.log(whereClause);
       let items = await this.db.project.findMany({
         where: Object.keys(whereClause).length ? whereClause : undefined,
         include: includeOptions,
@@ -74,7 +73,7 @@ export class ProjectService {
           skip: 1, // Skip the cursor item
         }),
       });
-      console.log(items);
+
       if (!items || items.length === 0) {
         items = [];
       }
