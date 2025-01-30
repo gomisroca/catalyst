@@ -7,8 +7,9 @@ import { updateUserSchema, type User, type UpdateUserData } from '@/api/schemas/
 export const userService = {
   getSelf: async () => {
     try {
-      const response = await apiService.get<User>(ENDPOINTS.USERS.SELF);
-      return baseUserSchema.parse(response);
+      const res = await apiService.get<Res<User>>(ENDPOINTS.USERS.SELF);
+
+      return baseUserSchema.parse(res.data);
     } catch (error) {
       console.error('Failed to get self:', error);
       throw error;
@@ -17,8 +18,8 @@ export const userService = {
 
   getUser: async (id: string) => {
     try {
-      const response = await apiService.get<User>(ENDPOINTS.USERS.DETAIL(id));
-      return UserSchema.parse(response);
+      const res = await apiService.get<Res<User>>(ENDPOINTS.USERS.DETAIL(id));
+      return UserSchema.parse(res.data);
     } catch (error) {
       console.error('Failed to get user:', error);
       throw error;
@@ -27,8 +28,8 @@ export const userService = {
 
   getFollowedUsers: async () => {
     try {
-      const response = await apiService.get<User[]>(ENDPOINTS.USERS.FOLLOWED);
-      return z.array(UserSchema).parse(response);
+      const res = await apiService.get<Res<User[]>>(ENDPOINTS.USERS.FOLLOWED);
+      return z.array(UserSchema).parse(res.data);
     } catch (error) {
       console.error('Failed to get followed users:', error);
       throw error;
@@ -37,8 +38,8 @@ export const userService = {
 
   getUsers: async () => {
     try {
-      const response = await apiService.get<User[]>(ENDPOINTS.USERS.LIST);
-      return z.array(UserSchema).parse(response);
+      const res = await apiService.get<Res<User[]>>(ENDPOINTS.USERS.LIST);
+      return z.array(UserSchema).parse(res.data);
     } catch (error) {
       console.error('Failed to get users:', error);
       throw error;
@@ -48,8 +49,8 @@ export const userService = {
   updateUser: async (userData: FormData) => {
     try {
       updateUserSchema.parse(userData);
-      const response = await apiService.put<unknown>(ENDPOINTS.USERS.UPDATE, userData);
-      return baseUserSchema.parse(response);
+      const res = await apiService.put<Res<User>>(ENDPOINTS.USERS.UPDATE, userData);
+      return baseUserSchema.parse(res.data);
     } catch (error) {
       console.error('Failed to update user:', error);
       throw error;

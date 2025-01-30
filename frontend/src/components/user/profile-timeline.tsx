@@ -13,7 +13,6 @@ import { FiFolderPlus } from 'react-icons/fi';
 import ProjectCard from '@/components/project/project-card';
 import BranchCard from '@/components/branch/branch-card';
 import PostCard from '@/components/post/post-card';
-import PaginationWrapper from '@/components/pagination-wrapper';
 
 interface InteractionOrProjectOrBranchOrPost {
   createdAt?: string;
@@ -103,9 +102,6 @@ export default function ProfileTimeline({ profile }: { profile: User }) {
 
   return (
     <div className="flex flex-col gap-2">
-      {timeline && timeline.length > pageCount && (
-        <PaginationWrapper onPageChange={handlePageChange} page={page} pageCount={pageCount} data={timeline} />
-      )}
       {paginatedTimeline &&
         paginatedTimeline.map((obj) =>
           obj.type == 'LIKE' || obj.type == 'SHARE' ? (

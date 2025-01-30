@@ -7,8 +7,8 @@ import { CreatePostData, Post, UpdatePostData } from '@/api/schemas/PostSchema';
 export const postService = {
   getPost: async (id: string) => {
     try {
-      const response = await apiService.get<Post>(ENDPOINTS.POSTS.DETAIL(id));
-      return PostSchema.parse(response);
+      const res = await apiService.get<Res<Post>>(ENDPOINTS.POSTS.DETAIL(id));
+      return PostSchema.parse(res.data);
     } catch (error) {
       console.error('Failed to get post:', error);
       throw error;
@@ -17,8 +17,8 @@ export const postService = {
 
   getPosts: async ({ branchId, userId }: { branchId?: string; userId?: string }) => {
     try {
-      const response = await apiService.get<Post[]>(ENDPOINTS.POSTS.LIST({ branchId, userId }));
-      return z.array(PostSchema).parse(response);
+      const res = await apiService.get<Res<Post[]>>(ENDPOINTS.POSTS.LIST({ branchId, userId }));
+      return z.array(PostSchema).parse(res.data);
     } catch (error) {
       console.error('Failed to get posts:', error);
       throw error;
@@ -27,8 +27,8 @@ export const postService = {
 
   createPost: async (postData: FormData) => {
     try {
-      const response = await apiService.post<Post>(ENDPOINTS.POSTS.CREATE, postData);
-      return PostSchema.parse(response);
+      const res = await apiService.post<Res<Post>>(ENDPOINTS.POSTS.CREATE, postData);
+      return PostSchema.parse(res.data);
     } catch (error) {
       console.error('Failed to create post:', error);
       throw error;
@@ -37,8 +37,8 @@ export const postService = {
 
   updatePost: async (id: string, postData: FormData) => {
     try {
-      const response = await apiService.put<Post>(ENDPOINTS.POSTS.UPDATE(id), postData);
-      return PostSchema.parse(response);
+      const res = await apiService.put<Res<Post>>(ENDPOINTS.POSTS.UPDATE(id), postData);
+      return PostSchema.parse(res.data);
     } catch (error) {
       console.error('Failed to update post:', error);
       throw error;

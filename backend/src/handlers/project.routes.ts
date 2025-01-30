@@ -35,7 +35,7 @@ router.delete('/:id', auth, projectController.delete);
 
 /*
 GET - All Projects
-REQ - User ID?
+REQ - User ID?, Cursor?, Limit?
 RES - 200 - Project[]
 */
 router.get('/', optionalAuth, projectController.getAll);
@@ -45,6 +45,16 @@ POST - Create Project
 REQ - Project Data
 RES - 200 - Project
 */
-router.post('/', auth, projectController.create);
+router.post(
+  '/',
+  (req, res, next) => {
+    if (req.headers['content-type']?.includes('multipart/form-data')) {
+      return next(); // Skip global body parsing middleware
+    }
+    res.status(415).json({ error: 'Invalid Content-Type. Use multipart/form-data' });
+  },
+  auth,
+  projectController.create
+);
 
 export default router;

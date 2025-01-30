@@ -42,24 +42,51 @@ export class ProjectService {
     }
   }
 
-  async findAll(userId?: string, user?: BasicUser) {
+  async findAll({
+    userId,
+    user,
+    cursor,
+    limit = 10,
+  }: {
+    userId?: string;
+    user?: BasicUser;
+    cursor?: string | null;
+    limit: number;
+  }) {
     try {
-      const cacheKey = userId ? `projects-author-${userId}` : 'projects';
-
+      const cacheKey = `projects-${userId || 'all'}-${cursor || 'start'}-${limit}`;
       const whereClause = {
         ...filterByPermissions(user),
+        ...(userId && { authorId: userId }),
       };
-      // Additional filtering by author
-      if (userId) {
-        whereClause.authorId = userId;
+      let items = await this.db.project.findMany({
+        where: Object.keys(whereClause).length ? whereClause : undefined,
+        include: includeOptions,
+        orderBy: {
+          updatedAt: 'desc',
+        },
+        take: limit + 1,
+        ...(cursor && {
+          cursor: {
+            id: cursor,
+          },
+          skip: 1, // Skip the cursor item
+        }),
+      });
+
+      if (!items || items.length === 0) {
+        items = [];
       }
 
-      return await fetchFromCacheOrDB(projectsCache, cacheKey, () =>
-        this.db.project.findMany({
-          where: Object.keys(whereClause).length ? whereClause : undefined,
-          include: includeOptions,
-        })
-      );
+      // Check if we have more items
+      const hasNextPage = items.length > limit;
+      const data = hasNextPage ? items.slice(0, -1) : items;
+
+      return {
+        data,
+        hasNextPage,
+        nextCursor: hasNextPage ? data[data.length - 1].id : null,
+      };
     } catch (error) {
       console.error('Failed to fetch projects:', error);
       throw new Error('Failed to fetch projects');

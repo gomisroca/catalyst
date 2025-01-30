@@ -9,11 +9,13 @@ import { Pencil } from 'lucide-react';
 function ProjectDetails({ project, user }: { project: Project; user?: BasicUser }) {
   return (
     <div className="flex items-center gap-2 px-4">
-      <Avatar className="rounded-md">
-        <AvatarImage className="rounded-sm" src={`${import.meta.env.VITE_IMG_ROOT + project.avatar}`} />
-        <AvatarFallback>{project.name[0]}</AvatarFallback>
-      </Avatar>
-      <div>
+      <header>
+        <Avatar className="rounded-md">
+          <AvatarImage className="rounded-sm" src={`${import.meta.env.VITE_IMG_ROOT + project.avatar}`} />
+          <AvatarFallback>{project.name[0]}</AvatarFallback>
+        </Avatar>
+      </header>
+      <main>
         <CardDescription>
           {project.author.nickname || project.author.username}
           <Link to={`/profile/${project.author.id}`} className="hover:text-gray-500" data-testid="author-link">
@@ -33,7 +35,7 @@ function ProjectDetails({ project, user }: { project: Project; user?: BasicUser 
         <CardDescription className="flex gap-1">
           {new Date(project.createdAt).toLocaleDateString()}•{new Date(project.updatedAt).toLocaleDateString()}
         </CardDescription>
-      </div>
+      </main>
     </div>
   );
 }

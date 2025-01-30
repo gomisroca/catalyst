@@ -34,18 +34,18 @@ RES - 200
 router.delete('/self', auth, userController.delete);
 
 /*
-GET - Specific User
-REQ - None
-RES - 200 - User
-*/
-router.get('/:id', userController.getById);
-
-/*
 GET - Followed Users
 REQ - None
 RES - 200 - User[]
 */
 router.get('/followed', auth, userController.getFollowed);
+
+/*
+GET - Specific User
+REQ - None
+RES - 200 - User
+*/
+router.get('/:id', userController.getById);
 
 /*
 GET - All Users

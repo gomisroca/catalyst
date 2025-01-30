@@ -1,10 +1,18 @@
 import { z } from 'zod';
 
+enum InteractionType {
+  LIKE = 'LIKE',
+  SHARE = 'SHARE',
+  BOOKMARK = 'BOOKMARK',
+  REPORT = 'REPORT',
+  HIDE = 'HIDE',
+}
+
 const baseUserSchema = z.object({
   id: z.string(),
   email: z.string().email(),
   username: z.string(),
-  nickname: z.string(),
+  nickname: z.string().nullable(),
   avatar: z.string(),
   role: z.string(),
 });

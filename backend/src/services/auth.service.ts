@@ -29,7 +29,7 @@ export class AuthService {
         {
           id: user.id,
         },
-        process.env.JWT_ACCESS_SECRET as string,
+        process.env.JWT_REFRESH_SECRET as string,
         { expiresIn: process.env.JWT_REFRESH_EXPIRY ?? '7d' }
       );
 

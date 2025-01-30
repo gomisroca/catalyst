@@ -4,6 +4,17 @@ import { sendError, sendSuccess } from '@/utils/standard-responses';
 import { createProjectSchema, updateProjectSchema } from '@/schemas/ProjectSchema';
 import { BasicUser } from '@/schemas/UserSchema';
 import parseForm from '@/utils/parse-form';
+import { z } from 'zod';
+
+const getAllSchema = z.object({
+  userId: z.string().optional(),
+  cursor: z.string().optional().nullable(),
+  limit: z
+    .string()
+    .optional()
+    .transform((val) => (val ? Number(val) : 10))
+    .pipe(z.number().min(1).max(100)),
+});
 
 export class ProjectController {
   projectService;
@@ -34,9 +45,15 @@ export class ProjectController {
   };
 
   getAll = async (req: Request, res: Response) => {
-    const { userId } = req.query;
     try {
-      const projects = await this.projectService.findAll(userId as string, req.user as BasicUser);
+      const { userId, cursor, limit } = getAllSchema.parse(req.query);
+      const projects = await this.projectService.findAll({
+        userId,
+        user: req.user as BasicUser,
+        cursor,
+        limit,
+      });
+      console.log(projects);
       sendSuccess(res, projects);
     } catch (error: any) {
       console.error('Failed to fetch projects:', error);
@@ -46,8 +63,12 @@ export class ProjectController {
 
   create = async (req: Request, res: Response) => {
     try {
-      const { fields, files } = await parseForm(req);
+      // Ensure the request is multipart/form-data
+      if (!req.headers['content-type']?.includes('multipart/form-data')) {
+        return sendError(res, 'Invalid Content-Type. Use multipart/form-data');
+      }
 
+      const { fields, files } = await parseForm(req);
       if (!files.avatar || files.avatar.length === 0) {
         return sendError(res, 'Avatar file is required');
       }
