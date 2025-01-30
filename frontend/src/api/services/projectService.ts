@@ -18,9 +18,9 @@ export const projectService = {
   getProjects: async ({ userId, cursor, limit }: { userId?: string; cursor: string | null; limit?: number }) => {
     try {
       const res = await apiService.get<PaginatedRes<Project[]>>(ENDPOINTS.PROJECTS.LIST({ userId, cursor, limit }));
-
+      console.log(res);
       return {
-        data: z.array(ProjectSchema).parse(res.data),
+        data: z.array(ProjectSchema).parse(res.data) ?? [],
         nextCursor: res.nextCursor,
         hasNextPage: res.hasNextPage,
       };

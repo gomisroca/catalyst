@@ -45,7 +45,7 @@ const apiService = {
   post: <T>(endpoint: string, body: unknown, options?: RequestOptions) =>
     apiFetch<T>(endpoint, {
       method: 'POST',
-      body: body,
+      body: body as BodyInit,
       ...options,
     }),
 
