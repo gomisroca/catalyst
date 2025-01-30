@@ -2,7 +2,7 @@ import { CookieOptions, Request, Response } from 'express';
 
 export function setCookie(res: Response, key: string, value: string, maxAge: number = 7 * 24 * 60 * 60 * 1000) {
   const options: CookieOptions = {
-    httpOnly: true,
+    httpOnly: false,
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'strict',
     maxAge: maxAge,

@@ -59,24 +59,24 @@ export class ProjectService {
         ...filterByPermissions(user),
         ...(userId && { authorId: userId }),
       };
-
-      const items = await fetchFromCacheOrDB(projectsCache, cacheKey, () =>
-        this.db.project.findMany({
-          where: Object.keys(whereClause).length ? whereClause : undefined,
-          include: includeOptions,
-          orderBy: {
-            updatedAt: 'desc',
+      let items = await this.db.project.findMany({
+        where: Object.keys(whereClause).length ? whereClause : undefined,
+        include: includeOptions,
+        orderBy: {
+          updatedAt: 'desc',
+        },
+        take: limit + 1,
+        ...(cursor && {
+          cursor: {
+            id: cursor,
           },
-          take: limit + 1,
-          ...(cursor && {
-            cursor: {
-              id: cursor,
-            },
-            skip: 1, // Skip the cursor item
-          }),
-        })
-      );
-      if (!items || items.length === 0) throw new Error('No projects found');
+          skip: 1, // Skip the cursor item
+        }),
+      });
+
+      if (!items || items.length === 0) {
+        items = [];
+      }
 
       // Check if we have more items
       const hasNextPage = items.length > limit;

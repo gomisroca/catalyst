@@ -23,7 +23,7 @@ export class UserController {
 
   getSelf = async (req: Request, res: Response) => {
     try {
-      sendSuccess(res, req.user);
+      sendSuccess(res, { data: req.user });
     } catch (error: any) {
       console.log('Failed to get self data:', error);
       sendError(res, `Failed to get self data: ${error.message}`);
@@ -44,7 +44,7 @@ export class UserController {
   getFollowed = async (req: Request, res: Response) => {
     try {
       const followedUsers = await this.userService.findFollowed((req.user as BasicUser).id);
-      sendSuccess(res, followedUsers);
+      sendSuccess(res, { data: followedUsers });
     } catch (error: any) {
       console.log('Failed to fetch followed users:', error);
       sendError(res, `Failed to fetch followed users: ${error.message}`);
@@ -54,7 +54,7 @@ export class UserController {
   getAll = async (_: Request, res: Response) => {
     try {
       const users = await this.userService.findAll();
-      sendSuccess(res, users);
+      sendSuccess(res, { data: users });
     } catch (error: any) {
       console.log('Failed to fetch users:', error);
       sendError(res, `Failed to fetch users: ${error.message}`);

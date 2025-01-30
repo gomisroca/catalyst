@@ -7,23 +7,22 @@ import { type Project, type CreateProjectData, type UpdateProjectData } from '@/
 export const projectService = {
   getProject: async (id: string) => {
     try {
-      const response = await apiService.get<Project>(ENDPOINTS.PROJECTS.DETAIL(id));
-      return ProjectSchema.parse(response);
+      const res = await apiService.get<Res<Project>>(ENDPOINTS.PROJECTS.DETAIL(id));
+      return ProjectSchema.parse(res.data);
     } catch (error) {
       console.error('Failed to get project:', error);
       throw error;
     }
   },
 
-  getProjects: async ({ userId, cursor, limit }: { userId: string; cursor: string | null; limit?: number }) => {
+  getProjects: async ({ userId, cursor, limit }: { userId?: string; cursor: string | null; limit?: number }) => {
     try {
-      const response = await apiService.get<PaginatedResponse<Project[]>>(
-        ENDPOINTS.PROJECTS.LIST({ userId, cursor, limit })
-      );
+      const res = await apiService.get<PaginatedRes<Project[]>>(ENDPOINTS.PROJECTS.LIST({ userId, cursor, limit }));
+      console.log(res);
       return {
-        data: z.array(ProjectSchema).parse(response.data),
-        nextCursor: response.nextCursor,
-        hasNextPage: response.hasNextPage,
+        data: z.array(ProjectSchema).parse(res.data) ?? [],
+        nextCursor: res.nextCursor,
+        hasNextPage: res.hasNextPage,
       };
     } catch (error) {
       console.error('Failed to get projects:', error);
@@ -33,8 +32,8 @@ export const projectService = {
 
   createProject: async (projectData: FormData) => {
     try {
-      const response = await apiService.post<Project>(ENDPOINTS.PROJECTS.CREATE, projectData);
-      return ProjectSchema.parse(response);
+      const res = await apiService.post<Res<Project>>(ENDPOINTS.PROJECTS.CREATE, projectData);
+      return ProjectSchema.parse(res.data);
     } catch (error) {
       console.error('Failed to create project:', error);
       throw error;
@@ -43,8 +42,8 @@ export const projectService = {
 
   updateProject: async (id: string, projectData: FormData) => {
     try {
-      const response = await apiService.put<Project>(ENDPOINTS.PROJECTS.UPDATE(id), projectData);
-      return ProjectSchema.parse(response);
+      const res = await apiService.put<Res<Project>>(ENDPOINTS.PROJECTS.UPDATE(id), projectData);
+      return ProjectSchema.parse(res.data);
     } catch (error) {
       console.error('Failed to update project:', error);
       throw error;

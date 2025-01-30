@@ -73,7 +73,6 @@ export default function CreateProject() {
         data.append('allowedUsers', user.value);
       }
     }
-
     createProject(data);
   }
 
