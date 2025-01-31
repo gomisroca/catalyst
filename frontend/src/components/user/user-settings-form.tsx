@@ -20,7 +20,7 @@ export function UserSettingsForm() {
     resolver: zodResolver(updateUserSchema),
     defaultValues: {
       username: user?.username,
-      nickname: user?.nickname ? user?.nickname : '',
+      nickname: user?.nickname ?? '',
       email: user?.email,
       avatar: user?.avatar,
     },

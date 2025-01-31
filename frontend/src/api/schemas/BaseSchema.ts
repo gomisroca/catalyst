@@ -12,7 +12,7 @@ const baseUserSchema = z.object({
   id: z.string(),
   email: z.string().email(),
   username: z.string(),
-  nickname: z.string().nullable(),
+  nickname: z.string(),
   avatar: z.string(),
   role: z.string(),
 });

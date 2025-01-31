@@ -32,7 +32,7 @@ interface BasicUser {
   id: string;
   email: string;
   username: string;
-  nickname: string | null;
+  nickname: string;
   avatar: string;
   role: string;
 }
