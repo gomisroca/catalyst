@@ -2,10 +2,10 @@ import HomeBasic from '@/components/home/basic';
 import HomeTimeline from '@/components/home/timeline';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { useUser } from '@/contexts/user-provider';
+import { useGetSelf } from '@/hooks/users/useGetSelf';
 
 export default function Home() {
-  const { user } = useUser();
+  const { data: user } = useGetSelf();
 
   return (
     <Tabs defaultValue="basic" className="flex w-full flex-col items-center">

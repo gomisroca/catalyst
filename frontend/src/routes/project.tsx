@@ -1,191 +1,117 @@
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Card, CardContent, CardDescription, CardFooter, CardTitle } from '@/components/ui/card';
-import { getProject } from '@/lib/projects';
+// Hook Imports
 import { useEffect, useState } from 'react';
-import { Link, Outlet, useNavigate, useParams } from 'react-router-dom';
-import { useUser } from '@/contexts/user-provider';
-import CreateBranchButton from '@/components/project/create-branch-button';
+import { Outlet, useNavigate, useParams } from 'react-router-dom';
+import { useGetSelf } from '@/hooks/users/useGetSelf';
+import { useGetProject } from '@/hooks/projects/useGetProject';
+// UI Imports
+import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { BsActivity, BsFire } from 'react-icons/bs';
 import { Button } from '@/components/ui/button';
-import { Pencil } from 'lucide-react';
-import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
-import { ProjectEditForm } from '@/components/project/project-edit-form';
+import Error from '@/components/ui/error';
+import Loading from '@/components/ui/loading';
+import { FiPlus } from 'react-icons/fi';
+import ProjectDetails from '@/components/project/project-details';
 
-export default function Project() {
-  const [open, setOpen] = useState(false);
+// Utility Functions
+const isPublicOrAuthor = (branch: Branch, user?: BasicUser) =>
+  !branch.permissions.private ||
+  user?.id === branch.author.id ||
+  (user && branch.permissions.allowedUsers.includes(user.id));
 
-  const handleSubmitSuccess = () => {
-    setOpen(false);
-  };
+const hasNoNegativeInteraction = (branch: Branch, user?: BasicUser) =>
+  !user ||
+  !branch.interactions.some(
+    (interaction) => ['REPORT', 'HIDE'].includes(interaction.type) && interaction.user.id === user?.id
+  );
 
-  const { user } = useUser();
+const filterAndSortBranches = (branches: Branch[], user?: BasicUser) => {
+  if (!branches) return [];
+  return branches
+    .filter((branch) => isPublicOrAuthor(branch, user) && hasNoNegativeInteraction(branch, user))
+    .sort((a, b) => b.popularity + b.activity - (a.popularity + a.activity));
+};
 
-  const { projectId } = useParams();
-  const [project, setProject] = useState<Project>();
-  const [branches, setBranches] = useState<Branch[]>();
-
-  useEffect(() => {
-    async function fetchProject(projectId: string) {
-      const proj: Project = await getProject(projectId);
-      setProject(proj);
-      console.log(proj);
-      // Most popular and active branches at the top
-      const sortedBranches = proj.branches.sort((a, b) => b.popularity + b.activity - (a.popularity + a.activity));
-      // Then we check that the branches are public or the user is the author
-      const publicBranches = sortedBranches.filter(
-        (branch) =>
-          branch.permissions.private == false ||
-          (user && (branch.author.id == user.id || branch.permissions.allowedUsers.includes(user.id)))
-      );
-      // If there's a user, of all public or owned branches, we check if the user has reported or hidden them
-      if (user) {
-        for (const branch of publicBranches) {
-          if (
-            branch.interactions.filter((int) => (int.type == 'REPORT' || int.type == 'HIDE') && int.user.id == user.id)
-              .length > 0
-          ) {
-            const index = publicBranches.indexOf(branch);
-            if (index > -1) {
-              publicBranches.splice(index, 1);
-            }
-          }
-        }
-      }
-      setBranches(publicBranches);
-    }
-
-    if (projectId) {
-      fetchProject(projectId);
-    }
-  }, [projectId, user]);
-
+// Branch Creation Dialog
+function CreateBranchButton({ project }: { project: Project }) {
   const navigate = useNavigate();
+
+  return (
+    <Button
+      variant="outline"
+      className="mb-2 flex w-full items-center"
+      onClick={() => navigate(`/projects/${project.id}/new`)}
+    >
+      <FiPlus className="mr-2 h-4 w-4" /> Add Branch
+    </Button>
+  );
+}
+
+// Branch Selection
+function BranchSelection({ project, branches, user }: { project: Project; branches: Branch[]; user?: BasicUser }) {
+  const navigate = useNavigate();
+
   const [selectedBranch, setSelectedBranch] = useState<string>();
+
+  // Navigate to selected branch
   useEffect(() => {
     if (selectedBranch && selectedBranch !== 'null') {
       navigate(selectedBranch);
-      setSelectedBranch('null');
+      setSelectedBranch('');
     }
   }, [selectedBranch, navigate]);
 
   return (
-    <div className="flex w-full flex-col gap-2">
-      {project && (
-        <Card className="w-full p-4">
-          <div className="flex items-center gap-2 px-4">
-            <Avatar className="rounded-md">
-              <AvatarImage className="rounded-sm" src={`${import.meta.env.VITE_IMG_ROOT + project.avatar}`} />
-              <AvatarFallback>{project.name[0]}</AvatarFallback>
-            </Avatar>
-            <div>
-              <CardDescription>
-                {project.author.nickname || project.author.username}
-                <Link to={`/profile/${project.author.id}`} className="hover:text-gray-500" data-testid="author-link">
-                  @{project.author.username}
-                </Link>
-              </CardDescription>
-              <CardTitle className="flex gap-2">
-                {project.name}
-                {project.trendingActivity && (
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger>
-                        <BsActivity className="text-green-500" />
-                      </TooltipTrigger>
-                      <TooltipContent>Active</TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                )}
-                {project.trendingPopularity && (
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger>
-                        <BsFire className="text-orange-500" />
-                      </TooltipTrigger>
-                      <TooltipContent>Popular</TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                )}
-                {user && user.id == project.author.id && (
-                  <Dialog open={open} onOpenChange={setOpen}>
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <DialogTrigger asChild>
-                            <Button variant="outline" size="icon">
-                              <Pencil className="h-4 w-4" />
-                            </Button>
-                          </DialogTrigger>
-                        </TooltipTrigger>
-                        <TooltipContent>Edit Project</TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
-                    <DialogContent className="w-5/6 rounded-md">
-                      <ProjectEditForm onSubmitSuccess={handleSubmitSuccess} project={project} />
-                    </DialogContent>
-                  </Dialog>
-                )}
-              </CardTitle>
-              <CardDescription className="flex gap-1">
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger className="cursor-default">
-                      {`${new Date(project.createdAt).toLocaleDateString()}`}
-                    </TooltipTrigger>
-                    <TooltipContent>Created</TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-                •
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger className="cursor-default">
-                      {`${new Date(project.updatedAt).toLocaleDateString()}`}
-                    </TooltipTrigger>
-                    <TooltipContent>Updated</TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              </CardDescription>
-            </div>
-          </div>
-          <CardContent className="p-4">{project.description}</CardContent>
-          <CardFooter className="flex flex-col gap-2">
-            {branches && branches.length > 0 ? (
-              <>
-                <span className="text-lg">Branches</span>
-                <Select onValueChange={(e) => setSelectedBranch(e)} value={selectedBranch}>
-                  <SelectTrigger className="w-[280px]">
-                    <SelectValue placeholder="Select a branch" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {user && (project.author.id == user.id || project.permissions.allowBranch) && (
-                      <CreateBranchButton project={project} />
-                    )}
-                    <SelectItem className="hidden" value={'null'}>
-                      --
-                    </SelectItem>
-                    {branches &&
-                      branches.map(
-                        (branch) =>
-                          branch.permissions.allowBranch && (
-                            <SelectItem key={branch.id} value={branch.id}>
-                              {branch.name}
-                            </SelectItem>
-                          )
-                      )}
-                  </SelectContent>
-                </Select>
-              </>
-            ) : (
-              <>
-                <span>This project has no branches yet.</span>
+    <CardFooter className="flex flex-col gap-2">
+      {branches.length > 0 ? (
+        <>
+          <span className="text-lg">Branches</span>
+          <Select onValueChange={setSelectedBranch} value={selectedBranch}>
+            <SelectTrigger className="w-[280px]">
+              <SelectValue placeholder="Select a branch" />
+            </SelectTrigger>
+            <SelectContent>
+              {(project.author.id === user?.id || project.permissions.allowBranch) && (
                 <CreateBranchButton project={project} />
-              </>
-            )}
-          </CardFooter>
-        </Card>
+              )}
+              <SelectItem className="hidden" value="null">
+                --
+              </SelectItem>
+              {branches.map((branch) => (
+                <SelectItem key={branch.id} value={branch.id}>
+                  {branch.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </>
+      ) : (
+        <>
+          <span>This project has no branches yet.</span>
+          <CreateBranchButton project={project} />
+        </>
       )}
+    </CardFooter>
+  );
+}
+
+export default function Project() {
+  const { data: user } = useGetSelf();
+  const { projectId } = useParams();
+
+  const { data: project, isLoading, error } = useGetProject(projectId!);
+
+  if (isLoading) return <Loading />;
+  if (error) return <Error message={error.message} />;
+  if (!project) return <Error message="Project not found" />;
+
+  const branches = filterAndSortBranches(project.branches, user);
+  return (
+    <div className="flex w-full flex-col gap-2">
+      <Card className="w-full p-4">
+        <ProjectDetails project={project} user={user} />
+        <CardContent className="p-4">{project.description}</CardContent>
+        <BranchSelection project={project} branches={branches} user={user} />
+      </Card>
       <Outlet />
     </div>
   );

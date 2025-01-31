@@ -1,15 +1,23 @@
+// Libraries Imports
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import './index.css';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
-import Home from './routes/home';
-import { ThemeProvider } from '@/contexts/theme-provider';
-import { UserProvider } from '@/contexts/user-provider';
-import Navmenu from './components/ui/navmenu';
-import JWTGet from './routes/JWTGet';
-import Project from './routes/project';
-import Branch from './routes/branch';
-import Profile from './components/user/profile-main';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
+import '@/index.css';
+// Routes Imports
+import Home from '@/routes/home';
+import Project from '@/routes/project';
+import Branch from '@/routes/branch';
+import Profile from '@/routes/profile';
+import CreateProject from '@/routes/create-project';
+import UpdateProject from '@/routes/update-project';
+import CreateBranch from '@/routes/create-branch';
+import UpdateBranch from '@/routes/update-branch';
+import CreatePost from '@/routes/create-post';
+import UpdatePost from '@/routes/update-post';
+// Components Imports
+import Navmenu from '@/components/ui/navmenu';
 
 const router = createBrowserRouter([
   {
@@ -17,36 +25,64 @@ const router = createBrowserRouter([
     element: <Home />,
   },
   {
-    path: '/jwt',
-    element: <JWTGet />,
-  },
-  {
     path: '/:projectId',
     element: <Project />,
     children: [
       {
+        path: 'update',
+        element: <UpdateProject />,
+      },
+      {
+        path: 'new',
+        element: <CreateBranch />,
+      },
+      {
         path: ':branchId',
         element: <Branch />,
+        children: [
+          {
+            path: 'update',
+            element: <UpdateBranch />,
+          },
+          {
+            path: 'new',
+            element: <CreatePost />,
+          },
+          {
+            path: ':postId',
+            children: [
+              {
+                path: 'update',
+                element: <UpdatePost />,
+              },
+            ],
+          },
+        ],
       },
     ],
   },
   {
-    path: '/profile/:userId',
+    path: '/profile/:profileId',
     element: <Profile />,
+  },
+  {
+    path: 'new',
+    element: <CreateProject />,
   },
 ]);
 
+const queryClient = new QueryClient();
+
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
-    <UserProvider>
-      <ThemeProvider defaultTheme="dark" storageKey="catalyst-theme">
-        <div className="bg-gradient min-h-screen">
-          <Navmenu />
-          <div className="flex items-center justify-center p-2 md:p-10 lg:p-20">
-            <RouterProvider router={router} />
-          </div>
-        </div>
-      </ThemeProvider>
-    </UserProvider>
+    <QueryClientProvider client={queryClient}>
+      <div className="min-h-screen bg-neutral-100 dark:bg-neutral-900">
+        <Navmenu />
+        <main className="flex items-center justify-center p-2 md:p-10 lg:p-20">
+          <RouterProvider router={router} />
+        </main>
+      </div>
+      <ReactQueryDevtools initialIsOpen={false} />
+    </QueryClientProvider>
   </React.StrictMode>
 );

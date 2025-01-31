@@ -1,15 +1,18 @@
-import { Card, CardContent, CardDescription } from '../ui/card';
-import { useEffect, useState } from 'react';
-import { Forward, Star } from 'lucide-react';
+// Base Imports
 import { Link } from 'react-router-dom';
-import TimelineBranchCard from './timeline-branch-card';
-import TimelinePostCard from './timeline-post-card';
+// Hook Imports
+import { useEffect, useState } from 'react';
+import { useGetSelf } from '@/hooks/users/useGetSelf';
+// UI Imports
+import { Card, CardContent, CardDescription } from '@/components/ui/card';
+import { Forward, Star } from 'lucide-react';
 import { FaRegFileAlt } from 'react-icons/fa';
 import { AiOutlineBranches } from 'react-icons/ai';
-import TimelineProjectCard from './timeline-project-card';
 import { FiFolderPlus } from 'react-icons/fi';
-import PaginationWrapper from '../pagination-wrapper';
-import { useUser } from '@/contexts/user-provider';
+// Component Imports
+import ProjectCard from '@/components/project/project-card';
+import BranchCard from '@/components/branch/branch-card';
+import PostCard from '@/components/post/post-card';
 
 interface InteractionOrProjectOrBranchOrPost {
   createdAt?: string;
@@ -38,25 +41,9 @@ interface InteractionOrProjectOrBranchOrPost {
 }
 
 export default function ProfileTimeline({ profile }: { profile: User }) {
-  const { user } = useUser();
+  const { data: user } = useGetSelf();
+
   const [timeline, setTimeline] = useState<InteractionOrProjectOrBranchOrPost[]>();
-  const [paginatedTimeline, setPaginatedTimeline] = useState<InteractionOrProjectOrBranchOrPost[]>();
-  const [page, setPage] = useState<number>(1);
-  const pageCount = 5;
-
-  const handlePageChange = (page: number) => {
-    setPage(page);
-  };
-  useEffect(() => {
-    function paginate(timeline: InteractionOrProjectOrBranchOrPost[]) {
-      const paginated = timeline.slice((page - 1) * pageCount, page * pageCount);
-      setPaginatedTimeline(paginated);
-    }
-
-    if (timeline) {
-      paginate(timeline);
-    }
-  }, [timeline, page]);
 
   useEffect(() => {
     function createTimeline(profile: User): void {
@@ -79,99 +66,96 @@ export default function ProfileTimeline({ profile }: { profile: User }) {
           obj.content ||
           (obj.projectId &&
             (obj.permissions?.private == false ||
-              (user && (obj.author?.id == user.id || obj.permissions?.allowedUsers.includes(user.id))))) ||
+              obj.author?.id == user?.id ||
+              (user && obj.permissions?.allowedUsers.includes(user.id)))) ||
           (obj.name &&
             !obj.projectId &&
             (obj.permissions?.private == false ||
-              (user && (obj.author?.id == user.id || obj.permissions?.allowedUsers.includes(user.id)))))
+              obj.author?.id == user?.id ||
+              (user && obj.permissions?.allowedUsers.includes(user.id))))
       );
       setTimeline(filteredTimeline);
     }
 
     if (profile) {
-      console.log(profile);
       createTimeline(profile);
     }
   }, [profile, user]);
 
   return (
     <div className="flex flex-col gap-2">
-      {timeline && timeline.length > pageCount && (
-        <PaginationWrapper onPageChange={handlePageChange} page={page} pageCount={pageCount} data={timeline} />
-      )}
-      {paginatedTimeline &&
-        paginatedTimeline.map((obj) =>
-          obj.type == 'LIKE' || obj.type == 'SHARE' ? (
-            <Card key={obj.id} className="border-none bg-secondary/20 px-0 pt-2">
-              {obj.type == 'LIKE' && (
-                <>
-                  <CardDescription className="mx-6 flex items-center gap-1">
-                    <Star size={'15px'} />
-                    {profile.nickname || profile.username} liked a {obj.branchId ? 'branch' : 'post'}
-                  </CardDescription>
-                  <CardContent className="p-2">
-                    {obj.branchId && obj.branch ? (
-                      <>
-                        <Link to={`/${obj.branch.projectId}/${obj.branch.id}/`}>
-                          <TimelineBranchCard branch={obj.branch} />
-                        </Link>
-                      </>
-                    ) : obj.postId && obj.post ? (
-                      <Link to={`/${obj.post.branch.projectId}/${obj.post.branch.id}/`}>
-                        <TimelinePostCard post={obj.post} />
+      {timeline?.map((obj) =>
+        obj.type == 'LIKE' || obj.type == 'SHARE' ? (
+          <Card key={obj.id} className="border-none bg-secondary/20 px-0 pt-2">
+            {obj.type == 'LIKE' && (
+              <>
+                <CardDescription className="mx-6 flex items-center gap-1">
+                  <Star size={'15px'} />
+                  {profile.nickname || profile.username} liked a {obj.branchId ? 'branch' : 'post'}
+                </CardDescription>
+                <CardContent className="p-2">
+                  {obj.branchId && obj.branch ? (
+                    <>
+                      <Link to={`/${obj.branch.projectId}/${obj.branch.id}/`}>
+                        <BranchCard branch={obj.branch} />
                       </Link>
-                    ) : null}
-                  </CardContent>
-                </>
-              )}
-              {obj.type == 'SHARE' && (
-                <>
-                  <CardDescription className="mx-6 flex items-center gap-1">
-                    <Forward size={'15px'} />
-                    {profile.nickname || profile.username} shared a {obj.branchId ? 'branch' : 'post'}
-                  </CardDescription>
-                  <CardContent className="p-2">
-                    {obj.branchId && obj.branch ? (
-                      <TimelineBranchCard branch={obj.branch} />
-                    ) : obj.postId && obj.post ? (
-                      <TimelinePostCard post={obj.post} />
-                    ) : null}
-                  </CardContent>
-                </>
-              )}
-            </Card>
-          ) : obj.content ? (
-            <Card key={obj.id} className="border-none bg-secondary/20 px-0 pt-2">
-              <CardDescription className="mx-6 flex items-center gap-1">
-                <FaRegFileAlt size={'15px'} />
-                {profile.nickname || profile.username} posted
-              </CardDescription>
-              <CardContent className="p-2">
-                <TimelinePostCard post={obj as Post} />
-              </CardContent>
-            </Card>
-          ) : obj.projectId ? (
-            <Card key={obj.id} className="border-none bg-secondary/20 px-0 pt-2">
-              <CardDescription className="mx-6 flex items-center gap-1">
-                <AiOutlineBranches size={'15px'} />
-                {profile.nickname || profile.username} created a branch
-              </CardDescription>
-              <CardContent className="p-2">
-                <TimelineBranchCard branch={obj as Branch} />
-              </CardContent>
-            </Card>
-          ) : obj.name && !obj.projectId ? (
-            <Card key={obj.id} className="border-none bg-secondary/20 px-0 pt-2">
-              <CardDescription className="mx-6 flex items-center gap-1">
-                <FiFolderPlus size={'15px'} />
-                {profile.nickname || profile.username} created a project
-              </CardDescription>
-              <CardContent className="p-2">
-                <TimelineProjectCard project={obj as Project} />
-              </CardContent>
-            </Card>
-          ) : null
-        )}
+                    </>
+                  ) : obj.postId && obj.post ? (
+                    <Link to={`/${obj.post.branch.projectId}/${obj.post.branch.id}/`}>
+                      <PostCard post={obj.post} />
+                    </Link>
+                  ) : null}
+                </CardContent>
+              </>
+            )}
+            {obj.type == 'SHARE' && (
+              <>
+                <CardDescription className="mx-6 flex items-center gap-1">
+                  <Forward size={'15px'} />
+                  {profile.nickname || profile.username} shared a {obj.branchId ? 'branch' : 'post'}
+                </CardDescription>
+                <CardContent className="p-2">
+                  {obj.branchId && obj.branch ? (
+                    <BranchCard branch={obj.branch} />
+                  ) : obj.postId && obj.post ? (
+                    <PostCard post={obj.post} />
+                  ) : null}
+                </CardContent>
+              </>
+            )}
+          </Card>
+        ) : obj.content ? (
+          <Card key={obj.id} className="border-none bg-secondary/20 px-0 pt-2">
+            <CardDescription className="mx-6 flex items-center gap-1">
+              <FaRegFileAlt size={'15px'} />
+              {profile.nickname || profile.username} posted
+            </CardDescription>
+            <CardContent className="p-2">
+              <PostCard post={obj as Post} />
+            </CardContent>
+          </Card>
+        ) : obj.projectId ? (
+          <Card key={obj.id} className="border-none bg-secondary/20 px-0 pt-2">
+            <CardDescription className="mx-6 flex items-center gap-1">
+              <AiOutlineBranches size={'15px'} />
+              {profile.nickname || profile.username} created a branch
+            </CardDescription>
+            <CardContent className="p-2">
+              <BranchCard branch={obj as Branch} />
+            </CardContent>
+          </Card>
+        ) : obj.name && !obj.projectId ? (
+          <Card key={obj.id} className="border-none bg-secondary/20 px-0 pt-2">
+            <CardDescription className="mx-6 flex items-center gap-1">
+              <FiFolderPlus size={'15px'} />
+              {profile.nickname || profile.username} created a project
+            </CardDescription>
+            <CardContent className="p-2">
+              <ProjectCard project={obj as Project} />
+            </CardContent>
+          </Card>
+        ) : null
+      )}
     </div>
   );
 }

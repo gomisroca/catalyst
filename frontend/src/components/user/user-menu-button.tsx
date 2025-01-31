@@ -1,12 +1,28 @@
+// Hook Imports
+import { useSignOut } from '@/hooks/auth/useSignOut';
+// UI Imports
 import { Button } from '@/components/ui/button';
 import { DialogTrigger } from '@/components/ui/dialog';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { useUser } from '@/contexts/user-provider';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '../ui/dropdown-menu';
-import { Tooltip, TooltipProvider, TooltipTrigger, TooltipContent } from '../ui/tooltip';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { Tooltip, TooltipProvider, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
 
-export default function UserMenuButton({ user }: { user: User }) {
-  const { signOut } = useUser();
+export default function UserMenuButton({ user }: { user: BasicUser }) {
+  const { mutate: signOut } = useSignOut();
+
+  const handleSignOut = () => {
+    try {
+      signOut();
+    } catch (error) {
+      console.error('Failed to sign out:', error);
+    }
+  };
+
   return (
     <>
       <DropdownMenu>
@@ -30,7 +46,7 @@ export default function UserMenuButton({ user }: { user: User }) {
           <DialogTrigger asChild>
             <DropdownMenuItem>Settings</DropdownMenuItem>
           </DialogTrigger>
-          <DropdownMenuItem onClick={() => signOut()}>Sign Out</DropdownMenuItem>
+          <DropdownMenuItem onClick={() => handleSignOut()}>Sign Out</DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
     </>

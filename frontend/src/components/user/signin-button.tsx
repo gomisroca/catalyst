@@ -1,6 +1,6 @@
 import { Button } from '@/components/ui/button';
 import { DialogTrigger } from '@/components/ui/dialog';
-import { Tooltip, TooltipProvider, TooltipTrigger, TooltipContent } from '../ui/tooltip';
+import { Tooltip, TooltipProvider, TooltipTrigger, TooltipContent } from '@/components//ui/tooltip';
 import { UserRound } from 'lucide-react';
 
 export default function SignInButton() {

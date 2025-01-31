@@ -1,88 +1,42 @@
-import { zodResolver } from '@hookform/resolvers/zod';
+// Base Imports
 import { useForm } from 'react-hook-form';
-import { z } from 'zod';
-import { Button } from '@/components/ui/button';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { UpdateUserData, updateUserSchema } from '@/api/schemas/UserSchema';
+// Component Imports
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { useUser } from '@/contexts/user-provider';
-import { useState } from 'react';
-import { getCookie, setCookie } from '@/lib/cookies';
-
-const formSchema = z.object({
-  username: z.string(),
-  nickname: z.string(),
-  email: z.string().email({ message: 'Invalid Email' }),
-  avatar: z.any(),
-  password: z
-    .string()
-    .min(8, { message: 'Password must be at least 8 characters long.' })
-    .superRefine((password, checkPassComplexity) => {
-      const containsUppercase = (ch: string) => /[A-Z]/.test(ch);
-      const containsLowercase = (ch: string) => /[a-z]/.test(ch);
-      const containsSpecialChar = (ch: string) =>
-        //eslint-disable-next-line
-        /[`!@#$%^&*()_\-+=\[\]{};':"\\|,.<>\/?~ ]/.test(ch);
-      let countOfUpperCase = 0;
-      let countOfLowerCase = 0;
-      let countOfNumbers = 0;
-      let countOfSpecialChar = 0;
-      for (let i = 0; i < password.length; i++) {
-        const ch = password.charAt(i);
-        if (!isNaN(+ch)) countOfNumbers++;
-        else if (containsUppercase(ch)) countOfUpperCase++;
-        else if (containsLowercase(ch)) countOfLowerCase++;
-        else if (containsSpecialChar(ch)) countOfSpecialChar++;
-      }
-      if (countOfLowerCase < 1 || countOfUpperCase < 1 || countOfSpecialChar < 1 || countOfNumbers < 1) {
-        checkPassComplexity.addIssue({
-          code: 'custom',
-          message: 'Password requires lowercase, uppercase, symbol and number characters.',
-        });
-      }
-    }),
-});
+import { Button } from '@/components/ui/button';
+import Error from '@/components/ui/error';
+import Loading from '@/components/ui/loading';
+// Hook Imports
+import { useGetSelf } from '@/hooks/users/useGetSelf';
+import { useUpdateUser } from '@/hooks/users/useUpdateUser';
 
 export function UserSettingsForm() {
-  const { user } = useUser();
-  const accessToken = getCookie('__catalyst__jwt');
-  const [failState, setFailState] = useState<string>();
-  const [successState, setSuccessState] = useState<string>();
+  const { data: user, isLoading: userPending, error: userError } = useGetSelf();
+  const { mutate: updateUser, isPending: updatePending, error: updateError } = useUpdateUser();
 
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
+  const form = useForm<UpdateUserData>({
+    resolver: zodResolver(updateUserSchema),
     defaultValues: {
       username: user?.username,
-      nickname: user?.nickname ? user?.nickname : '',
+      nickname: user?.nickname ?? '',
       email: user?.email,
-      password: '',
+      avatar: user?.avatar,
     },
   });
 
-  async function onSubmit(values: z.infer<typeof formSchema>) {
+  async function onSubmit(values: UpdateUserData) {
     const data = new FormData();
-    data.append('username', values.username);
-    data.append('nickname', values.nickname);
-    data.append('email', values.email);
-    data.append('avatar', values.avatar);
-    data.append('password', values.password);
+    if (values.username) data.append('username', values.username);
+    if (values.nickname) data.append('nickname', values.nickname);
+    if (values.email) data.append('email', values.email);
+    if (values.avatar) data.append('avatar', values.avatar);
 
-    const res = await fetch(`${import.meta.env.VITE_BACKEND_ORIGIN}/users/settings`, {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
-      body: data,
-    });
-    if (!res.ok) {
-      const fail = await res.json();
-      setFailState(fail);
-    } else {
-      setSuccessState('Posted!');
-      const data = await res.json();
-      setCookie('__catalyst__jwt', data.access_token);
-      window.location.href = '/';
-    }
+    updateUser(data);
   }
+  if (userPending) return <Loading />;
+  if (userError) return <Error message={userError.message} />;
   return (
     <>
       <Form {...form}>
@@ -129,7 +83,6 @@ export function UserSettingsForm() {
           <FormField
             control={form.control}
             name="avatar"
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
             render={({ field: { value, onChange, ...fieldProps } }) => (
               <FormItem>
                 <FormLabel>Avatar</FormLabel>
@@ -146,22 +99,14 @@ export function UserSettingsForm() {
               </FormItem>
             )}
           />
-          <FormField
-            control={form.control}
-            name="password"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Password</FormLabel>
-                <FormControl>
-                  <Input {...field} placeholder="**********" />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <Button type="submit">Submit</Button>
-          {failState && <div className="m-auto text-destructive">{failState}</div>}
-          {successState && <div className="m-auto">{successState}</div>}
+          <Button type="submit" disabled={updatePending}>
+            {updatePending ? 'Updating...' : 'Update'}
+          </Button>
+          {updateError && (
+            <p className="mt-2 text-red-500" role="alert">
+              {updateError.message}
+            </p>
+          )}
         </form>
       </Form>
     </>
