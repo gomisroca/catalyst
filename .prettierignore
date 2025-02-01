@@ -23,3 +23,7 @@ prisma/
 public/
 .storybook/
 src/stories/assets/
+.dockerignore
+Dockerfile
+docker-compose.yml
+*.webp

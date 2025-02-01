@@ -5,12 +5,12 @@ const config = {
   printWidth: 120,
   useTabs: false,
   tabWidth: 2,
-  trailingComma: "es5",
+  trailingComma: 'es5',
   bracketSpacing: true,
   bracketSameLine: true,
-  arrowParens: "always",
-  plugins: ["prettier-plugin-tailwindcss"],
-  tailwindConfig: "./tailwind.config.ts",
+  arrowParens: 'always',
+  plugins: ['prettier-plugin-tailwindcss'],
+  tailwindConfig: './tailwind.config.ts',
 };
 
 export default config;
