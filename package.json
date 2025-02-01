@@ -86,7 +86,6 @@
     "@vitejs/plugin-react": "^4.3.4",
     "autoprefixer": "^10.4.20",
     "cssnano": "^7.0.6",
-    "cz-conventional-changelog": "^3.3.0",
     "eslint": "^8.57.0",
     "eslint-config-next": "^15.0.1",
     "eslint-config-prettier": "^10.0.1",
