@@ -1,0 +1,29 @@
+'use client';
+
+/**
+ * Button to toggle the theme between light and dark mode.
+ *
+ * @example
+ * <ThemeButton />
+ */
+
+import { useTheme } from 'next-themes';
+import { FaSun, FaMoon } from 'react-icons/fa6';
+import Button from '@/app/_components/ui/button';
+
+function ThemeButton() {
+  const { theme, setTheme } = useTheme();
+
+  return (
+    <Button onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')} className="h-8 w-8">
+      <FaMoon
+        name="light"
+        size={20}
+        className="absolute rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0"
+      />
+      <FaSun name="dark" size={20} className="absolute rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+      <span className="sr-only">Theme Button</span>
+    </Button>
+  );
+}
+export default ThemeButton;
