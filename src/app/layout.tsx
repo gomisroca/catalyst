@@ -7,7 +7,7 @@ import { ThemeProvider } from 'next-themes';
 import { TRPCReactProvider } from '@/trpc/react';
 import { Provider as JotaiProvider } from 'jotai';
 import Navbar from '@/app/_components/navbar';
-import Footer from './_components/footer';
+import Footer from '@/app/_components/footer';
 
 export const metadata: Metadata = {
   title: 'Catalyst',
