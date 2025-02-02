@@ -11,7 +11,7 @@ function MenuToggle({ open, setOpen }: { open: boolean; setOpen: React.Dispatch<
 
 function Menu() {
   return (
-    <div className="absolute bottom-0 right-0 top-[0.75rem] flex min-h-16 items-center justify-center rounded-md bg-zinc-900 p-4">
+    <div className="absolute top-[0.75rem] right-0 bottom-0 flex min-h-16 items-center justify-center rounded-md bg-zinc-100 p-4 dark:bg-zinc-900">
       hello
     </div>
   );

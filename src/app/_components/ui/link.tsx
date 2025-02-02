@@ -12,7 +12,7 @@ function Link({ href, children, className }: Props) {
     <NextLink
       href={href}
       className={twMerge(
-        'hover:text-rose-400 active:text-rose-300 dark:hover:text-rose-600 dark:active:text-rose-700 [&>*]:transition [&>*]:duration-200 [&>*]:ease-in-out active:[&>*]:scale-90',
+        '*:transition *:duration-200 *:ease-in-out hover:text-rose-500 active:text-rose-400 *:active:scale-90 dark:hover:text-rose-700 dark:active:text-rose-800',
         className
       )}>
       {children}

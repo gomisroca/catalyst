@@ -23,7 +23,7 @@ const worksans = Work_Sans({
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en" className={worksans.className} suppressHydrationWarning>
-      <body className="bg-zinc-200 text-zinc-900 dark:bg-zinc-800 dark:text-zinc-100">
+      <body className="bg-zinc-200 text-zinc-900 dark:bg-zinc-900 dark:text-zinc-100">
         <ThemeProvider attribute="class">
           <JotaiProvider>
             <TRPCReactProvider>

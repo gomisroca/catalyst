@@ -7,7 +7,7 @@ function Footer() {
   return (
     <>
       <Message />
-      <footer className="flex h-12 w-full items-center justify-between space-x-2 bg-zinc-100 px-4 dark:bg-zinc-900">
+      <footer className="flex h-12 w-full items-center justify-between space-x-2 bg-zinc-100 px-4 dark:bg-zinc-950">
         <p className="text-sm">© {new Date().getFullYear()} Catalyst</p>
         <ThemeButton />
       </footer>
