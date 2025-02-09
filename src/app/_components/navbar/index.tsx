@@ -4,8 +4,9 @@ import { useState, useEffect } from 'react';
 import { twMerge } from 'tailwind-merge';
 import Link from '@/app/_components/ui/link';
 import NavMenu from '@/app/_components/navbar/nav-menu';
+import { type Session } from 'next-auth';
 
-function Navbar() {
+function Navbar({ session }: { session: Session | null }) {
   const [hasScrolled, setHasScrolled] = useState(false);
 
   useEffect(() => {
@@ -34,7 +35,10 @@ function Navbar() {
         <Link href="/">
           <h1 className="text-lg leading-none font-extrabold tracking-tight uppercase lg:text-xl">Catalyst</h1>
         </Link>
-        <NavMenu />
+        <section className="flex items-center justify-end gap-2">
+          {session && <p className="text-sm leading-none tracking-tight uppercase">{session.user?.name}</p>}
+          <NavMenu />
+        </section>
       </nav>
     </header>
   );

@@ -6,8 +6,10 @@ import { Work_Sans } from 'next/font/google';
 import { ThemeProvider } from 'next-themes';
 import { TRPCReactProvider } from '@/trpc/react';
 import { Provider as JotaiProvider } from 'jotai';
+import { auth } from '@/server/auth';
 import Navbar from '@/app/_components/navbar';
 import Footer from '@/app/_components/footer';
+import { type Session } from 'next-auth';
 
 export const metadata: Metadata = {
   title: 'Catalyst',
@@ -20,18 +22,28 @@ const worksans = Work_Sans({
   weight: ['400', '600'],
 });
 
-export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+export function RootLayoutContent({
+  children,
+  session,
+}: Readonly<{ children: React.ReactNode; session: Session | null }>) {
+  return (
+    <div className="min-h-screen">
+      <Navbar session={session} />
+      <main>{children}</main>
+      <Footer />
+    </div>
+  );
+}
+
+export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+  const session = await auth();
   return (
     <html lang="en" className={worksans.className} suppressHydrationWarning>
       <body className="bg-zinc-200 text-zinc-900 dark:bg-zinc-900 dark:text-zinc-100">
         <ThemeProvider attribute="class">
           <JotaiProvider>
             <TRPCReactProvider>
-              <div className="min-h-screen">
-                <Navbar />
-                <main>{children}</main>
-                <Footer />
-              </div>
+              <RootLayoutContent session={session}>{children}</RootLayoutContent>
             </TRPCReactProvider>
           </JotaiProvider>
         </ThemeProvider>
