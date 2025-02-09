@@ -1,11 +1,18 @@
+import Navbar from '@/app/_components/navbar';
 import type { Meta, StoryObj } from '@storybook/react';
-import { fn } from '@storybook/test';
 
-import { Header } from './Header';
+const mockSesion = {
+  user: {
+    id: '1',
+    name: 'Jane Doe',
+    email: 'jane.doe@example.com',
+  },
+  expires: '7d',
+};
 
 const meta = {
-  title: 'Example/Header',
-  component: Header,
+  title: 'Layout/Navbar',
+  component: Navbar,
   // This component will have an automatically generated Autodocs entry: https://storybook.js.org/docs/writing-docs/autodocs
   tags: ['autodocs'],
   parameters: {
@@ -13,20 +20,16 @@ const meta = {
     layout: 'fullscreen',
   },
   args: {
-    onLogin: fn(),
-    onLogout: fn(),
-    onCreateAccount: fn(),
+    session: mockSesion,
   },
-} satisfies Meta<typeof Header>;
+} satisfies Meta<typeof Navbar>;
 
 export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const LoggedIn: Story = {
   args: {
-    user: {
-      name: 'Jane Doe',
-    },
+    session: mockSesion,
   },
 };
 
