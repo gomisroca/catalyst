@@ -4,7 +4,6 @@ import { type Metadata } from 'next';
 import { Work_Sans } from 'next/font/google';
 
 import { ThemeProvider } from 'next-themes';
-import { TRPCReactProvider } from '@/trpc/react';
 import { Provider as JotaiProvider } from 'jotai';
 import { auth } from '@/server/auth';
 import Navbar from '@/app/_components/navbar';
@@ -17,10 +16,7 @@ export const metadata: Metadata = {
   icons: [{ rel: 'icon', url: '/favicon.ico' }],
 };
 
-const worksans = Work_Sans({
-  subsets: ['latin'],
-  weight: ['400', '600'],
-});
+const worksans = Work_Sans({ subsets: ['latin'], weight: ['400', '600'] });
 
 export function RootLayoutContent({
   children,
@@ -42,9 +38,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
       <body className="bg-zinc-200 text-zinc-900 dark:bg-zinc-900 dark:text-zinc-100">
         <ThemeProvider attribute="class">
           <JotaiProvider>
-            <TRPCReactProvider>
-              <RootLayoutContent session={session}>{children}</RootLayoutContent>
-            </TRPCReactProvider>
+            <RootLayoutContent session={session}>{children}</RootLayoutContent>
           </JotaiProvider>
         </ThemeProvider>
       </body>

@@ -1,5 +1,5 @@
 /** @type {import('prettier').Config & import('prettier-plugin-tailwindcss').PluginOptions} */
-const config = {
+export default {
   semi: true,
   singleQuote: true,
   printWidth: 120,
@@ -12,5 +12,3 @@ const config = {
   plugins: ['prettier-plugin-tailwindcss'],
   tailwindConfig: './tailwind.config.ts',
 };
-
-export default config;
