@@ -1,9 +1,10 @@
-import { PrismaAdapter } from '@auth/prisma-adapter';
+import { DrizzleAdapter } from '@auth/drizzle-adapter';
 import { type DefaultSession, type NextAuthConfig } from 'next-auth';
 import Google from 'next-auth/providers/google';
 import EmailProvider from 'next-auth/providers/nodemailer';
 
 import { db } from '@/server/db';
+import { accounts, sessions, users, verificationTokens } from '@/server/db/schema';
 import { env } from '@/env';
 
 /**
@@ -14,11 +15,7 @@ import { env } from '@/env';
  */
 declare module 'next-auth' {
   interface Session extends DefaultSession {
-    user: {
-      id: string;
-      name: string;
-      email: string;
-    } & DefaultSession['user'];
+    user: { id: string; name: string; email: string } & DefaultSession['user'];
   }
 
   // interface User {
@@ -34,25 +31,19 @@ declare module 'next-auth' {
  */
 export const authConfig = {
   providers: [
-    Google({
-      clientId: env.GOOGLE_CLIENT_ID,
-      clientSecret: env.GOOGLE_CLIENT_SECRET,
-    }),
-    EmailProvider({
-      server: env.EMAIL_SERVER,
-      from: env.EMAIL_FROM,
-    }),
+    Google({ clientId: env.GOOGLE_CLIENT_ID, clientSecret: env.GOOGLE_CLIENT_SECRET }),
+    EmailProvider({ server: env.EMAIL_SERVER, from: env.EMAIL_FROM }),
   ],
-  adapter: PrismaAdapter(db),
+  adapter: DrizzleAdapter(db, {
+    usersTable: users,
+    accountsTable: accounts,
+    sessionsTable: sessions,
+    verificationTokensTable: verificationTokens,
+  }),
   callbacks: {
     session: ({ session, user }) => ({
       ...session,
-      user: {
-        ...session.user,
-        id: user.id,
-        name: user.name ?? user.email,
-        email: user.email,
-      },
+      user: { ...session.user, id: user.id, name: user.name ?? user.email, email: user.email },
     }),
   },
 } satisfies NextAuthConfig;
