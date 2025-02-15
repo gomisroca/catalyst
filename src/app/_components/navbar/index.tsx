@@ -28,11 +28,11 @@ function Navbar({ session }: { session: Session | null }) {
   return (
     <header
       className={twMerge(
-        'fixed top-0 z-10 flex h-12 w-full items-center justify-between px-4 transition duration-500 ease-in-out',
-        hasScrolled ? 'bg-zinc-100 dark:bg-zinc-950' : 'bg-transparent'
+        'fixed top-0 z-10 flex h-12 w-full items-center justify-between px-4 transition ease-in',
+        hasScrolled ? 'bg-zinc-100 duration-500 dark:bg-zinc-950' : 'bg-transparent duration-200'
       )}>
       <nav className="flex w-full flex-row items-center justify-between space-x-4">
-        <Link href="/" className="duration-500">
+        <Link href="/" className="p-2">
           <h1 className="text-lg leading-none font-extrabold tracking-tight uppercase lg:text-xl">Catalyst</h1>
         </Link>
         <section className="flex items-center justify-end gap-2">
