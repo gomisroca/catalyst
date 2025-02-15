@@ -58,7 +58,7 @@ export const sessions = createTable(
   'session',
   {
     sessionToken: varchar('session_token', { length: 255 }).notNull().primaryKey(),
-    userId: varchar('user_id', { length: 255 })
+    userId: uuid('userId')
       .notNull()
       .references(() => users.id),
     expires: timestamp('expires', { mode: 'date', withTimezone: true }).notNull(),
@@ -118,9 +118,6 @@ export const posts = createTable(
     id: uuid('id').notNull().primaryKey().defaultRandom(),
     name: varchar('name', { length: 256 }),
     content: text('content'),
-    createdById: varchar('created_by', { length: 255 })
-      .notNull()
-      .references(() => users.id),
     createdAt: timestamp('created_at', { withTimezone: true })
       .default(sql`CURRENT_TIMESTAMP`)
       .notNull(),
