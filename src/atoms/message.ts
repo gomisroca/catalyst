@@ -1,6 +1,3 @@
 import { atom } from 'jotai';
 
-export const messageAtom = atom<{ message: string | null; error?: boolean }>({
-  message: null,
-  error: false,
-});
+export const messageAtom = atom<string | null>(null);
