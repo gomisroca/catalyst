@@ -4,20 +4,31 @@ import { useEffect, useRef, useState } from 'react';
 import Button from '@/app/_components/ui/button';
 import { MdOutlineMenu, MdClear } from 'react-icons/md';
 import { useAutoAnimate } from '@formkit/auto-animate/react';
+import Link from '@/app/_components/ui/link';
+import { type Session } from 'next-auth';
+import { signOut } from 'next-auth/react';
 
 function MenuToggle({ open, setOpen }: { open: boolean; setOpen: React.Dispatch<React.SetStateAction<boolean>> }) {
   return <Button onClick={() => setOpen(!open)}>{open ? <MdClear size={20} /> : <MdOutlineMenu size={20} />}</Button>;
 }
 
-function Menu() {
+function Menu({ session }: { session: Session | null }) {
   return (
-    <div className="absolute top-[0.75rem] right-0 bottom-0 flex min-h-16 items-center justify-center rounded-md bg-zinc-100 p-4 dark:bg-zinc-950">
-      hello
+    <div className="absolute top-[0.75rem] right-0 bottom-0 flex min-h-16 w-42 items-center justify-center gap-2 rounded-lg bg-zinc-100 px-4 py-2 dark:bg-zinc-950">
+      {session ? (
+        <Button onClick={() => signOut()} className="w-full text-center">
+          Sign Out
+        </Button>
+      ) : (
+        <Link href="/sign-in" className="w-full text-center">
+          Sign In
+        </Link>
+      )}
     </div>
   );
 }
 
-function NavMenu() {
+function NavMenu({ session }: { session: Session | null }) {
   const [open, setOpen] = useState(false);
   const [parent] = useAutoAnimate();
   const menuRef = useRef<HTMLDivElement>(null);
@@ -41,7 +52,7 @@ function NavMenu() {
     <div ref={menuRef}>
       <MenuToggle open={open} setOpen={setOpen} />
       <div ref={parent} className="relative">
-        {open && <Menu />}
+        {open && <Menu session={session} />}
       </div>
     </div>
   );
