@@ -7,7 +7,7 @@ import { ThemeProvider } from 'next-themes';
 import { Provider as JotaiProvider } from 'jotai';
 import { NextSSRPlugin as UploadThingSSRPlugin } from '@uploadthing/react/next-ssr-plugin';
 import { extractRouterConfig } from 'uploadthing/server';
-import { ourFileRouter } from '@/app/api/uploadthing/core';
+import { UploadThingRouter } from '@/app/api/uploadthing/core';
 import { auth } from '@/server/auth';
 import Navbar from '@/app/_components/navbar';
 import Footer from '@/app/_components/footer';
@@ -44,7 +44,7 @@ export default async function RootLayout({
       <body className="bg-radial-[at_25%_25%] from-sky-500 to-zinc-100 to-75% text-zinc-900 dark:from-sky-950 dark:to-zinc-950 dark:text-zinc-100">
         <ThemeProvider attribute="class">
           <JotaiProvider>
-            <UploadThingSSRPlugin routerConfig={extractRouterConfig(ourFileRouter)} />
+            <UploadThingSSRPlugin routerConfig={extractRouterConfig(UploadThingRouter)} />
             <div id="modal-root" />
             {modal}
             <RootLayoutContent session={session}>{children}</RootLayoutContent>
