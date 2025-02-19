@@ -43,7 +43,7 @@ export const authConfig = {
   callbacks: {
     session: ({ session, user }) => ({
       ...session,
-      user: { ...session.user, id: user.id, name: user.name ?? user.email, email: user.email },
+      user: { ...session.user, id: user.id, name: user.name ?? user.email.split('@')[0], email: user.email },
     }),
   },
 } satisfies NextAuthConfig;
