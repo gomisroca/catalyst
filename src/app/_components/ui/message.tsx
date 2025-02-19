@@ -31,7 +31,7 @@ const Message = () => {
 
   return (
     <div
-      className='fixed right-0 bottom-10 left-0 z-[9999] m-auto flex w-[90vw] flex-col items-center justify-center gap-2 rounded-full bg-zinc-100 dark:bg-zinc-900 px-5 py-2 font-semibold xl:w-[30vw]'>
+      className='border-2 border-sky-400 dark:border-sky-600 fixed right-0 bottom-10 left-0 z-[9999] m-auto flex w-[90vw] flex-col items-center justify-center gap-2 rounded-full bg-zinc-100 dark:bg-zinc-900 px-5 py-2 font-semibold xl:w-[30vw]'>
       {/* Conditional Text Based on Error */}
       <h3 className="text-lg">{message}</h3>
     </div>

@@ -17,7 +17,7 @@ export function SignInForm() {
 
 export default async function SignIn() {
   return (
-    <div className="flex flex-col items-center justify-center gap-16 rounded-lg bg-zinc-100 p-4 dark:bg-zinc-900">
+    <div className="flex w-1/3 flex-col items-center justify-center gap-16 rounded-lg bg-zinc-100 p-4 dark:bg-zinc-900">
       <SignInForm />
     </div>
   );

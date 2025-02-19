@@ -16,7 +16,7 @@ export default function SubmitButton({
   const { pending } = useFormStatus();
 
   return (
-    <Button type="submit" className={twMerge('font-semibold', className)} disabled={pending}>
+    <Button type="submit" className={twMerge('w-fit font-semibold whitespace-nowrap', className)} disabled={pending}>
       {pending ? pendingText : baseText}
     </Button>
   );

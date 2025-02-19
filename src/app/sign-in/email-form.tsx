@@ -29,7 +29,7 @@ export default function EmailForm() {
         name="email"
         placeholder="your@email.com"
         required
-        className="w-2/3 rounded-full border border-zinc-200 px-4 py-2 focus:outline-sky-400 dark:border-zinc-800 dark:focus:outline-sky-200"
+        className="w-2/3 rounded-full border border-zinc-200 px-4 py-2 focus:outline-sky-400 dark:border-zinc-800 dark:focus:outline-sky-600"
       />
       <SubmitButton baseText="Sign In" pendingText="Signing In..." className="px-4" />
     </Form>
