@@ -11,7 +11,10 @@ export async function getProject(id: string) {
     .select({
       project: projectsSchema,
       permissions: projectsPermissions,
-      branches: branches,
+      branches: {
+        id: branches.id,
+        name: branches.name,
+      },
     })
     .from(projectsSchema)
     .where(eq(projectsSchema.id, id))
@@ -22,8 +25,9 @@ export async function getProject(id: string) {
   if (
     project[0].permissions?.private &&
     (!session?.user.id || !project[0].permissions.allowedUsers.includes(session?.user.id))
-  )
+  ) {
     throw new Error('Unauthorized');
+  }
 
   return {
     ...project[0].project,

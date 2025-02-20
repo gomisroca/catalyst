@@ -3,9 +3,14 @@
 import { type branches as branchesSchema } from '@/server/db/schema';
 import { goToBranch } from './actions';
 
+type TrimmedBranch = {
+  id: string;
+  name: string;
+};
+
 type BranchSelectionProps = {
   projectId: string;
-  branches: (typeof branchesSchema.$inferSelect | null)[] | null;
+  branches: (TrimmedBranch | null)[] | null;
 };
 
 export default function BranchSelection({ projectId, branches }: BranchSelectionProps) {
