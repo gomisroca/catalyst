@@ -2,7 +2,7 @@
 
 import { auth } from '@/server/auth';
 import { db } from '@/server/db';
-import { projects, projectsPermissions } from '@/server/db/schema';
+import { branches, branchesPermissions, projects, projectsPermissions } from '@/server/db/schema';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { z } from 'zod';
@@ -58,6 +58,28 @@ export async function createProject(formData: FormData) {
         private: validatedFields.data.private,
         allowCollaborate: validatedFields.data.allowCollaborate,
         allowShare: validatedFields.data.allowShare,
+      });
+
+      const [branch] = await trx
+        .insert(branches)
+        .values({
+          name: 'main',
+          description: null,
+          default: true,
+          projectId: result.id,
+          authorId: session.user.id,
+        })
+        .returning({ id: branches.id });
+
+      if (!branch) throw new Error('Failed to create main branch of project');
+
+      await trx.insert(branchesPermissions).values({
+        branchId: branch.id,
+        allowedUsers: [session.user.id],
+        private: validatedFields.data.private,
+        allowCollaborate: validatedFields.data.allowCollaborate,
+        allowShare: validatedFields.data.allowShare,
+        allowBranch: validatedFields.data.allowCollaborate,
       });
 
       return result;
