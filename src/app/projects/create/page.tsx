@@ -12,7 +12,7 @@ export default function CreateProject() {
   const [file, setFile] = useState<File | null>(null);
   const setMessage = useSetAtom(messageAtom);
   const formRef = useRef<HTMLFormElement>(null);
-  const { startUpload } = useUploadThing('imageUploader');
+  const { startUpload } = useUploadThing('projectPicture');
 
   return (
     <Form

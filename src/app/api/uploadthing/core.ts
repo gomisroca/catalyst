@@ -7,7 +7,7 @@ const f = createUploadthing();
 // FileRouter for your app, can contain multiple FileRoutes
 export const UploadThingRouter = {
   // Define as many FileRoutes as you like, each with a unique routeSlug
-  imageUploader: f({
+  projectPicture: f({
     image: {
       /**
        * For full list of options and defaults, see the File Route API reference
@@ -36,6 +36,23 @@ export const UploadThingRouter = {
       console.log('file url', file.ufsUrl);
 
       // !!! Whatever is returned here is sent to the clientside `onClientUploadComplete` callback
+      return { uploadedBy: metadata.userId, url: file.ufsUrl };
+    }),
+  postMedia: f({
+    image: {
+      maxFileSize: '2MB',
+      maxFileCount: 5,
+    },
+  })
+    .middleware(async () => {
+      const session = await auth();
+
+      // eslint-disable-next-line @typescript-eslint/only-throw-error
+      if (!session?.user) throw new UploadThingError('Unauthorized');
+
+      return { userId: session.user.id };
+    })
+    .onUploadComplete(async ({ metadata, file }) => {
       return { uploadedBy: metadata.userId, url: file.ufsUrl };
     }),
 } satisfies FileRouter;
