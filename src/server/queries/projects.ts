@@ -2,7 +2,7 @@ import 'server-only';
 import { auth } from '@/server/auth';
 import { db } from '../db';
 import { eq } from 'drizzle-orm';
-import { projectsPermissions, projects as projectsSchema } from '../db/schema';
+import { branches, projectsPermissions, projects as projectsSchema } from '../db/schema';
 
 export async function getProject(id: string) {
   const session = await auth();
@@ -11,10 +11,12 @@ export async function getProject(id: string) {
     .select({
       project: projectsSchema,
       permissions: projectsPermissions,
+      branches: branches,
     })
     .from(projectsSchema)
     .where(eq(projectsSchema.id, id))
-    .leftJoin(projectsPermissions, eq(projectsSchema.id, projectsPermissions.projectId));
+    .leftJoin(projectsPermissions, eq(projectsSchema.id, projectsPermissions.projectId))
+    .leftJoin(branches, eq(branches.projectId, id));
 
   if (!project[0]) throw new Error('Project with the given ID does not exist');
   if (
@@ -25,6 +27,7 @@ export async function getProject(id: string) {
 
   return {
     ...project[0].project,
+    branches: [project[0].branches],
   };
 }
 

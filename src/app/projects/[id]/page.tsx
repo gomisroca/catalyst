@@ -1,5 +1,4 @@
 import { getProject } from '@/server/queries/projects';
-import Image from 'next/image';
 
 export default async function ProjectPage({ params }: { params: Promise<{ id: string }> }) {
   const data = await getProject((await params).id);
@@ -7,8 +6,8 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
 
   return (
     <div>
-      <h1>{data.name}</h1>
-      {data.picture && <Image src={data.picture} alt="Project Picture" width={300} height={300} />}
+      Here will be the project description, maybe a header section with some details like date of creation, number of
+      contributions, interactions, etc
     </div>
   );
 }
