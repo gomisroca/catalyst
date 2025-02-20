@@ -8,7 +8,7 @@ import { useSetAtom } from 'jotai';
 import { messageAtom } from '@/atoms/message';
 import { useRef, useState } from 'react';
 
-export default function CreateProject() {
+export default function CreateProjectForm() {
   const [file, setFile] = useState<File | null>(null);
   const setMessage = useSetAtom(messageAtom);
   const formRef = useRef<HTMLFormElement>(null);
