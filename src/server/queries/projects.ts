@@ -1,8 +1,13 @@
 import 'server-only';
 import { auth } from '@/server/auth';
 import { db } from '../db';
-import { eq } from 'drizzle-orm';
-import { branches, projectsPermissions, projects as projectsSchema } from '../db/schema';
+import { eq, sql } from 'drizzle-orm';
+import {
+  branches as branchesSchema,
+  projectsPermissions,
+  projects as projectsSchema,
+  users as userSchema,
+} from '../db/schema';
 
 export async function getProject(id: string) {
   const session = await auth();
@@ -10,16 +15,25 @@ export async function getProject(id: string) {
   const project = await db
     .select({
       project: projectsSchema,
-      permissions: projectsPermissions,
-      branches: {
-        id: branches.id,
-        name: branches.name,
+      author: {
+        name: userSchema.name,
       },
+      permissions: projectsPermissions,
+      branches: sql<Array<{ id: string; name: string }>>`
+      json_agg(
+        json_build_object(
+          'id', ${branchesSchema.id},
+          'name', ${branchesSchema.name}
+        )
+      )
+    `.as('branches'),
     })
     .from(projectsSchema)
     .where(eq(projectsSchema.id, id))
+    .leftJoin(userSchema, eq(userSchema.id, projectsSchema.authorId))
     .leftJoin(projectsPermissions, eq(projectsSchema.id, projectsPermissions.projectId))
-    .leftJoin(branches, eq(branches.projectId, id));
+    .leftJoin(branchesSchema, eq(branchesSchema.projectId, id))
+    .groupBy(projectsSchema.id, userSchema.name, projectsPermissions.id);
 
   if (!project[0]) throw new Error('Project with the given ID does not exist');
   if (
@@ -31,7 +45,9 @@ export async function getProject(id: string) {
 
   return {
     ...project[0].project,
-    branches: [project[0].branches],
+    author: project[0].author?.name,
+    branches: project[0].branches,
+    permissions: project[0].permissions,
   };
 }
 
