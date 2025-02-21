@@ -43,6 +43,13 @@
       "when": 1740173752263,
       "tag": "0005_abnormal_thing",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1740174885522,
+      "tag": "0006_clumsy_captain_midlands",
+      "breakpoints": true
     }
   ]
 }

@@ -132,15 +132,6 @@ export const posts = createTable(
 
     // Multi-column index (composite)
     authorTimeIdx: index('post_author_time_idx').on(table.authorId, table.createdAt), // Good for finding author's posts in time range
-
-    // Full-text search index
-    searchIdx: index('post_search_idx').using(
-      'gin',
-      sql`(
-        setweight(to_tsvector('english', ${table.title}), 'A') ||
-        setweight(to_tsvector('english', ${table.content}), 'B')
-      )`
-    ), // Good for text search in post names/content
   })
 );
 
@@ -200,15 +191,6 @@ export const branches = createTable(
     projectIdx: index('branch_project_idx').on(table.projectId), // Good for finding branches by project
     // Multi-column index (composite)
     authorTimeIdx: index('branch_author_time_idx').on(table.authorId, table.createdAt), // Good for finding author's branches in time range
-
-    // Full-text search index
-    searchIdx: index('branch_search_idx').using(
-      'gin',
-      sql`(
-        setweight(to_tsvector('english', ${table.name}), 'A') ||
-        setweight(to_tsvector('english', ${table.description}), 'B')
-      )`
-    ), // Good for text search in branch names/descriptions
   })
 );
 
@@ -279,15 +261,6 @@ export const projects = createTable(
     authorIdx: index('project_author_idx').on(table.authorId), // Good for finding projects by author
     // Multi-column index (composite)
     authorTimeIdx: index('project_author_time_idx').on(table.authorId, table.createdAt), // Good for finding author's projects in time range
-
-    // Full-text search index
-    searchIdx: index('project_search_idx').using(
-      'gin',
-      sql`(
-      setweight(to_tsvector('english', ${table.name}), 'A') ||
-      setweight(to_tsvector('english', ${table.description}), 'B')
-    )`
-    ), // Good for text search in project names/descriptions
   })
 );
 
