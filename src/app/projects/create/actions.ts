@@ -25,9 +25,9 @@ export async function createProject(formData: FormData) {
     name: formData.get('name'),
     description: formData.get('description'),
     picture: formData.get('picture') ?? undefined,
-    private: formData.get('private') === 'true',
-    allowCollaborate: formData.get('allowCollaborate') === 'true',
-    allowShare: formData.get('allowShare') === 'true',
+    private: formData.get('private') === 'on',
+    allowCollaborate: formData.get('allowCollaborate') === 'on',
+    allowShare: formData.get('allowShare') === 'on',
   });
 
   // If validation fails, return the errors
