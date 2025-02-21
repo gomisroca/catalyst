@@ -12,7 +12,7 @@ export default async function ProjectList() {
           href={`/projects/${project.id}`}
           key={project.id}
           className="group flex flex-col rounded-lg p-1 drop-shadow-sm hover:drop-shadow-md active:drop-shadow-none active:duration-100">
-          <h1 className="rounded-t-lg bg-zinc-200 px-4 py-2 text-lg font-bold transition duration-200 ease-in-out group-hover:bg-zinc-300 dark:bg-zinc-800 group-hover:dark:bg-zinc-900">
+          <h1 className="rounded-t-lg bg-zinc-100 px-4 py-2 text-lg font-bold transition duration-200 ease-in-out group-hover:bg-zinc-300 dark:bg-zinc-900 group-hover:dark:bg-zinc-950">
             {project.name}
           </h1>
           {project.picture && (
