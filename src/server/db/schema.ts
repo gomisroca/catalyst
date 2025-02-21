@@ -92,6 +92,7 @@ export const users = createTable('user', {
 export const follows = createTable(
   'follow',
   {
+    id: uuid('id').notNull().primaryKey().defaultRandom(),
     followerId: uuid('follower_id')
       .notNull()
       .references(() => users.id, { onDelete: 'cascade' }),
@@ -103,7 +104,6 @@ export const follows = createTable(
       .notNull(),
   },
   (table) => ({
-    pk: primaryKey({ columns: [table.followerId, table.followedId] }), // Composite primary key to prevent duplicates
     followerIdx: index('follower_idx').on(table.followerId),
     followedIdx: index('followed_idx').on(table.followedId),
   })
@@ -116,7 +116,7 @@ export const posts = createTable(
   'post',
   {
     id: uuid('id').notNull().primaryKey().defaultRandom(),
-    name: varchar('name', { length: 256 }),
+    title: varchar('title', { length: 256 }),
     content: text('content'),
     createdAt: timestamp('created_at', { withTimezone: true })
       .default(sql`CURRENT_TIMESTAMP`)
@@ -137,7 +137,7 @@ export const posts = createTable(
     searchIdx: index('post_search_idx').using(
       'gin',
       sql`(
-        setweight(to_tsvector('english', ${table.name}), 'A') ||
+        setweight(to_tsvector('english', ${table.title}), 'A') ||
         setweight(to_tsvector('english', ${table.content}), 'B')
       )`
     ), // Good for text search in post names/content
@@ -147,7 +147,7 @@ export const posts = createTable(
 export const postsMedia = createTable('post_media', {
   id: uuid('id').notNull().primaryKey().defaultRandom(),
   name: varchar('name', { length: 256 }),
-  url: varchar('name', { length: 512 }),
+  url: varchar('url', { length: 512 }),
   postId: uuid('postId')
     .notNull()
     .references(() => posts.id, { onDelete: 'cascade' }),
@@ -156,6 +156,7 @@ export const postsMedia = createTable('post_media', {
 export const postsInteractions = createTable(
   'post_interaction',
   {
+    id: uuid('id').notNull().primaryKey().defaultRandom(),
     type: interactionType('type').notNull(),
     createdAt: timestamp('created_at', { withTimezone: true })
       .default(sql`CURRENT_TIMESTAMP`)
@@ -164,7 +165,6 @@ export const postsInteractions = createTable(
     userId: uuid('userId').references(() => users.id, { onDelete: 'cascade' }),
   },
   (table) => ({
-    pk: primaryKey({ columns: [table.userId, table.postId, table.type] }), // Composite primary key to prevent duplicates
     userIdx: index('post_interaction_user_idx').on(table.userId),
     postIdx: index('post_interaction_post_idx').on(table.postId),
   })
@@ -215,7 +215,7 @@ export const branches = createTable(
 export const branchesPermissions = createTable(
   'branch_permissions',
   {
-    id: uuid('id').primaryKey().defaultRandom(),
+    id: uuid('id').notNull().primaryKey().defaultRandom(),
     private: boolean('private').default(false),
     allowedUsers: varchar('allowedUsers')
       .array()
@@ -237,6 +237,7 @@ export const branchesPermissions = createTable(
 export const branchesInteractions = createTable(
   'branch_interaction',
   {
+    id: uuid('id').notNull().primaryKey().defaultRandom(),
     type: interactionType('type').notNull(),
     createdAt: timestamp('created_at', { withTimezone: true })
       .default(sql`CURRENT_TIMESTAMP`)
@@ -245,7 +246,6 @@ export const branchesInteractions = createTable(
     userId: uuid('userId').references(() => users.id, { onDelete: 'cascade' }),
   },
   (table) => ({
-    pk: primaryKey({ columns: [table.userId, table.branchId, table.type] }), // Composite primary key to prevent duplicates
     userIdx: index('branch_interaction_user_idx').on(table.userId),
     branchIdx: index('branch_interaction_branch_idx').on(table.branchId),
   })
@@ -253,7 +253,7 @@ export const branchesInteractions = createTable(
 
 export const branchesRelations = relations(branches, ({ one, many }) => ({
   author: one(users, { fields: [branches.authorId], references: [users.id] }),
-  project: one(branches, { fields: [branches.projectId], references: [branches.id] }),
+  project: one(projects, { fields: [branches.projectId], references: [projects.id] }),
   interactions: many(branchesInteractions),
   permissions: one(branchesPermissions, { fields: [branches.id], references: [branchesPermissions.branchId] }),
 }));
@@ -294,7 +294,7 @@ export const projects = createTable(
 export const projectsPermissions = createTable(
   'project_permissions',
   {
-    id: uuid('id').primaryKey().defaultRandom(),
+    id: uuid('id').notNull().primaryKey().defaultRandom(),
     private: boolean('private').default(false),
     allowedUsers: varchar('allowedUsers')
       .array()
@@ -315,6 +315,7 @@ export const projectsPermissions = createTable(
 export const projectsInteractions = createTable(
   'project_interaction',
   {
+    id: uuid('id').notNull().primaryKey().defaultRandom(),
     type: interactionType('type').notNull(),
     createdAt: timestamp('created_at', { withTimezone: true })
       .default(sql`CURRENT_TIMESTAMP`)
@@ -323,7 +324,6 @@ export const projectsInteractions = createTable(
     userId: uuid('userId').references(() => users.id, { onDelete: 'cascade' }),
   },
   (table) => ({
-    pk: primaryKey({ columns: [table.userId, table.projectId, table.type] }), // Composite primary key to prevent duplicates
     userIdx: index('project_interaction_user_idx').on(table.userId),
     projectIdx: index('project_interaction_project_idx').on(table.projectId),
   })
