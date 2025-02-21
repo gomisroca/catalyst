@@ -3,6 +3,7 @@
 import { auth } from '@/server/auth';
 import { db } from '@/server/db';
 import { branches, branchesPermissions } from '@/server/db/schema';
+import { getProject } from '@/server/queries/projects';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { z } from 'zod';
@@ -19,6 +20,10 @@ const BranchSchema = z.object({
 export async function createBranch(formData: FormData, projectId: string) {
   const session = await auth();
   if (!session?.user) throw new Error('You must be signed in to create a branch');
+
+  const project = await getProject(projectId);
+  if (!project.permissions?.allowCollaborate && session.user.id !== project.authorId)
+    throw new Error('You do not have permission to collaborate in this project');
 
   // Extract and validate the data
   const validatedFields = BranchSchema.safeParse({
