@@ -20,6 +20,7 @@ export default function CreateProjectForm() {
       ref={formRef}
       action={async (formData) => {
         try {
+          formData.delete('imageFile');
           if (file) {
             const data = await startUpload([file]);
             if (!data?.[0]) return;

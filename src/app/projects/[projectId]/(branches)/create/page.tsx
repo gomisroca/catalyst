@@ -11,8 +11,8 @@ import { createBranch } from './actions';
 export default function CreateBranchForm() {
   const setMessage = useSetAtom(messageAtom);
   const formRef = useRef<HTMLFormElement>(null);
-  const params = useParams<{ id: string }>();
-  if (!params.id) return null;
+  const params = useParams<{ projectId: string }>();
+  if (!params.projectId) return null;
 
   return (
     <Form
@@ -20,7 +20,7 @@ export default function CreateBranchForm() {
       ref={formRef}
       action={async (formData) => {
         try {
-          const { error } = await createBranch(formData, params.id);
+          const { error } = await createBranch(formData, params.projectId);
 
           if (error) {
             setMessage(error);

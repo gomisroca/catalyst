@@ -15,7 +15,7 @@ type BranchSelectionProps = {
 };
 
 export default function BranchSelection({ projectId, branches }: BranchSelectionProps) {
-  const params = useParams<{ id: string; branchId: string }>();
+  const params = useParams<{ projectId: string; branchId: string }>();
 
   // Filter out null values
   const validBranches = branches?.filter((branch): branch is typeof branchesSchema.$inferSelect => branch !== null);

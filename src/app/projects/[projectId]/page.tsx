@@ -1,7 +1,7 @@
 import { getProject } from '@/server/queries/projects';
 
-export default async function ProjectPage({ params }: { params: Promise<{ id: string }> }) {
-  const data = await getProject((await params).id);
+export default async function ProjectPage({ params }: { params: Promise<{ projectId: string }> }) {
+  const data = await getProject((await params).projectId);
   if (!data) return null;
 
   return (
