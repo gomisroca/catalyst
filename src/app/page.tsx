@@ -5,7 +5,11 @@ export default async function Home() {
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-center">
-      <p className="text-center text-2xl">{session && <span>Logged in as {session.user?.name}</span>}</p>
+      <p className="text-center text-2xl">
+        {session && (
+          <span>Logged in as {session.user?.name ? session.user?.name : session.user?.email.split('@')[0]}</span>
+        )}
+      </p>
     </main>
   );
 }
