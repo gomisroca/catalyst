@@ -2,7 +2,7 @@ import 'server-only';
 import { auth } from '@/server/auth';
 import { db } from '../db';
 import { eq } from 'drizzle-orm';
-import { branches as branchesSchema, branchesPermissions, posts } from '../db/schema';
+import { branches as branchesSchema, branchesPermissions } from '../db/schema';
 
 export async function getBranch(id: string) {
   const session = await auth();
@@ -11,12 +11,10 @@ export async function getBranch(id: string) {
     .select({
       branch: branchesSchema,
       permissions: branchesPermissions,
-      posts: posts,
     })
     .from(branchesSchema)
     .where(eq(branchesSchema.id, id))
-    .leftJoin(branchesPermissions, eq(branchesSchema.id, branchesPermissions.branchId))
-    .leftJoin(posts, eq(posts.branchId, id));
+    .leftJoin(branchesPermissions, eq(branchesSchema.id, branchesPermissions.branchId));
 
   if (!branch[0]) throw new Error('Branch with the given ID does not exist');
   if (
@@ -27,6 +25,6 @@ export async function getBranch(id: string) {
 
   return {
     ...branch[0].branch,
-    posts: [branch[0].posts],
+    permissions: branch[0].permissions,
   };
 }

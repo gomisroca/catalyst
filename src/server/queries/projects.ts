@@ -17,6 +17,7 @@ export async function getProject(id: string) {
       project: projectsSchema,
       author: {
         name: userSchema.name,
+        email: userSchema.email,
       },
       permissions: projectsPermissions,
       branches: sql<Array<{ id: string; name: string }>>`
@@ -33,7 +34,7 @@ export async function getProject(id: string) {
     .leftJoin(userSchema, eq(userSchema.id, projectsSchema.authorId))
     .leftJoin(projectsPermissions, eq(projectsSchema.id, projectsPermissions.projectId))
     .leftJoin(branchesSchema, eq(branchesSchema.projectId, id))
-    .groupBy(projectsSchema.id, userSchema.name, projectsPermissions.id);
+    .groupBy(projectsSchema.id, userSchema.name, userSchema.email, projectsPermissions.id);
 
   if (!project[0]) throw new Error('Project with the given ID does not exist');
   if (
@@ -45,7 +46,7 @@ export async function getProject(id: string) {
 
   return {
     ...project[0].project,
-    author: project[0].author?.name,
+    author: project[0].author?.name ? project[0].author?.name : project[0].author?.email.split('@')[0],
     branches: project[0].branches,
     permissions: project[0].permissions,
   };
