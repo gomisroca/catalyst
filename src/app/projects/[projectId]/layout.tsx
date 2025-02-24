@@ -19,7 +19,7 @@ export default async function ProjectLayout({
   if (!data) return null;
 
   return (
-    <div className="flex w-2xl flex-col items-center justify-start gap-4 rounded-lg bg-zinc-100 p-4 drop-shadow-md dark:bg-zinc-900">
+    <div className="flex w-sm flex-col items-center justify-start gap-4 rounded-lg bg-zinc-100 p-4 drop-shadow-md md:w-xl lg:w-2xl dark:bg-zinc-900">
       <header className="flex w-full items-center justify-between border-b border-zinc-300 pb-2 dark:border-zinc-700">
         <div className="flex items-center gap-2">
           {data.picture && (
