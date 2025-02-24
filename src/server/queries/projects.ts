@@ -15,10 +15,12 @@ export async function getProject(id: string) {
   const project = await db
     .select({
       project: projectsSchema,
-      author: {
-        name: userSchema.name,
-        email: userSchema.email,
-      },
+      author: sql<{ name: string | null; email: string }>`
+      json_build_object(
+        'name', ${userSchema.name},
+        'email', ${userSchema.email}
+      )
+    `.as('author'),
       permissions: projectsPermissions,
       branches: sql<Array<{ id: string; name: string }>>`
       json_agg(
