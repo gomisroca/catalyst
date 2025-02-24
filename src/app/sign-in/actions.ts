@@ -21,7 +21,7 @@ export async function signInWithEmail(formData: FormData) {
       };
     }
 
-    await signIn('nodemailer', { redirect: false, email: validatedFields.data.email });
+    await signIn('nodemailer', { redirect: false, callbackUrl: '/', email: validatedFields.data.email });
 
     return { errors: {} };
   } catch (error) {
