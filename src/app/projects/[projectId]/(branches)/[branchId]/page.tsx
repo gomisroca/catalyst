@@ -4,7 +4,7 @@ import { auth } from '@/server/auth';
 import Link from '@/app/_components/ui/link';
 import { FaCodeBranch, FaPen } from 'react-icons/fa6';
 import ExpandedDescription from '@/app/_components/projects/ExpandedDescription';
-import BranchInteractions from './(interactions)/branch-interactions';
+import BranchInteractionsMenu from './(interactions)/branch-interactions-menu';
 
 export default async function BranchPage({ params }: { params: Promise<{ projectId: string; branchId: string }> }) {
   const session = await auth();
@@ -36,7 +36,7 @@ export default async function BranchPage({ params }: { params: Promise<{ project
           </div>
         </section>
         {data.description && <ExpandedDescription description={data.description} />}
-        <BranchInteractions branchId={data.id} />
+        <BranchInteractionsMenu branchId={data.id} />
       </header>
       <PostList branchId={data.id} />
       {allowCollaborate && (

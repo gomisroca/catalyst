@@ -4,8 +4,13 @@ import { auth } from '@/server/auth';
 import { db } from '@/server/db';
 import { branchesInteractions } from '@/server/db/schema';
 import { and, eq } from 'drizzle-orm';
+import { revalidatePath } from 'next/cache';
 
-export async function addInteractionAction(type: 'LIKE' | 'SHARE' | 'BOOKMARK' | 'REPORT' | 'HIDE', branchId: string) {
+export async function addInteractionAction(
+  type: 'LIKE' | 'SHARE' | 'BOOKMARK' | 'REPORT' | 'HIDE',
+  projectId: string,
+  branchId: string
+) {
   try {
     const session = await auth();
     if (!session?.user) throw new Error('You must be signed in to add an interaction');
@@ -28,7 +33,7 @@ export async function addInteractionAction(type: 'LIKE' | 'SHARE' | 'BOOKMARK' |
       branchId,
       userId: session.user.id,
     });
-
+    revalidatePath(`/projects/${projectId}/${branchId}`);
     return { msg: 'Interaction created successfully' };
   } catch (error) {
     console.error('Failed to create interaction:', error);

@@ -16,15 +16,27 @@ const types = {
   HIDE: <FaEye size={12} />,
 };
 
-export default function Interaction({ type }: { type: 'LIKE' | 'SHARE' | 'BOOKMARK' | 'REPORT' | 'HIDE' }) {
+export default function BranchInteraction({
+  type,
+  amount,
+}: {
+  type: 'LIKE' | 'SHARE' | 'BOOKMARK' | 'REPORT' | 'HIDE';
+  amount?: number;
+}) {
   const params = useParams<{ projectId: string; branchId: string }>();
   const setMessage = useSetAtom(messageAtom);
 
   const handleInteraction = async (type: 'LIKE' | 'SHARE' | 'BOOKMARK' | 'REPORT' | 'HIDE') => {
-    const { msg } = await addInteractionAction(type, params.branchId);
+    const { msg } = await addInteractionAction(type, params.projectId, params.branchId);
     if (msg) setMessage(msg);
     return;
   };
 
-  return <Button onClick={() => handleInteraction(type)}>{types[type]}</Button>;
+  return (
+    <Button
+      onClick={() => handleInteraction(type)}
+      className="flex items-center justify-center gap-2 px-2 text-sm font-semibold">
+      {types[type]} {amount}
+    </Button>
+  );
 }
