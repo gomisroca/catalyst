@@ -2,7 +2,12 @@ import 'server-only';
 import { auth } from '@/server/auth';
 import { db } from '../db';
 import { eq, sql } from 'drizzle-orm';
-import { branches as branchesSchema, branchesPermissions, users as userSchema } from '../db/schema';
+import {
+  branches as branchesSchema,
+  branchesPermissions,
+  users as userSchema,
+  branchesInteractions,
+} from '../db/schema';
 
 export async function getBranch(id: string) {
   const session = await auth();
@@ -35,4 +40,23 @@ export async function getBranch(id: string) {
     author: branch[0].author?.name ? branch[0].author?.name : branch[0].author?.email.split('@')[0],
     permissions: branch[0].permissions,
   };
+}
+
+export async function getBranchInteractions(branchId: string) {
+  const interactions = await db
+    .select({
+      interaction: branchesInteractions,
+      user: sql<{ name: string | null; email: string }>`
+      json_build_object(
+        'name', ${userSchema.name},
+        'email', ${userSchema.email}
+      )
+    `.as('user'),
+    })
+    .from(branchesInteractions)
+    .where(eq(branchesInteractions.branchId, branchId))
+    .leftJoin(userSchema, eq(userSchema.id, branchesInteractions.userId));
+  if (!interactions) throw new Error('Branch with the given ID does not exist');
+
+  return interactions;
 }
