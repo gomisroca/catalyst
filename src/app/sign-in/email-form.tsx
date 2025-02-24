@@ -17,9 +17,9 @@ export default function EmailForm() {
       ref={formRef}
       action={async (formData) => {
         formRef.current?.reset();
-        const { error } = await signInWithEmail(formData);
-        if (error) {
-          setMessage(error);
+        const { msg } = await signInWithEmail(formData);
+        if (msg) {
+          setMessage(msg);
         } else {
           setMessage('Check your email for a sign in link.');
         }

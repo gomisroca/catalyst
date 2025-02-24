@@ -33,7 +33,7 @@ export async function createProject(formData: FormData) {
   // If validation fails, return the errors
   if (!validatedFields.success) {
     return {
-      error: validatedFields.error.toString(),
+      msg: validatedFields.error.toString(),
     };
   }
 
@@ -88,7 +88,7 @@ export async function createProject(formData: FormData) {
     projectId = id;
   } catch (error) {
     console.error('Failed to create project:', error);
-    return { error: 'An unexpected error occurred' };
+    return { msg: 'An unexpected error occurred' };
   }
 
   if (projectId) {
@@ -97,5 +97,5 @@ export async function createProject(formData: FormData) {
     redirect(`/projects/${projectId}`);
   }
 
-  return { error: 'Failed to create project' };
+  return { msg: 'Failed to create project' };
 }

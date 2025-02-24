@@ -27,10 +27,10 @@ export default function CreateProjectForm() {
             formData.set('picture', data[0]?.ufsUrl);
           }
 
-          const { error } = await createProject(formData);
+          const { msg } = await createProject(formData);
 
-          if (error) {
-            setMessage(error);
+          if (msg) {
+            setMessage(msg);
             return;
           }
 

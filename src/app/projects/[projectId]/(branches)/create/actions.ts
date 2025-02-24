@@ -38,7 +38,7 @@ export async function createBranch(formData: FormData, projectId: string) {
   // If validation fails, return the errors
   if (!validatedFields.success) {
     return {
-      error: validatedFields.error.toString(),
+      msg: validatedFields.error.toString(),
     };
   }
 
@@ -68,7 +68,7 @@ export async function createBranch(formData: FormData, projectId: string) {
     branchId = branch.id;
   } catch (error) {
     console.error('Failed to create branch:', error);
-    return { error: 'An unexpected error occurred' };
+    return { msg: 'An unexpected error occurred' };
   }
 
   if (branchId) {
@@ -77,5 +77,5 @@ export async function createBranch(formData: FormData, projectId: string) {
     redirect(`/projects/${projectId}/${branchId}`);
   }
 
-  return { error: 'Failed to create branch' };
+  return { msg: 'Failed to create branch' };
 }

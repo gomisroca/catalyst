@@ -33,10 +33,10 @@ export default function CreatePostForm() {
             }
           }
 
-          const { error } = await createPost(formData, params.branchId);
+          const { msg } = await createPost(formData, params.branchId);
 
-          if (error) {
-            setMessage(error);
+          if (msg) {
+            setMessage(msg);
             return;
           }
 

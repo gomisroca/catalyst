@@ -20,10 +20,10 @@ export default function CreateBranchForm() {
       ref={formRef}
       action={async (formData) => {
         try {
-          const { error } = await createBranch(formData, params.projectId);
+          const { msg } = await createBranch(formData, params.projectId);
 
-          if (error) {
-            setMessage(error);
+          if (msg) {
+            setMessage(msg);
             return;
           }
 

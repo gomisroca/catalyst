@@ -17,7 +17,7 @@ export async function signInWithEmail(formData: FormData) {
     // If validation fails, return the errors
     if (!validatedFields.success) {
       return {
-        error: 'Invalid email.',
+        msg: 'Invalid email.',
       };
     }
 

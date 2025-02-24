@@ -66,7 +66,7 @@ export async function createPost(formData: FormData, branchId: string) {
     postId = id;
   } catch (error) {
     console.error('Failed to create post:', error);
-    return { error: 'An unexpected error occurred' };
+    return { msg: 'An unexpected error occurred' };
   }
 
   if (postId) {
@@ -75,5 +75,5 @@ export async function createPost(formData: FormData, branchId: string) {
     redirect(`/projects/${branch.projectId}/${branchId}`);
   }
 
-  return { error: 'Failed to create post' };
+  return { msg: 'Failed to create post' };
 }
