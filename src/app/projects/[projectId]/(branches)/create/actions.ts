@@ -44,32 +44,28 @@ export async function createBranch(formData: FormData, projectId: string) {
 
   let branchId: string | undefined;
   try {
-    const { id } = await db.transaction(async (trx) => {
-      const [result] = await trx
-        .insert(branches)
-        .values({
-          name: validatedFields.data.name,
-          description: validatedFields.data.description,
-          authorId: session.user.id,
-          projectId: projectId,
-        })
-        .returning({ id: branches.id });
+    const [branch] = await db
+      .insert(branches)
+      .values({
+        name: validatedFields.data.name,
+        description: validatedFields.data.description,
+        authorId: session.user.id,
+        projectId: projectId,
+      })
+      .returning({ id: branches.id });
 
-      if (!result) throw new Error('Failed to create branch');
+    if (!branch) throw new Error('Failed to create branch');
 
-      await trx.insert(branchesPermissions).values({
-        branchId: result.id,
-        allowedUsers: [session.user.id],
-        private: validatedFields.data.private,
-        allowCollaborate: validatedFields.data.allowCollaborate,
-        allowShare: validatedFields.data.allowShare,
-        allowBranch: validatedFields.data.allowBranch,
-      });
-
-      return result;
+    await db.insert(branchesPermissions).values({
+      branchId: branch.id,
+      allowedUsers: [session.user.id],
+      private: validatedFields.data.private,
+      allowCollaborate: validatedFields.data.allowCollaborate,
+      allowShare: validatedFields.data.allowShare,
+      allowBranch: validatedFields.data.allowBranch,
     });
 
-    branchId = id;
+    branchId = branch.id;
   } catch (error) {
     console.error('Failed to create branch:', error);
     return { error: 'An unexpected error occurred' };
