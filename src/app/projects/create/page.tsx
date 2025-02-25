@@ -83,12 +83,12 @@ export default function CreateProjectForm() {
         </section>
         <hr className="border-zinc-300 dark:border-zinc-700" />
         <section className="flex flex-row justify-between gap-2">
-          <label htmlFor="allowCollaborate">Allow Collaborations</label>
+          <label htmlFor="allowCollaborate">Collaborations</label>
           <input type="checkbox" name="allowCollaborate" defaultChecked className="h-5 w-5" />
         </section>
         <hr className="border-zinc-300 dark:border-zinc-700" />
         <section className="flex flex-row justify-between gap-2">
-          <label htmlFor="allowShare">Allow Sharing</label>
+          <label htmlFor="allowShare">Sharing</label>
           <input type="checkbox" name="allowShare" defaultChecked className="h-5 w-5" />
         </section>
       </div>
