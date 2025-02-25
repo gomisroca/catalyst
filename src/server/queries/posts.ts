@@ -2,7 +2,7 @@ import 'server-only';
 import { auth } from '@/server/auth';
 import { db } from '../db';
 import { eq, sql } from 'drizzle-orm';
-import { postsMedia, posts as postsSchema, users as usersSchema } from '../db/schema';
+import { postsInteractions, postsMedia, posts as postsSchema, users as usersSchema } from '../db/schema';
 
 export async function getPosts(branchId: string) {
   // Ensure branch exists, and user has access to it
@@ -18,17 +18,22 @@ export async function getPosts(branchId: string) {
   const posts = await db
     .select({
       data: postsSchema,
-      author: {
-        name: usersSchema.name,
-        email: usersSchema.email,
-      },
+      author: sql<{ name: string | null; email: string }>`
+      json_build_object(
+        'name', ${usersSchema.name},
+        'email', ${usersSchema.email}
+      )
+    `.as('author'),
       media: sql<Array<{ id: string; name: string; url: string }>>`
-      json_agg(
-        json_build_object(
-          'id', ${postsMedia.id},
-          'name', ${postsMedia.name},
-          'url', ${postsMedia.url}
-        )
+      COALESCE(
+        json_agg(
+          json_build_object(
+            'id', ${postsMedia.id},
+            'name', ${postsMedia.name},
+            'url', ${postsMedia.url}
+          )
+        ) FILTER (WHERE ${postsMedia.id} IS NOT NULL),
+        '[]'::json
       )
     `.as('media'),
     })
@@ -39,4 +44,40 @@ export async function getPosts(branchId: string) {
     .groupBy(postsSchema.id, usersSchema.name, usersSchema.email);
 
   return posts;
+}
+
+export async function getPostInteractions(postId: string) {
+  const interactions = await db
+    .select({
+      interaction: postsInteractions,
+      user: sql<{ name: string | null; email: string }>`
+      json_build_object(
+        'name', ${usersSchema.name},
+        'email', ${usersSchema.email}
+      )
+    `.as('user'),
+    })
+    .from(postsInteractions)
+    .where(eq(postsInteractions.postId, postId))
+    .leftJoin(usersSchema, eq(usersSchema.id, postsInteractions.userId));
+  if (!interactions) throw new Error('Branch with the given ID does not exist');
+
+  const likes = interactions.filter((data) => data.interaction.type === 'LIKE');
+  const shares = interactions.filter((data) => data.interaction.type === 'SHARE');
+  const bookmarks = interactions.filter((data) => data.interaction.type === 'BOOKMARK');
+
+  const reports = interactions.filter((data) => data.interaction.type === 'REPORT');
+  const hides = interactions.filter((data) => data.interaction.type === 'HIDE');
+
+  return {
+    interactions: {
+      likes,
+      shares,
+      bookmarks,
+    },
+    extraInteractions: {
+      reports,
+      hides,
+    },
+  };
 }
