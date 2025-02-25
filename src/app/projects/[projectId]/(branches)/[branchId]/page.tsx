@@ -36,7 +36,9 @@ export default async function BranchPage({ params }: { params: Promise<{ project
           </div>
         </section>
         {data.description && <ExpandedDescription description={data.description} />}
-        <BranchInteractionsMenu branchId={data.id} />
+        <section className="flex items-center justify-between rounded-b-lg bg-zinc-100 p-2 text-sm font-medium transition duration-200 ease-in-out group-hover:bg-zinc-300 dark:bg-zinc-900 group-hover:dark:bg-zinc-950">
+          <BranchInteractionsMenu branchId={data.id} />
+        </section>
       </header>
       <PostList branchId={data.id} />
       {allowCollaborate && (

@@ -27,9 +27,7 @@ export default function ProjectExtraInteractions({ user, data }: ProjectExtraInt
   const [parent] = useAutoAnimate();
   return (
     <div ref={parent} className="flex gap-2">
-      <Button
-        onClick={() => setOpen(!open)}
-        className="my-auto flex h-[25px] w-[25px] items-center justify-center rounded-full">
+      <Button onClick={() => setOpen(!open)} className="my-auto flex h-5 w-5 items-center justify-center rounded-full">
         <span className="text-sm font-semibold">
           <BsThreeDotsVertical
             size={12}

@@ -9,6 +9,7 @@ import { FaBookmark, FaEye, FaShare, FaStar } from 'react-icons/fa6';
 import { MdWarning } from 'react-icons/md';
 import { type User } from 'next-auth';
 import { type BranchInteractionWithUser } from 'types';
+import { twMerge } from 'tailwind-merge';
 
 const types = {
   LIKE: <FaStar size={12} />,
@@ -30,8 +31,10 @@ export default function BranchInteraction({
   const params = useParams<{ projectId: string; branchId: string }>();
   const setMessage = useSetAtom(messageAtom);
 
+  const hasInteracted = data && data.filter((i) => i.user.email === user?.email).length > 0;
+
   const handleInteraction = async (type: 'LIKE' | 'SHARE' | 'BOOKMARK' | 'REPORT' | 'HIDE') => {
-    if (data && data.filter((i) => i.user.email === user?.email).length > 0) {
+    if (hasInteracted) {
       const { msg } = await removeInteractionAction(type, params.projectId, params.branchId);
       if (msg) setMessage(msg);
       return;
@@ -46,7 +49,10 @@ export default function BranchInteraction({
     <Button
       disabled={!user}
       onClick={() => handleInteraction(type)}
-      className="flex items-center justify-center gap-2 px-2 text-sm font-semibold">
+      className={twMerge(
+        'flex h-6 items-center justify-center gap-2 px-2 text-sm font-semibold',
+        hasInteracted && 'from-sky-300 dark:from-sky-700'
+      )}>
       {types[type]} {data?.length}
     </Button>
   );
