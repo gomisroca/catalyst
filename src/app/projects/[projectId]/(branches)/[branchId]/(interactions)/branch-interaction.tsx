@@ -2,11 +2,13 @@
 
 import Button from '@/app/_components/ui/button';
 import { useParams } from 'next/navigation';
-import { addInteractionAction } from './actions';
+import { addInteractionAction, removeInteractionAction } from './actions';
 import { useSetAtom } from 'jotai';
 import { messageAtom } from '@/atoms/message';
 import { FaBookmark, FaEye, FaShare, FaStar } from 'react-icons/fa6';
 import { MdWarning } from 'react-icons/md';
+import { type User } from 'next-auth';
+import { type BranchInteractionWithUser } from 'types';
 
 const types = {
   LIKE: <FaStar size={12} />,
@@ -18,25 +20,34 @@ const types = {
 
 export default function BranchInteraction({
   type,
-  amount,
+  data,
+  user,
 }: {
   type: 'LIKE' | 'SHARE' | 'BOOKMARK' | 'REPORT' | 'HIDE';
-  amount?: number;
+  data?: BranchInteractionWithUser[];
+  user?: User;
 }) {
   const params = useParams<{ projectId: string; branchId: string }>();
   const setMessage = useSetAtom(messageAtom);
 
   const handleInteraction = async (type: 'LIKE' | 'SHARE' | 'BOOKMARK' | 'REPORT' | 'HIDE') => {
-    const { msg } = await addInteractionAction(type, params.projectId, params.branchId);
-    if (msg) setMessage(msg);
-    return;
+    if (data && data.filter((i) => i.user.email === user?.email).length > 0) {
+      const { msg } = await removeInteractionAction(type, params.projectId, params.branchId);
+      if (msg) setMessage(msg);
+      return;
+    } else {
+      const { msg } = await addInteractionAction(type, params.projectId, params.branchId);
+      if (msg) setMessage(msg);
+      return;
+    }
   };
 
   return (
     <Button
+      disabled={!user}
       onClick={() => handleInteraction(type)}
       className="flex items-center justify-center gap-2 px-2 text-sm font-semibold">
-      {types[type]} {amount}
+      {types[type]} {data?.length}
     </Button>
   );
 }

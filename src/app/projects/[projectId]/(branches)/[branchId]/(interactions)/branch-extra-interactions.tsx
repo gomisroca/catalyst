@@ -6,8 +6,23 @@ import { BsThreeDotsVertical } from 'react-icons/bs';
 import BranchInteraction from './branch-interaction';
 import { twMerge } from 'tailwind-merge';
 import { useAutoAnimate } from '@formkit/auto-animate/react';
+import { type User } from 'next-auth';
+import { type BranchInteractionWithUser } from 'types';
 
-export default function BranchExtraInteractions() {
+type BranchExtraInteractionsProps = {
+  user?: User;
+  data: {
+    reports: BranchInteractionWithUser[];
+    hides: BranchInteractionWithUser[];
+  };
+};
+type InteractionType = 'HIDE' | 'REPORT';
+export default function BranchExtraInteractions({ user, data }: BranchExtraInteractionsProps) {
+  const typeMap: Record<keyof typeof data, InteractionType> = {
+    hides: 'HIDE',
+    reports: 'REPORT',
+  };
+
   const [open, setOpen] = useState(false);
   const [parent] = useAutoAnimate();
   return (
@@ -24,8 +39,9 @@ export default function BranchExtraInteractions() {
       </Button>
       {open && (
         <div className="flex gap-2">
-          <BranchInteraction type="HIDE" />
-          <BranchInteraction type="REPORT" />
+          {(Object.keys(data) as Array<keyof typeof data>).map((key) => (
+            <BranchInteraction key={key} type={typeMap[key]} data={data[key]} user={user} />
+          ))}
         </div>
       )}
     </div>

@@ -62,9 +62,18 @@ export async function getBranchInteractions(branchId: string) {
   const shares = interactions.filter((data) => data.interaction.type === 'SHARE');
   const bookmarks = interactions.filter((data) => data.interaction.type === 'BOOKMARK');
 
+  const reports = interactions.filter((data) => data.interaction.type === 'REPORT');
+  const hides = interactions.filter((data) => data.interaction.type === 'HIDE');
+
   return {
-    likes,
-    shares,
-    bookmarks,
+    interactions: {
+      likes,
+      shares,
+      bookmarks,
+    },
+    extraInteractions: {
+      reports,
+      hides,
+    },
   };
 }

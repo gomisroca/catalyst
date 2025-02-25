@@ -40,3 +40,34 @@ export async function addInteractionAction(
     return { msg: 'An unexpected error occurred' };
   }
 }
+
+export async function removeInteractionAction(
+  type: 'LIKE' | 'SHARE' | 'BOOKMARK' | 'REPORT' | 'HIDE',
+  projectId: string,
+  branchId: string
+) {
+  try {
+    const session = await auth();
+    if (!session?.user) throw new Error('You must be signed in to remove an interaction');
+
+    const deletedRows = await db
+      .delete(branchesInteractions)
+      .where(
+        and(
+          eq(branchesInteractions.branchId, branchId),
+          eq(branchesInteractions.userId, session.user.id),
+          eq(branchesInteractions.type, type)
+        )
+      )
+      .returning({ id: branchesInteractions.id });
+    if (deletedRows.length === 0) {
+      return { msg: 'No interaction found to remove' };
+    }
+
+    revalidatePath(`/projects/${projectId}/${branchId}`);
+    return { msg: 'Interaction removed successfully' };
+  } catch (error) {
+    console.error('Failed to remove interaction:', error);
+    return { msg: 'An unexpected error occurred' };
+  }
+}
