@@ -4,6 +4,7 @@ import { db } from '../db';
 import { eq, sql } from 'drizzle-orm';
 import {
   branches as branchesSchema,
+  projectsInteractions,
   projectsPermissions,
   projects as projectsSchema,
   users as userSchema,
@@ -81,4 +82,40 @@ export async function getProjects() {
 
   // Return only the project data, not the permissions
   return filteredProjects.map(({ project }) => project);
+}
+
+export async function getProjectInteractions(projectId: string) {
+  const interactions = await db
+    .select({
+      interaction: projectsInteractions,
+      user: sql<{ name: string | null; email: string }>`
+      json_build_object(
+        'name', ${userSchema.name},
+        'email', ${userSchema.email}
+      )
+    `.as('user'),
+    })
+    .from(projectsInteractions)
+    .where(eq(projectsInteractions.projectId, projectId))
+    .leftJoin(userSchema, eq(userSchema.id, projectsInteractions.userId));
+  if (!interactions) throw new Error('Project with the given ID does not exist');
+
+  const likes = interactions.filter((data) => data.interaction.type === 'LIKE');
+  const shares = interactions.filter((data) => data.interaction.type === 'SHARE');
+  const bookmarks = interactions.filter((data) => data.interaction.type === 'BOOKMARK');
+
+  const reports = interactions.filter((data) => data.interaction.type === 'REPORT');
+  const hides = interactions.filter((data) => data.interaction.type === 'HIDE');
+
+  return {
+    interactions: {
+      likes,
+      shares,
+      bookmarks,
+    },
+    extraInteractions: {
+      reports,
+      hides,
+    },
+  };
 }
