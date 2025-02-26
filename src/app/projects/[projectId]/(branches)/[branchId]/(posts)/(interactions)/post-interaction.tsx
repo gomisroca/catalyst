@@ -10,6 +10,7 @@ import { MdWarning } from 'react-icons/md';
 import { type User } from 'next-auth';
 import { type PostInteractionWithUser } from 'types';
 import { twMerge } from 'tailwind-merge';
+import { startTransition, useOptimistic } from 'react';
 
 const types = {
   LIKE: <FaStar size={12} />,
@@ -33,18 +34,67 @@ export default function PostInteraction({
   const params = useParams<{ projectId: string; branchId: string }>();
   const setMessage = useSetAtom(messageAtom);
 
-  const hasInteracted = data && data.filter((i) => i.user.email === user?.email).length > 0;
+  const [optimisticInteractions, setOptimisticInteraction] = useOptimistic(
+    data!,
+    (state, { action, newInteraction }: { action: 'add' | 'remove'; newInteraction: PostInteractionWithUser }) => {
+      if (action === 'add') {
+        return [...state, newInteraction];
+      } else {
+        return state.filter((i) => i.user.email !== newInteraction.user?.email);
+      }
+    }
+  );
+
+  const hasInteracted = optimisticInteractions.filter((i) => i.user.email === user?.email).length > 0;
 
   const handleInteraction = async (type: 'LIKE' | 'SHARE' | 'BOOKMARK' | 'REPORT' | 'HIDE') => {
-    if (hasInteracted) {
-      const { msg } = await removeInteractionAction(type, params.projectId, params.branchId, postId);
-      if (msg) setMessage(msg);
-      return;
-    } else {
-      const { msg } = await addInteractionAction(type, params.projectId, params.branchId, postId);
-      if (msg) setMessage(msg);
-      return;
-    }
+    startTransition(async () => {
+      try {
+        if (hasInteracted) {
+          setOptimisticInteraction({
+            action: 'remove',
+            newInteraction: {
+              interaction: {
+                type,
+                id: Math.random().toString(36),
+                postId,
+                createdAt: new Date(),
+                userId: user!.id!,
+              },
+              user: {
+                name: user!.name!,
+                email: user!.email!,
+              },
+            },
+          });
+          const { msg } = await removeInteractionAction(type, params.projectId, params.branchId, postId);
+          if (msg) setMessage(msg);
+          return;
+        } else {
+          setOptimisticInteraction({
+            action: 'add',
+            newInteraction: {
+              interaction: {
+                type,
+                id: Math.random().toString(36),
+                postId,
+                createdAt: new Date(),
+                userId: user!.id!,
+              },
+              user: {
+                name: user!.name!,
+                email: user!.email!,
+              },
+            },
+          });
+          const { msg } = await addInteractionAction(type, params.projectId, params.branchId, postId);
+          if (msg) setMessage(msg);
+          return;
+        }
+      } catch (error) {
+        console.log(error);
+      }
+    });
   };
 
   return (
@@ -55,7 +105,7 @@ export default function PostInteraction({
         'flex h-6 items-center justify-center gap-2 px-2 text-sm font-semibold',
         hasInteracted && 'from-sky-300 dark:from-sky-700'
       )}>
-      {types[type]} {data?.length}
+      {types[type]} {optimisticInteractions?.length}
     </Button>
   );
 }
