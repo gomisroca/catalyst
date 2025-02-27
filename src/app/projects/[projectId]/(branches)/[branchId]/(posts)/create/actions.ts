@@ -11,7 +11,7 @@ import { z } from 'zod';
 const PostSchema = z.object({
   title: z.string().min(3, 'Post title must be at least 3 characters long'),
   content: z.string(),
-  media: z.string().url().array().optional(),
+  media: z.string().url().array().max(5).optional(),
 });
 
 export async function createPost(formData: FormData, branchId: string) {
