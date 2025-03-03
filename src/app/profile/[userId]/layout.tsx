@@ -15,6 +15,7 @@ export default async function ProfileLayout({
   const session = await auth();
 
   const data = await getUserProfile((await params).userId);
+
   if (!data) return null;
 
   return (

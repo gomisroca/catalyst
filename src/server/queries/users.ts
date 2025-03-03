@@ -7,18 +7,9 @@ export async function getUserProfile(userId: string) {
   const data = await db
     .select({
       user: users,
-      followers: sql<Array<{ id: string; followerId: string; followedId: string }>>`
-      json_agg(
-        json_build_object(
-          'id', ${follows.id},
-          'followerId', ${follows.followerId},
-          'followedId', ${follows.followedId}
-        )
-      )
-    `.as('followers'),
       projects: sql<Array<{ id: string; name: string }>>`
       json_agg(
-        json_build_object(
+        DISTINCT jsonb_build_object(
           'id', ${projects.id},
           'name', ${projects.name}
         )
@@ -26,7 +17,7 @@ export async function getUserProfile(userId: string) {
     `.as('projects'),
       branches: sql<Array<{ id: string; name: string }>>`
       json_agg(
-        json_build_object(
+        DISTINCT jsonb_build_object(
           'id', ${branches.id},
           'name', ${branches.name}
         )
@@ -34,7 +25,7 @@ export async function getUserProfile(userId: string) {
       `.as('branches'),
       posts: sql<Array<{ id: string; name: string }>>`
       json_agg(
-        json_build_object(
+        DISTINCT jsonb_build_object(
           'id', ${posts.id},
           'title', ${posts.title}
         )
@@ -43,7 +34,6 @@ export async function getUserProfile(userId: string) {
     })
     .from(users)
     .where(eq(users.id, userId))
-    .leftJoin(follows, eq(follows.followedId, userId))
     .leftJoin(projects, eq(projects.authorId, userId))
     .leftJoin(branches, eq(branches.authorId, userId))
     .leftJoin(posts, eq(posts.authorId, userId))
@@ -51,11 +41,29 @@ export async function getUserProfile(userId: string) {
 
   if (!data[0]) throw new Error('User with the given ID does not exist');
 
+  const followersData = await db
+    .select({
+      followerId: follows.followerId,
+      followedId: follows.followedId,
+      email: users.email,
+      name: users.name,
+      avatar: users.image,
+    })
+    .from(follows)
+    .leftJoin(users, eq(follows.followerId, users.id))
+    .where(eq(follows.followedId, userId))
+    .groupBy(follows.id, users.id);
+
+  if (!followersData) throw new Error('Could not find followers for the given user');
+
   return {
     ...data[0].user,
-    followers: data[0].followers.filter((follower) => follower.id),
     projects: data[0].projects,
     branches: data[0].branches,
     posts: data[0].posts,
+    followers: followersData.map((user) => ({
+      ...user,
+      name: user.name ?? user.email?.split('@')[0],
+    })),
   };
 }
