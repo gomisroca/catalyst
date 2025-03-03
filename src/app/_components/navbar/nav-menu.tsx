@@ -7,9 +7,34 @@ import { useAutoAnimate } from '@formkit/auto-animate/react';
 import Link from '@/app/_components/ui/link';
 import { type Session } from 'next-auth';
 import { signOut } from 'next-auth/react';
+import Image from 'next/image';
 
-function MenuToggle({ open, setOpen }: { open: boolean; setOpen: React.Dispatch<React.SetStateAction<boolean>> }) {
-  return <Button onClick={() => setOpen(!open)}>{open ? <MdClear size={20} /> : <MdOutlineMenu size={20} />}</Button>;
+function MenuToggle({
+  open,
+  setOpen,
+  session,
+}: {
+  open: boolean;
+  setOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  session: Session | null;
+}) {
+  return (
+    <Button onClick={() => setOpen(!open)}>
+      {open ? (
+        <MdClear size={20} />
+      ) : session ? (
+        <Image
+          src={session.user?.avatar ?? '/user.jpg'}
+          alt="Profile Picture"
+          width={20}
+          height={20}
+          className="rounded-full"
+        />
+      ) : (
+        <MdOutlineMenu size={20} />
+      )}
+    </Button>
+  );
 }
 
 function Menu({ session }: { session: Session | null }) {
@@ -50,7 +75,7 @@ function NavMenu({ session }: { session: Session | null }) {
 
   return (
     <div ref={menuRef}>
-      <MenuToggle open={open} setOpen={setOpen} />
+      <MenuToggle open={open} setOpen={setOpen} session={session} />
       <div ref={parent} className="relative">
         {open && <Menu session={session} />}
       </div>
