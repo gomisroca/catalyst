@@ -7,27 +7,30 @@ export async function getUserProfile(userId: string) {
   const data = await db
     .select({
       user: users,
-      projects: sql<Array<{ id: string; name: string }>>`
+      projects: sql<Array<{ id: string; name: string; updatedAt: string }>>`
       json_agg(
         DISTINCT jsonb_build_object(
           'id', ${projects.id},
-          'name', ${projects.name}
+          'name', ${projects.name},
+          'updatedAt', ${projects.updatedAt}
         )
       )
     `.as('projects'),
-      branches: sql<Array<{ id: string; name: string }>>`
+      branches: sql<Array<{ id: string; name: string; updatedAt: string }>>`
       json_agg(
         DISTINCT jsonb_build_object(
           'id', ${branches.id},
-          'name', ${branches.name}
+          'name', ${branches.name},
+          'updatedAt', ${branches.updatedAt}
         )
       )
       `.as('branches'),
-      posts: sql<Array<{ id: string; name: string }>>`
+      posts: sql<Array<{ id: string; name: string; updatedAt: string }>>`
       json_agg(
         DISTINCT jsonb_build_object(
           'id', ${posts.id},
-          'title', ${posts.title}
+          'title', ${posts.title},
+          'updatedAt', ${posts.updatedAt}
         )
       )
       `.as('posts'),
