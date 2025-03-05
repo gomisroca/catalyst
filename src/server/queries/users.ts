@@ -76,11 +76,15 @@ export async function getUserContributions(userId: string) {
           '[]'::json
         )
       `.as('media'),
+        branch: branchesSchema,
+        project: projectsSchema,
       })
       .from(postsSchema)
       .where(eq(postsSchema.authorId, userId))
       .leftJoin(postsMedia, eq(postsSchema.id, postsMedia.postId))
-      .groupBy(postsSchema.id),
+      .leftJoin(branchesSchema, eq(postsSchema.branchId, branchesSchema.id))
+      .leftJoin(projectsSchema, eq(branchesSchema.projectId, projectsSchema.id))
+      .groupBy(postsSchema.id, branchesSchema.id, projectsSchema.id),
   ]);
 
   return {
@@ -106,6 +110,10 @@ export async function getUserContributions(userId: string) {
       content: data.post.content,
       updatedAt: data.post.updatedAt ?? data.post.createdAt,
       media: data.media,
+      branchName: data.branch?.name,
+      branchId: data.branch?.id,
+      projectName: data.project?.name,
+      projectId: data.project?.id,
     })),
   };
 }
