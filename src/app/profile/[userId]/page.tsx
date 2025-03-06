@@ -33,10 +33,9 @@ interface Post {
 
 function ProjectCard({ project }: { project: Project }) {
   return (
-    <Link
-      href={`/projects/${project.id}`}
+    <li
       key={project.id}
-      className="group flex rounded-lg bg-zinc-300 drop-shadow-sm transition duration-200 ease-in-out hover:scale-105 hover:drop-shadow-md active:drop-shadow-none active:duration-100 dark:bg-zinc-950">
+      className="group flex max-w-full rounded-lg bg-zinc-300 drop-shadow-sm transition duration-200 ease-in-out hover:scale-105 hover:drop-shadow-md active:drop-shadow-none active:duration-100 dark:bg-zinc-950">
       {project.picture && (
         <Image
           src={project.picture}
@@ -47,22 +46,25 @@ function ProjectCard({ project }: { project: Project }) {
         />
       )}
       <section className="flex h-full w-full flex-col">
-        <header className="flex items-center justify-between rounded-tr-lg bg-white px-4 py-2 transition duration-200 ease-in-out dark:bg-black">
-          <h1 className="text-lg font-bold">{project.name}</h1>
-          <p className="text-zinc-400">{project.updatedAt.toLocaleDateString()}</p>
+        <header className="flex flex-col items-center justify-between rounded-tr-lg bg-white px-2 py-2 transition duration-200 ease-in-out md:flex-row md:px-4 dark:bg-black">
+          <Link
+            href={`/projects/${project.id}/`}
+            className="w-full font-bold transition duration-200 ease-in-out hover:scale-105 hover:text-rose-500 md:w-auto md:text-lg dark:hover:text-rose-700">
+            {project.name}
+          </Link>
+          <p className="w-full text-zinc-400 md:w-auto">{project.updatedAt.toLocaleDateString()}</p>
         </header>
-        <div className="px-4 py-2">{project.description}</div>
+        <div className="my-2 line-clamp-5 px-2 md:px-4">{project.description}</div>
       </section>
-    </Link>
+    </li>
   );
 }
 
 function BranchCard({ branch }: { branch: Branch }) {
   return (
-    <Link
-      href={`/projects/${branch.projectId}/${branch.id}`}
+    <li
       key={branch.id}
-      className="group flex rounded-lg bg-zinc-300 drop-shadow-sm transition duration-200 ease-in-out hover:scale-105 hover:drop-shadow-md active:drop-shadow-none active:duration-100 dark:bg-zinc-950">
+      className="group flex max-w-full rounded-lg bg-zinc-300 drop-shadow-sm transition duration-200 ease-in-out hover:scale-105 hover:drop-shadow-md active:drop-shadow-none active:duration-100 dark:bg-zinc-950">
       {branch.projectPicture && (
         <Image
           src={branch.projectPicture}
@@ -73,19 +75,25 @@ function BranchCard({ branch }: { branch: Branch }) {
         />
       )}
       <section className="flex h-full w-full flex-col">
-        <header className="flex items-center justify-between rounded-tr-lg bg-white px-4 py-2 transition duration-200 ease-in-out dark:bg-black">
-          <div className="flex items-center gap-2">
-            <h1 className="text-lg font-bold">{branch.projectName}</h1>
+        <header className="flex flex-col items-center justify-between rounded-tr-lg bg-white px-2 py-2 transition duration-200 ease-in-out md:flex-row md:px-4 dark:bg-black">
+          <div className="flex w-full items-center gap-2 md:w-auto">
+            <Link
+              href={`/projects/${branch.projectId}/`}
+              className="font-bold transition duration-200 ease-in-out hover:scale-105 hover:text-rose-500 md:text-lg dark:hover:text-rose-700">
+              {branch.projectName}
+            </Link>
             <span>•</span>
-            <span className="flex items-center gap-1 font-bold text-zinc-500">
+            <Link
+              href={`/projects/${branch.projectId}/${branch.id}`}
+              className="flex items-center gap-1 font-bold text-zinc-500 transition duration-200 ease-in-out hover:scale-105 hover:text-rose-500 dark:hover:text-rose-700">
               <FaCodeBranch size={16} /> {branch.name}
-            </span>
+            </Link>
           </div>
-          <p className="text-zinc-400">{branch.updatedAt.toLocaleDateString()}</p>
+          <p className="w-full text-zinc-400 md:w-auto">{branch.updatedAt.toLocaleDateString()}</p>
         </header>
-        <div className="px-4 py-2">{branch.description}</div>
+        <div className="my-2 line-clamp-5 px-2 md:px-4">{branch.description}</div>
       </section>
-    </Link>
+    </li>
   );
 }
 
@@ -93,26 +101,26 @@ function PostCard({ post }: { post: Post }) {
   return (
     <li
       key={post.id}
-      className="group flex flex-col rounded-lg bg-zinc-300 drop-shadow-sm transition duration-200 ease-in-out hover:scale-105 hover:drop-shadow-md active:drop-shadow-none active:duration-100 dark:bg-zinc-950">
-      <header className="flex items-center justify-between rounded-t-lg bg-white px-4 py-2 transition duration-200 ease-in-out dark:bg-black">
-        <div className="flex items-center gap-2">
+      className="group flex max-w-full flex-col rounded-lg bg-zinc-300 drop-shadow-sm transition duration-200 ease-in-out hover:scale-105 hover:drop-shadow-md active:drop-shadow-none active:duration-100 dark:bg-zinc-950">
+      <header className="flex flex-col items-center justify-between rounded-t-lg bg-white px-2 py-2 transition duration-200 ease-in-out md:flex-row md:px-4 dark:bg-black">
+        <div className="flex w-full items-center gap-2 md:w-auto">
           <Link
             href={`/projects/${post.projectId}`}
-            className="text-lg font-bold transition duration-200 ease-in-out hover:text-zinc-700 hover:dark:text-zinc-300">
+            className="font-bold transition duration-200 ease-in-out hover:scale-105 hover:text-rose-500 md:text-lg dark:hover:text-rose-700">
             {post.projectName}
           </Link>
           <span>•</span>
           <Link
             href={`/projects/${post.projectId}/${post.branchId}`}
-            className="flex items-center gap-1 font-bold text-zinc-500 transition duration-200 ease-in-out hover:text-zinc-600 hover:dark:text-zinc-400">
+            className="flex items-center gap-1 font-bold text-zinc-500 transition duration-200 ease-in-out hover:scale-105 hover:text-rose-500 dark:hover:text-rose-700">
             <FaCodeBranch size={16} /> {post.branchName}
           </Link>
         </div>
-        <p className="text-zinc-400">{post.updatedAt.toLocaleDateString()}</p>
+        <p className="w-full text-zinc-400 md:w-auto">{post.updatedAt.toLocaleDateString()}</p>
       </header>
-      <section className="px-4 py-2">
+      <section className="my-2 px-2 md:px-4">
         <h3 className="text-xl font-semibold">{post.title}</h3>
-        <p className="text-zinc-500">{post.content}</p>
+        <p className="line-clamp-5 text-zinc-500">{post.content}</p>
         <div className="flex flex-wrap">
           {post.media.map((media) => (
             <div key={media.id} className="h-10 w-10 p-2">
