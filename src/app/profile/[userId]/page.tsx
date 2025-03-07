@@ -1,7 +1,7 @@
-import { getUserContributions } from '@/server/queries/users';
+import { getUserContributions, getUserInteractions } from '@/server/queries/users';
 import Image from 'next/image';
 import Link from 'next/link';
-import { FaCodeBranch } from 'react-icons/fa6';
+import { FaBookmark, FaCodeBranch, FaStar, FaShare } from 'react-icons/fa6';
 
 interface Project {
   id: string;
@@ -30,6 +30,70 @@ interface Post {
   branchId: string;
   media: Array<{ id: string; name: string; url: string }>;
 }
+
+interface PostInteraction {
+  id: string;
+  postId: string;
+  userId: string;
+  interactionType: 'LIKE' | 'SHARE' | 'BOOKMARK';
+  updatedAt: Date;
+  title: string;
+  content: string;
+  author: {
+    id: string;
+    name: string | null;
+    email: string;
+  };
+  media: Array<{ id: string; name: string; url: string }> | null;
+  type: 'post-interaction';
+}
+
+interface BranchInteraction {
+  id: string;
+  branchId: string;
+  userId: string;
+  interactionType: 'LIKE' | 'SHARE' | 'BOOKMARK';
+  updatedAt: Date;
+  name: string;
+  description: string;
+  author: {
+    id: string;
+    name: string | null;
+    email: string;
+  };
+  type: 'branch-interaction';
+}
+
+interface ProjectInteraction {
+  id: string;
+  projectId: string;
+  userId: string;
+  interactionType: 'LIKE' | 'SHARE' | 'BOOKMARK';
+  updatedAt: Date;
+  name: string;
+  description: string;
+  author: {
+    id: string;
+    name: string | null;
+    email: string;
+  };
+  type: 'project-interaction';
+}
+
+const interactionIcons = {
+  LIKE: {
+    text: 'Liked',
+    icon: <FaStar size={16} />,
+  },
+  SHARE: {
+    text: 'Shared',
+    icon: <FaShare size={16} />,
+  },
+  BOOKMARK: {
+    text: 'Saved',
+    icon: <FaBookmark size={16} />,
+  },
+};
 
 function ProjectCard({ project }: { project: Project }) {
   return (
@@ -133,15 +197,118 @@ function PostCard({ post }: { post: Post }) {
   );
 }
 
-export default async function ProfilePage({ params }: { params: Promise<{ userId: string }> }) {
+function ProjectInteractionCard({ interaction }: { interaction: ProjectInteraction }) {
+  return (
+    <li
+      key={interaction.id}
+      className="group flex max-w-full flex-col rounded-lg bg-zinc-300 drop-shadow-sm transition duration-200 ease-in-out hover:scale-105 hover:drop-shadow-md active:drop-shadow-none active:duration-100 dark:bg-zinc-950">
+      <header className="flex flex-col items-center justify-between rounded-t-lg bg-white px-2 py-2 transition duration-200 ease-in-out md:flex-row md:px-4 dark:bg-black">
+        <p className="flex w-full items-center justify-start gap-1 font-semibold text-zinc-500">
+          {interactionIcons[interaction.interactionType].icon} {interactionIcons[interaction.interactionType].text} a
+          project
+        </p>
+        <p className="w-full text-zinc-400 md:w-auto">{interaction.updatedAt.toLocaleDateString()}</p>
+      </header>
+      <section className="my-2 px-2 md:px-4">
+        <div className="flex justify-between font-semibold">
+          <h3 className="flex-1 text-xl">{interaction.name}</h3>
+          <div className="flex gap-1 text-zinc-400">
+            <span className="font-normal">by</span>
+            <Link
+              href={`/profile/${interaction.author.id}`}
+              className="transition duration-200 ease-in-out hover:text-zinc-600">
+              {interaction.author.name ?? interaction.author.email?.split('@')[0]}
+            </Link>
+          </div>
+        </div>
+        <p className="line-clamp-5 text-zinc-500">{interaction.description}</p>
+      </section>
+    </li>
+  );
+}
+
+function BranchInteractionCard({ interaction }: { interaction: BranchInteraction }) {
+  return (
+    <li
+      key={interaction.id}
+      className="group flex max-w-full flex-col rounded-lg bg-zinc-300 drop-shadow-sm transition duration-200 ease-in-out hover:scale-105 hover:drop-shadow-md active:drop-shadow-none active:duration-100 dark:bg-zinc-950">
+      <header className="flex flex-col items-center justify-between rounded-t-lg bg-white px-2 py-2 transition duration-200 ease-in-out md:flex-row md:px-4 dark:bg-black">
+        <p className="flex w-full items-center justify-start gap-1 font-semibold text-zinc-500">
+          {interactionIcons[interaction.interactionType].icon} {interactionIcons[interaction.interactionType].text} a
+          branch
+        </p>
+        <p className="w-full text-zinc-400 md:w-auto">{interaction.updatedAt.toLocaleDateString()}</p>
+      </header>
+      <section className="my-2 px-2 md:px-4">
+        <div className="flex justify-between font-semibold">
+          <h3 className="flex-1 text-xl">{interaction.name}</h3>
+          <div className="flex gap-1 text-zinc-400">
+            <span className="font-normal">by</span>
+            <Link
+              href={`/profile/${interaction.author.id}`}
+              className="transition duration-200 ease-in-out hover:text-zinc-600">
+              {interaction.author.name ?? interaction.author.email?.split('@')[0]}
+            </Link>
+          </div>
+        </div>
+        <p className="line-clamp-5 text-zinc-500">{interaction.description}</p>
+      </section>
+    </li>
+  );
+}
+
+function PostInteractionCard({ interaction }: { interaction: PostInteraction }) {
+  return (
+    <li
+      key={interaction.id}
+      className="group flex max-w-full flex-col rounded-lg bg-zinc-300 drop-shadow-sm transition duration-200 ease-in-out hover:scale-105 hover:drop-shadow-md active:drop-shadow-none active:duration-100 dark:bg-zinc-950">
+      <header className="flex flex-col items-center justify-between rounded-t-lg bg-white px-2 py-2 transition duration-200 ease-in-out md:flex-row md:px-4 dark:bg-black">
+        <p className="flex w-full items-center justify-start gap-1 font-semibold text-zinc-500">
+          {interactionIcons[interaction.interactionType].icon} {interactionIcons[interaction.interactionType].text} a
+          post
+        </p>
+        <p className="w-full text-zinc-400 md:w-auto">{interaction.updatedAt.toLocaleDateString()}</p>
+      </header>
+      <section className="my-2 px-2 md:px-4">
+        <div className="flex justify-between font-semibold">
+          <h3 className="flex-1 text-xl">{interaction.title}</h3>
+          <div className="flex gap-1 text-zinc-400">
+            <span className="font-normal">by</span>
+            <Link
+              href={`/profile/${interaction.author.id}`}
+              className="transition duration-200 ease-in-out hover:text-zinc-600">
+              {interaction.author.name ?? interaction.author.email?.split('@')[0]}
+            </Link>
+          </div>
+        </div>
+        <p className="line-clamp-5 text-zinc-500">{interaction.content}</p>
+        {interaction.media && (
+          <div className="flex flex-wrap">
+            {interaction.media.map((media) => (
+              <div key={media.id} className="h-10 w-10 p-2">
+                <Image fill src={media.url} alt={media.name} />
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
+    </li>
+  );
+}
+
+export default async function ProfileTimeline({ params }: { params: Promise<{ userId: string }> }) {
   const data = await getUserContributions((await params).userId);
-  if (!data) return null;
+  const interactions = await getUserInteractions((await params).userId);
+  if (!data || !interactions) return null;
 
   // Combine projects, branches, and posts into a single array
   const timelineItems = [
     ...data.projects.map((project) => ({ ...project, type: 'project' })),
     ...data.branches.map((branch) => ({ ...branch, type: 'branch' })),
     ...data.posts.map((post) => ({ ...post, type: 'post' })),
+    ...interactions.postInteractions,
+    ...interactions.branchInteractions,
+    ...interactions.projectInteractions,
   ];
 
   // Sort the combined array by updatedAt
@@ -156,6 +323,12 @@ export default async function ProfilePage({ params }: { params: Promise<{ userId
           return <BranchCard key={item.id} branch={item as Branch} />;
         } else if (item.type === 'post') {
           return <PostCard key={item.id} post={item as Post} />;
+        } else if (item.type === 'project-interaction') {
+          return <ProjectInteractionCard key={item.id} interaction={item as ProjectInteraction} />;
+        } else if (item.type === 'branch-interaction') {
+          return <BranchInteractionCard key={item.id} interaction={item as BranchInteraction} />;
+        } else if (item.type === 'post-interaction') {
+          return <PostInteractionCard key={item.id} interaction={item as PostInteraction} />;
         }
       })}
     </ul>

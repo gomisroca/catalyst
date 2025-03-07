@@ -2,10 +2,13 @@ import 'server-only';
 import { db } from '../db';
 import { eq, sql } from 'drizzle-orm';
 import {
+  branchesInteractions,
   branches as branchesSchema,
   follows,
+  postsInteractions,
   postsMedia,
   posts as postsSchema,
+  projectsInteractions,
   projects as projectsSchema,
   users,
 } from '../db/schema';
@@ -114,6 +117,81 @@ export async function getUserContributions(userId: string) {
       branchId: data.branch?.id,
       projectName: data.project?.name,
       projectId: data.project?.id,
+    })),
+  };
+}
+
+export async function getUserInteractions(userId: string) {
+  const branchInteractions = await db
+    .select()
+    .from(branchesInteractions)
+    .where(eq(branchesInteractions.userId, userId))
+    .leftJoin(branchesSchema, eq(branchesInteractions.branchId, branchesSchema.id))
+    .leftJoin(users, eq(branchesSchema.authorId, users.id));
+
+  const postInteractions = await db
+    .select()
+    .from(postsInteractions)
+    .where(eq(postsInteractions.userId, userId))
+    .leftJoin(postsSchema, eq(postsInteractions.postId, postsSchema.id))
+    .leftJoin(postsMedia, eq(postsSchema.id, postsMedia.postId))
+    .leftJoin(users, eq(postsSchema.authorId, users.id));
+
+  console.log(postInteractions);
+
+  const projectInteractions = await db
+    .select()
+    .from(projectsInteractions)
+    .where(eq(projectsInteractions.userId, userId))
+    .leftJoin(projectsSchema, eq(projectsInteractions.projectId, projectsSchema.id))
+    .leftJoin(users, eq(projectsSchema.authorId, users.id));
+
+  return {
+    postInteractions: postInteractions.map((interaction) => ({
+      id: interaction.post_interaction.id,
+      postId: interaction.post_interaction.postId,
+      userId: interaction.post_interaction.userId,
+      interactionType: interaction.post_interaction.type,
+      updatedAt: interaction.post_interaction.createdAt,
+      title: interaction.post?.title,
+      content: interaction.post?.content,
+      author: {
+        id: interaction.user?.id,
+        name: interaction.user?.name,
+        email: interaction.user?.email,
+      },
+      media: interaction.post_media,
+      type: 'post-interaction',
+    })),
+    branchInteractions: branchInteractions.map((interaction) => ({
+      id: interaction.branch_interaction.id,
+      branchId: interaction.branch_interaction.branchId,
+      userId: interaction.branch_interaction.userId,
+      interactionType: interaction.branch_interaction.type,
+      updatedAt: interaction.branch_interaction.createdAt,
+      name: interaction.branch?.name,
+      description: interaction.branch?.description,
+      author: {
+        id: interaction.user?.id,
+        name: interaction.user?.name,
+        email: interaction.user?.email,
+      },
+      type: 'branch-interaction',
+    })),
+    projectInteractions: projectInteractions.map((interaction) => ({
+      id: interaction.project_interaction.id,
+      projectId: interaction.project_interaction.projectId,
+      userId: interaction.project_interaction.userId,
+      interactionType: interaction.project_interaction.type,
+      updatedAt: interaction.project_interaction.createdAt,
+      name: interaction.project?.name,
+      description: interaction.project?.description,
+      author: {
+        id: interaction.user?.id,
+        name: interaction.user?.name,
+        email: interaction.user?.email,
+      },
+      type: 'project-interaction',
     })),
   };
 }
