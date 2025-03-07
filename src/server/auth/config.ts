@@ -15,7 +15,7 @@ import { env } from '@/env';
  */
 declare module 'next-auth' {
   interface Session extends DefaultSession {
-    user: { id: string; name: string; email: string } & DefaultSession['user'];
+    user: { id: string; name: string; email: string; avatar: string | null } & DefaultSession['user'];
   }
 
   // interface User {
@@ -43,7 +43,13 @@ export const authConfig = {
   callbacks: {
     session: ({ session, user }) => ({
       ...session,
-      user: { ...session.user, id: user.id, name: user.name ?? user.email.split('@')[0], email: user.email },
+      user: {
+        ...session.user,
+        id: user.id,
+        name: user.name ?? user.email.split('@')[0],
+        email: user.email,
+        avatar: user.image,
+      },
     }),
   },
 } satisfies NextAuthConfig;

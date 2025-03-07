@@ -12,11 +12,6 @@ function Navbar({ session }: { session: Session | null }) {
           <h1 className="text-lg leading-none font-extrabold tracking-tight uppercase lg:text-xl">Catalyst</h1>
         </Link>
         <section className="flex items-center justify-end gap-2">
-          {session && (
-            <p className="text-sm leading-none tracking-tight uppercase">
-              {session.user?.name ? session.user?.name : session.user?.email.split('@')[0]}
-            </p>
-          )}
           <NavMenu session={session} />
         </section>
       </nav>

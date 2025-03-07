@@ -5,6 +5,7 @@ import { Suspense } from 'react';
 import BranchSelection from './branch-selection';
 import { auth } from '@/server/auth';
 import Link from '@/app/_components/ui/link';
+import * as NextLink from 'next/link';
 
 export default async function ProjectLayout({
   params,
@@ -36,7 +37,7 @@ export default async function ProjectLayout({
           <section className="flex flex-col items-start justify-start">
             <h1 className="text-2xl leading-tight font-bold tracking-tight">{data.name}</h1>
             <div className="flex gap-1 text-sm font-medium text-zinc-500 dark:text-zinc-400">
-              <span>{data.author}</span>
+              <NextLink.default href={`/profile/${data.author.id}`}>{data.author.name}</NextLink.default>
               <span>•</span>
               <span>
                 {data.createdAt.toLocaleDateString('en-US', {

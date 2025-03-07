@@ -16,8 +16,9 @@ export async function getProject(id: string) {
   const project = await db
     .select({
       project: projectsSchema,
-      author: sql<{ name: string | null; email: string }>`
+      author: sql<{ id: string; name: string | null; email: string }>`
       json_build_object(
+        'id', ${userSchema.id},
         'name', ${userSchema.name},
         'email', ${userSchema.email}
       )
@@ -37,7 +38,7 @@ export async function getProject(id: string) {
     .leftJoin(userSchema, eq(userSchema.id, projectsSchema.authorId))
     .leftJoin(projectsPermissions, eq(projectsSchema.id, projectsPermissions.projectId))
     .leftJoin(branchesSchema, eq(branchesSchema.projectId, id))
-    .groupBy(projectsSchema.id, userSchema.name, userSchema.email, projectsPermissions.id);
+    .groupBy(projectsSchema.id, userSchema.id, userSchema.email, projectsPermissions.id);
 
   if (!project[0]) throw new Error('Project with the given ID does not exist');
   if (
@@ -49,7 +50,10 @@ export async function getProject(id: string) {
 
   return {
     ...project[0].project,
-    author: project[0].author?.name ? project[0].author?.name : project[0].author?.email.split('@')[0],
+    author: {
+      id: project[0].author?.id,
+      name: project[0].author?.name ? project[0].author?.name : project[0].author?.email.split('@')[0],
+    },
     branches: project[0].branches,
     permissions: project[0].permissions,
   };

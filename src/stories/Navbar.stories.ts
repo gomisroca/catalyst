@@ -6,6 +6,7 @@ const mockSesion = {
     id: '1',
     name: 'Jane Doe',
     email: 'jane.doe@example.com',
+    avatar: null,
   },
   expires: '7d',
 };
