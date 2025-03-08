@@ -2,34 +2,7 @@ import { getUserContributions } from '@/server/queries/users';
 import Image from 'next/image';
 import Link from 'next/link';
 import { FaCodeBranch } from 'react-icons/fa6';
-
-interface Project {
-  id: string;
-  name: string;
-  description: string;
-  updatedAt: Date;
-  picture: string | null;
-}
-interface Branch {
-  id: string;
-  name: string;
-  description: string;
-  updatedAt: Date;
-  projectId: string;
-  projectName: string;
-  projectPicture: string | null;
-}
-interface Post {
-  id: string;
-  title: string;
-  content: string;
-  updatedAt: Date;
-  projectName: string;
-  projectId: string;
-  branchName: string;
-  branchId: string;
-  media: Array<{ id: string; name: string; url: string }>;
-}
+import { type Project, type Branch, type Post } from '../types';
 
 function ProjectCard({ project }: { project: Project }) {
   return (
