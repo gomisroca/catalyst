@@ -48,6 +48,28 @@ export async function getUserProfile(userId: string) {
   };
 }
 
+export async function getUserFollows(userId: string) {
+  const followsData = await db
+    .select({
+      followerId: follows.followerId,
+      followedId: follows.followedId,
+      email: users.email,
+      name: users.name,
+      avatar: users.image,
+    })
+    .from(follows)
+    .leftJoin(users, eq(follows.followedId, users.id))
+    .where(eq(follows.followerId, userId))
+    .groupBy(follows.id, users.id);
+
+  if (!followsData) throw new Error('Could not find follows for the given user');
+
+  return followsData.map((user) => ({
+    ...user,
+    name: user.name ?? user.email?.split('@')[0],
+  }));
+}
+
 export async function getUserContributions(userId: string) {
   const [projects, branches, posts] = await Promise.all([
     await db
