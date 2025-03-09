@@ -4,6 +4,9 @@ import { Suspense } from 'react';
 import { auth } from '@/server/auth';
 import { getUserProfile } from '@/server/queries/users';
 import FollowMenu from './follow-menu';
+import { FaStar } from 'react-icons/fa6';
+import Link from '@/app/_components/ui/link';
+import { BsPerson } from 'react-icons/bs';
 
 export default async function ProfileLayout({
   params,
@@ -32,7 +35,17 @@ export default async function ProfileLayout({
           </span>
           <h1 className="text-2xl leading-tight font-bold tracking-tight">{data.name ?? data.email.split('@')[0]}</h1>
         </div>
-        <FollowMenu session={session} followers={data.followers} />
+        <section className="flex items-center gap-2">
+          <Link href={`/profile/${data.id}/contributions`}>
+            <span className="sr-only">Contributions</span>
+            <FaStar size={16} />
+          </Link>
+          <Link href={`/profile/${data.id}/follows`}>
+            <span className="sr-only">Follows</span>
+            <BsPerson size={16} />
+          </Link>
+          <FollowMenu session={session} followers={data.followers} />
+        </section>
       </header>
       {/* 
       We will have various children views
