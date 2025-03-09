@@ -13,6 +13,17 @@ export default function Modal({ children }: { children: React.ReactNode }) {
   const [parent] = useAutoAnimate();
 
   useEffect(() => {
+    const body = document.body;
+    if (dialogRef.current?.open) {
+      body.classList.add('overflow-hidden');
+    }
+
+    return () => {
+      body.classList.remove('overflow-hidden');
+    };
+  }, []);
+
+  useEffect(() => {
     if (!dialogRef.current?.open) {
       dialogRef.current?.showModal();
     }
