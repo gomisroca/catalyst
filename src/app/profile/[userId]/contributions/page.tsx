@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { FaCodeBranch } from 'react-icons/fa6';
 import { type Project, type Branch, type Post } from '../types';
 
-function ProjectCard({ project }: { project: Project }) {
+export function ProjectCard({ project }: { project: Project }) {
   return (
     <li
       key={project.id}
@@ -33,7 +33,7 @@ function ProjectCard({ project }: { project: Project }) {
   );
 }
 
-function BranchCard({ branch }: { branch: Branch }) {
+export function BranchCard({ branch }: { branch: Branch }) {
   return (
     <li
       key={branch.id}
@@ -70,7 +70,7 @@ function BranchCard({ branch }: { branch: Branch }) {
   );
 }
 
-function PostCard({ post }: { post: Post }) {
+export function PostCard({ post }: { post: Post }) {
   return (
     <li
       key={post.id}
