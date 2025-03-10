@@ -93,7 +93,7 @@ export default function FollowMenu({
       onClick={() =>
         session?.user.id === params.userId ? navigate.push(`/profile/${params.userId}/followers`) : handleFollow()
       }>
-      {isFollowing ? <BsHeartFill size={20} /> : <BsHeart size={20} />} {optimisticFollowers?.length}
+      {isFollowing ? <BsHeartFill size={16} /> : <BsHeart size={16} />}
     </Button>
   );
 }
