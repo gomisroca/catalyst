@@ -24,6 +24,10 @@ export async function getUserProfile(userId: string) {
 
   if (!data[0]) throw new Error('User with the given ID does not exist');
 
+  return data[0].user;
+}
+
+export async function getUserFollowers(userId: string) {
   const followersData = await db
     .select({
       followerId: follows.followerId,
@@ -39,13 +43,10 @@ export async function getUserProfile(userId: string) {
 
   if (!followersData) throw new Error('Could not find followers for the given user');
 
-  return {
-    ...data[0].user,
-    followers: followersData.map((user) => ({
-      ...user,
-      name: user.name ?? user.email?.split('@')[0],
-    })),
-  };
+  return followersData.map((user) => ({
+    ...user,
+    name: user.name ?? user.email?.split('@')[0],
+  }));
 }
 
 export async function getUserFollows(userId: string) {
@@ -158,8 +159,6 @@ export async function getUserInteractions(userId: string) {
     .leftJoin(postsSchema, eq(postsInteractions.postId, postsSchema.id))
     .leftJoin(postsMedia, eq(postsSchema.id, postsMedia.postId))
     .leftJoin(users, eq(postsSchema.authorId, users.id));
-
-  console.log(postInteractions);
 
   const projectInteractions = await db
     .select()
