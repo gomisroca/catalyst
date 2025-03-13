@@ -12,6 +12,7 @@ import { auth } from '@/server/auth';
 import Navbar from '@/app/_components/navbar';
 import Footer from '@/app/_components/footer';
 import { type Session } from 'next-auth';
+import Sidebar from './_components/sidebar';
 
 export const metadata: Metadata = {
   title: 'Catalyst',
@@ -28,6 +29,7 @@ export function RootLayoutContent({
   return (
     <div className="flex min-h-screen flex-col">
       <Navbar session={session} />
+      <Sidebar session={session} />
       <main className="mt-12 flex flex-1 flex-col items-center justify-center">{children}</main>
       <Footer />
     </div>
