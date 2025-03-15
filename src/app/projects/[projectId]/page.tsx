@@ -1,4 +1,4 @@
-import ExpandedDescription from '@/app/_components/projects/ExpandedDescription';
+import ExpandedDescription from '@/app/_components/projects/expanded-description';
 import { getProject } from '@/server/queries/projects';
 import ProjectInteractionsMenu from './(interactions)/project-interactions-menu';
 

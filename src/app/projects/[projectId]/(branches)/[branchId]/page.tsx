@@ -3,7 +3,7 @@ import PostList from './post-list';
 import { auth } from '@/server/auth';
 import Link from '@/app/_components/ui/link';
 import { FaCodeBranch, FaPen } from 'react-icons/fa6';
-import ExpandedDescription from '@/app/_components/projects/ExpandedDescription';
+import ExpandedDescription from '@/app/_components/projects/expanded-description';
 import BranchInteractionsMenu from './(interactions)/branch-interactions-menu';
 
 export default async function BranchPage({ params }: { params: Promise<{ projectId: string; branchId: string }> }) {
