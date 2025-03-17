@@ -95,5 +95,5 @@ export async function getForYouTimeline() {
     ...userPosts.map((post) => ({ ...post, type: 'post', timestamp: post.createdAt })),
     ...userBranches.map((branch) => ({ ...branch, type: 'branch', timestamp: branch.createdAt })),
     ...userProjects.map((project) => ({ ...project, type: 'project', timestamp: project.createdAt })),
-  ];
+  ].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
 }
