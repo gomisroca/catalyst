@@ -62,23 +62,24 @@ export async function getForYouTimeline() {
   const follows = await getUserFollows(session.user.id);
   const followsIds = follows.map((follow) => follow.followedId);
 
-  let [userPostInteractions, userBranchInteractions, userProjectInteractions] = await Promise.all([
-    await db
-      .select({
-        interactionType: postsInteractions.type,
-        updatedAt: postsInteractions.createdAt,
-        userId: postsInteractions.userId,
-        postId: postsInteractions.postId,
-        title: posts.title,
-        content: posts.content,
-        id: postsInteractions.id,
-        author: sql<{ name: string | null; email: string }>`
+  const [userPostInteractions, userBranchInteractions, userProjectInteractions, userPosts, userBranches, userProjects] =
+    await Promise.all([
+      await db
+        .select({
+          interactionType: postsInteractions.type,
+          updatedAt: postsInteractions.createdAt,
+          userId: postsInteractions.userId,
+          postId: postsInteractions.postId,
+          title: posts.title,
+          content: posts.content,
+          id: postsInteractions.id,
+          author: sql<{ name: string | null; email: string }>`
         json_build_object(
           'name', ${users.name},
           'email', ${users.email}
         )
       `.as('author'),
-        media: sql<Array<{ id: string; name: string; url: string }>>`
+          media: sql<Array<{ id: string; name: string; url: string }>>`
         COALESCE(
           json_agg(
             json_build_object(
@@ -90,72 +91,69 @@ export async function getForYouTimeline() {
           '[]'::json
         )
       `.as('media'),
-      })
-      .from(postsInteractions)
-      .leftJoin(posts, eq(postsInteractions.postId, posts.id))
-      .leftJoin(postsMedia, eq(posts.id, postsMedia.postId))
-      .leftJoin(users, eq(postsInteractions.userId, users.id))
-      .where(inArray(postsInteractions.userId, followsIds))
-      .orderBy(sql`${postsInteractions.createdAt} DESC`),
-    await db
-      .select({
-        interactionType: branchesInteractions.type,
-        updatedAt: branchesInteractions.createdAt,
-        userId: branchesInteractions.userId,
-        branchId: branchesInteractions.branchId,
-        name: branches.name,
-        description: branches.description,
-        id: branchesInteractions.id,
-        author: sql<{ name: string | null; email: string }>`
+        })
+        .from(postsInteractions)
+        .leftJoin(posts, eq(postsInteractions.postId, posts.id))
+        .leftJoin(postsMedia, eq(posts.id, postsMedia.postId))
+        .leftJoin(users, eq(postsInteractions.userId, users.id))
+        .where(inArray(postsInteractions.userId, followsIds))
+        .orderBy(sql`${postsInteractions.createdAt} DESC`),
+      await db
+        .select({
+          interactionType: branchesInteractions.type,
+          updatedAt: branchesInteractions.createdAt,
+          userId: branchesInteractions.userId,
+          branchId: branchesInteractions.branchId,
+          name: branches.name,
+          description: branches.description,
+          id: branchesInteractions.id,
+          author: sql<{ name: string | null; email: string }>`
           json_build_object(
             'name', ${users.name},
             'email', ${users.email}
           )
         `.as('author'),
-      })
-      .from(branchesInteractions)
-      .leftJoin(branches, eq(branchesInteractions.branchId, branches.id))
-      .leftJoin(users, eq(branchesInteractions.userId, users.id))
-      .where(inArray(branchesInteractions.userId, followsIds))
-      .orderBy(sql`${branchesInteractions.createdAt} DESC`),
-    await db
-      .select({
-        interactionType: projectsInteractions.type,
-        updatedAt: projectsInteractions.createdAt,
-        userId: projectsInteractions.userId,
-        projectId: projectsInteractions.projectId,
-        name: projects.name,
-        description: projects.description,
-        id: projectsInteractions.id,
-        author: sql<{ name: string | null; email: string }>`
+        })
+        .from(branchesInteractions)
+        .leftJoin(branches, eq(branchesInteractions.branchId, branches.id))
+        .leftJoin(users, eq(branchesInteractions.userId, users.id))
+        .where(inArray(branchesInteractions.userId, followsIds))
+        .orderBy(sql`${branchesInteractions.createdAt} DESC`),
+      await db
+        .select({
+          interactionType: projectsInteractions.type,
+          updatedAt: projectsInteractions.createdAt,
+          userId: projectsInteractions.userId,
+          projectId: projectsInteractions.projectId,
+          name: projects.name,
+          description: projects.description,
+          id: projectsInteractions.id,
+          author: sql<{ name: string | null; email: string }>`
           json_build_object(
             'name', ${users.name},
             'email', ${users.email}
           )
         `.as('author'),
-      })
-      .from(projectsInteractions)
-      .leftJoin(projects, eq(projectsInteractions.projectId, projects.id))
-      .leftJoin(users, eq(projectsInteractions.userId, users.id))
-      .where(inArray(projectsInteractions.userId, followsIds))
-      .orderBy(sql`${projectsInteractions.createdAt} DESC`),
-  ]);
-
-  const [userPosts, userBranches, userProjects] = await Promise.all([
-    await db
-      .select({
-        id: posts.id,
-        title: posts.title,
-        content: posts.content,
-        createdAt: posts.createdAt,
-        updatedAt: posts.updatedAt,
-        authorId: posts.authorId,
-        branchId: posts.branchId,
-        branchName: branches.name,
-        projectId: branches.projectId,
-        projectName: projects.name,
-        projectPicture: projects.picture,
-        media: sql<Array<{ id: string; name: string; url: string }>>`
+        })
+        .from(projectsInteractions)
+        .leftJoin(projects, eq(projectsInteractions.projectId, projects.id))
+        .leftJoin(users, eq(projectsInteractions.userId, users.id))
+        .where(inArray(projectsInteractions.userId, followsIds))
+        .orderBy(sql`${projectsInteractions.createdAt} DESC`),
+      await db
+        .select({
+          id: posts.id,
+          title: posts.title,
+          content: posts.content,
+          createdAt: posts.createdAt,
+          updatedAt: posts.updatedAt,
+          authorId: posts.authorId,
+          branchId: posts.branchId,
+          branchName: branches.name,
+          projectId: branches.projectId,
+          projectName: projects.name,
+          projectPicture: projects.picture,
+          media: sql<Array<{ id: string; name: string; url: string }>>`
             COALESCE(
               json_agg(
                 json_build_object(
@@ -167,55 +165,55 @@ export async function getForYouTimeline() {
               '[]'::json
             )
           `.as('media'),
-        branch: branches,
-        project: projects,
-      })
-      .from(posts)
-      .leftJoin(postsMedia, eq(posts.id, postsMedia.postId))
-      .leftJoin(branches, eq(posts.branchId, branches.id))
-      .leftJoin(projects, eq(branches.projectId, projects.id))
-      .where(inArray(posts.authorId, followsIds))
-      .groupBy(posts.id, projects.id, branches.id)
-      .orderBy(sql`${posts.updatedAt} DESC`),
-    await db
-      .select({
-        id: branches.id,
-        name: branches.name,
-        description: branches.description,
-        createdAt: branches.createdAt,
-        updatedAt: branches.updatedAt,
-        authorId: branches.authorId,
-        projectId: branches.projectId,
-        projectName: projects.name,
-        projectPicture: projects.picture,
-      })
-      .from(branches)
-      .where(inArray(branches.authorId, followsIds))
-      .leftJoin(projects, eq(branches.projectId, projects.id))
-      .orderBy(sql`${branches.updatedAt} DESC`),
-    await db
-      .select()
-      .from(projects)
-      .where(inArray(projects.authorId, followsIds))
-      .orderBy(sql`${projects.updatedAt} DESC`),
-  ]);
+          branch: branches,
+          project: projects,
+        })
+        .from(posts)
+        .leftJoin(postsMedia, eq(posts.id, postsMedia.postId))
+        .leftJoin(branches, eq(posts.branchId, branches.id))
+        .leftJoin(projects, eq(branches.projectId, projects.id))
+        .where(inArray(posts.authorId, followsIds))
+        .groupBy(posts.id, projects.id, branches.id)
+        .orderBy(sql`${posts.updatedAt} DESC`),
+      await db
+        .select({
+          id: branches.id,
+          name: branches.name,
+          description: branches.description,
+          createdAt: branches.createdAt,
+          updatedAt: branches.updatedAt,
+          authorId: branches.authorId,
+          projectId: branches.projectId,
+          projectName: projects.name,
+          projectPicture: projects.picture,
+        })
+        .from(branches)
+        .where(inArray(branches.authorId, followsIds))
+        .leftJoin(projects, eq(branches.projectId, projects.id))
+        .orderBy(sql`${branches.updatedAt} DESC`),
+      await db
+        .select()
+        .from(projects)
+        .where(inArray(projects.authorId, followsIds))
+        .orderBy(sql`${projects.updatedAt} DESC`),
+    ]);
 
-  userPostInteractions = userPostInteractions.map((post) => ({ ...post, type: 'post-interaction' }));
-  userBranchInteractions = userBranchInteractions.map((branch) => ({ ...branch, type: 'branch-interaction' }));
-  userProjectInteractions = userProjectInteractions.map((project) => ({ ...project, type: 'project-interaction' }));
+  const postInteractions = userPostInteractions.map((post) => ({ ...post, type: 'post-interaction' }));
+  const branchInteractions = userBranchInteractions.map((branch) => ({ ...branch, type: 'branch-interaction' }));
+  const projectInteractions = userProjectInteractions.map((project) => ({ ...project, type: 'project-interaction' }));
 
   return [
-    ...userPostInteractions.map((interaction) => ({
+    ...postInteractions.map((interaction) => ({
       content: interaction,
       type: 'postInteraction',
       timestamp: interaction.updatedAt,
     })),
-    ...userBranchInteractions.map((interaction) => ({
+    ...branchInteractions.map((interaction) => ({
       content: interaction,
       type: 'branchInteraction' as const,
       timestamp: interaction.updatedAt,
     })),
-    ...userProjectInteractions.map((interaction) => ({
+    ...projectInteractions.map((interaction) => ({
       content: interaction,
       type: 'projectInteraction' as const,
       timestamp: interaction.updatedAt,
