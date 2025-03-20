@@ -3,15 +3,18 @@ import { db } from '../db';
 import { and, eq, sql } from 'drizzle-orm';
 import {
   branchesInteractions,
+  branchesPermissions,
   branches as branchesSchema,
   follows,
   postsInteractions,
   postsMedia,
   posts as postsSchema,
   projectsInteractions,
+  projectsPermissions,
   projects as projectsSchema,
   users,
 } from '../db/schema';
+import { auth } from '../auth';
 
 export async function getUserProfile(userId: string) {
   const userData = await db.select({ user: users }).from(users).where(eq(users.id, userId)).groupBy(users.id);
@@ -215,6 +218,8 @@ export async function getUserInteractions(userId: string) {
 }
 
 export async function getUserSidebar(userId: string) {
+  const session = await auth();
+
   const contributions = await getUserContributions(userId);
   const [postBookmarks, branchBookmarks, projectBookmarks] = await Promise.all([
     db
@@ -226,11 +231,13 @@ export async function getUserSidebar(userId: string) {
         postTitle: postsSchema.title,
         branchName: branchesSchema.name,
         projectName: projectsSchema.name,
+        permissions: branchesPermissions,
       })
       .from(postsInteractions)
       .leftJoin(postsSchema, eq(postsInteractions.postId, postsSchema.id))
       .leftJoin(branchesSchema, eq(postsSchema.branchId, branchesSchema.id))
       .leftJoin(projectsSchema, eq(branchesSchema.projectId, projectsSchema.id))
+      .leftJoin(branchesPermissions, eq(branchesSchema.id, branchesPermissions.branchId))
       .where(and(eq(postsInteractions.type, 'BOOKMARK'), eq(postsInteractions.userId, userId))),
     db
       .select({
@@ -239,19 +246,23 @@ export async function getUserSidebar(userId: string) {
         branchId: branchesSchema.id,
         branchName: branchesSchema.name,
         projectName: projectsSchema.name,
+        permissions: branchesPermissions,
       })
       .from(branchesInteractions)
       .leftJoin(branchesSchema, eq(branchesInteractions.branchId, branchesSchema.id))
       .leftJoin(projectsSchema, eq(branchesSchema.projectId, projectsSchema.id))
+      .leftJoin(branchesPermissions, eq(branchesSchema.id, branchesPermissions.branchId))
       .where(and(eq(branchesInteractions.type, 'BOOKMARK'), eq(branchesInteractions.userId, userId))),
     db
       .select({
         createdAt: projectsInteractions.createdAt,
         projectId: projectsSchema.id,
         projectName: projectsSchema.name,
+        permissions: projectsPermissions,
       })
       .from(projectsInteractions)
       .leftJoin(projectsSchema, eq(projectsInteractions.projectId, projectsSchema.id))
+      .leftJoin(projectsPermissions, eq(projectsSchema.id, projectsPermissions.projectId))
       .where(and(eq(projectsInteractions.type, 'BOOKMARK'), eq(projectsInteractions.userId, userId))),
   ]);
 
@@ -264,6 +275,7 @@ export async function getUserSidebar(userId: string) {
       postTitle: bookmark.postTitle,
       branchName: bookmark.branchName,
       projectName: bookmark.projectName,
+      permissions: bookmark.permissions,
     })),
     ...branchBookmarks.map((bookmark) => ({
       createdAt: bookmark.createdAt,
@@ -271,15 +283,22 @@ export async function getUserSidebar(userId: string) {
       branchId: bookmark.branchId,
       branchName: bookmark.branchName,
       projectName: bookmark.projectName,
+      permissions: bookmark.permissions,
     })),
     ...projectBookmarks.map((bookmark) => ({
       createdAt: bookmark.createdAt,
       projectId: bookmark.projectId,
       projectName: bookmark.projectName,
+      permissions: bookmark.permissions,
     })),
   ];
 
-  bookmarks.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  bookmarks
+    .filter((bookmark) => {
+      if (!bookmark.permissions?.private) return true;
+      return session?.user.id && bookmark.permissions?.allowedUsers.includes(session.user.id);
+    })
+    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
   return {
     contributions: {
