@@ -28,7 +28,7 @@ export async function getProject(id: string) {
       json_agg(
         json_build_object(
           'id', ${branchesSchema.id},
-          'name', ${branchesSchema.name}
+          'name', \${branchesSchema.name}
         )
       )
     `.as('branches'),
@@ -41,21 +41,24 @@ export async function getProject(id: string) {
     .groupBy(projectsSchema.id, userSchema.id, userSchema.email, projectsPermissions.id);
 
   if (!project[0]) throw new Error('Project with the given ID does not exist');
+
+  const projectData = project[0];
+
   if (
-    project[0].permissions?.private &&
-    (!session?.user.id || !project[0].permissions.allowedUsers.includes(session?.user.id))
+    projectData.permissions?.private &&
+    (!session?.user.id || !projectData.permissions.allowedUsers.includes(session?.user.id))
   ) {
     throw new Error('Unauthorized');
   }
 
   return {
-    ...project[0].project,
+    ...projectData.project,
     author: {
-      id: project[0].author?.id,
-      name: project[0].author?.name ? project[0].author?.name : project[0].author?.email.split('@')[0],
+      id: projectData.author?.id,
+      name: projectData.author?.name ?? projectData.author?.email.split('@')[0],
     },
-    branches: project[0].branches,
-    permissions: project[0].permissions,
+    branches: projectData.branches,
+    permissions: projectData.permissions,
   };
 }
 
@@ -73,15 +76,8 @@ export async function getProjects() {
 
   // Filter projects based on permissions
   const filteredProjects = projects.filter(({ permissions }) => {
-    // If project is not private, allow access
     if (!permissions?.private) return true;
-
-    // If project is private, check if user is logged in and has permission
-    if (session?.user.id && permissions?.allowedUsers.includes(session.user.id)) {
-      return true;
-    }
-
-    return false;
+    return session?.user.id && permissions?.allowedUsers.includes(session.user.id);
   });
 
   // Return only the project data, not the permissions
@@ -102,7 +98,10 @@ export async function getProjectInteractions(projectId: string) {
     .from(projectsInteractions)
     .where(eq(projectsInteractions.projectId, projectId))
     .leftJoin(userSchema, eq(userSchema.id, projectsInteractions.userId));
-  if (!interactions) throw new Error('Project with the given ID does not exist');
+
+  if (!interactions.length) {
+    throw new Error('Project with the given ID does not exist');
+  }
 
   const likes = interactions.filter((data) => data.interaction.type === 'LIKE');
   const shares = interactions.filter((data) => data.interaction.type === 'SHARE');

@@ -14,17 +14,13 @@ import {
 } from '../db/schema';
 
 export async function getUserProfile(userId: string) {
-  const data = await db
-    .select({
-      user: users,
-    })
-    .from(users)
-    .where(eq(users.id, userId))
-    .groupBy(users.id);
+  const userData = await db.select({ user: users }).from(users).where(eq(users.id, userId)).groupBy(users.id);
 
-  if (!data[0]) throw new Error('User with the given ID does not exist');
+  if (!userData[0]) {
+    throw new Error('User with the given ID does not exist');
+  }
 
-  return data[0].user;
+  return userData[0].user;
 }
 
 export async function getUserFollowers(userId: string) {
@@ -41,7 +37,9 @@ export async function getUserFollowers(userId: string) {
     .where(eq(follows.followedId, userId))
     .groupBy(follows.id, users.id);
 
-  if (!followersData) throw new Error('Could not find followers for the given user');
+  if (!followersData.length) {
+    throw new Error('Could not find followers for the given user');
+  }
 
   return followersData.map((user) => ({
     ...user,
@@ -63,7 +61,9 @@ export async function getUserFollows(userId: string) {
     .where(eq(follows.followerId, userId))
     .groupBy(follows.id, users.id);
 
-  if (!followsData) throw new Error('Could not find follows for the given user');
+  if (!followsData.length) {
+    throw new Error('Could not find follows for the given user');
+  }
 
   return followsData.map((user) => ({
     ...user,
@@ -73,35 +73,32 @@ export async function getUserFollows(userId: string) {
 
 export async function getUserContributions(userId: string) {
   const [projects, branches, posts] = await Promise.all([
-    await db
+    db
       .select()
       .from(projectsSchema)
       .where(eq(projectsSchema.authorId, userId))
       .orderBy(sql`${projectsSchema.createdAt} DESC`),
-    await db
-      .select({
-        branch: branchesSchema,
-        project: projectsSchema,
-      })
+    db
+      .select({ branch: branchesSchema, project: projectsSchema })
       .from(branchesSchema)
       .where(eq(branchesSchema.authorId, userId))
       .leftJoin(projectsSchema, eq(branchesSchema.projectId, projectsSchema.id))
       .orderBy(sql`${branchesSchema.createdAt} DESC`),
-    await db
+    db
       .select({
         post: postsSchema,
         media: sql<Array<{ id: string; name: string; url: string }>>`
-        COALESCE(
-          json_agg(
-            json_build_object(
-              'id', ${postsMedia.id},
-              'name', ${postsMedia.name},
-              'url', ${postsMedia.url}
-            )
-          ) FILTER (WHERE ${postsMedia.id} IS NOT NULL),
-          '[]'::json
-        )
-      `.as('media'),
+          COALESCE(
+            json_agg(
+              json_build_object(
+                'id', ${postsMedia.id},
+                'name', ${postsMedia.name},
+                'url', ${postsMedia.url}
+              )
+            ) FILTER (WHERE ${postsMedia.id} IS NOT NULL),
+            '[]'::json
+          )
+        `.as('media'),
         branch: branchesSchema,
         project: projectsSchema,
       })
@@ -146,20 +143,20 @@ export async function getUserContributions(userId: string) {
 
 export async function getUserInteractions(userId: string) {
   const [branchInteractions, postInteractions, projectInteractions] = await Promise.all([
-    await db
+    db
       .select()
       .from(branchesInteractions)
       .where(eq(branchesInteractions.userId, userId))
       .leftJoin(branchesSchema, eq(branchesInteractions.branchId, branchesSchema.id))
       .leftJoin(users, eq(branchesSchema.authorId, users.id)),
-    await db
+    db
       .select()
       .from(postsInteractions)
       .where(eq(postsInteractions.userId, userId))
       .leftJoin(postsSchema, eq(postsInteractions.postId, postsSchema.id))
       .leftJoin(postsMedia, eq(postsSchema.id, postsMedia.postId))
       .leftJoin(users, eq(postsSchema.authorId, users.id)),
-    await db
+    db
       .select()
       .from(projectsInteractions)
       .where(eq(projectsInteractions.userId, userId))
@@ -220,7 +217,7 @@ export async function getUserInteractions(userId: string) {
 export async function getUserSidebar(userId: string) {
   const contributions = await getUserContributions(userId);
   const [postBookmarks, branchBookmarks, projectBookmarks] = await Promise.all([
-    await db
+    db
       .select({
         createdAt: postsInteractions.createdAt,
         postId: postsSchema.id,
@@ -235,7 +232,7 @@ export async function getUserSidebar(userId: string) {
       .leftJoin(branchesSchema, eq(postsSchema.branchId, branchesSchema.id))
       .leftJoin(projectsSchema, eq(branchesSchema.projectId, projectsSchema.id))
       .where(and(eq(postsInteractions.type, 'BOOKMARK'), eq(postsInteractions.userId, userId))),
-    await db
+    db
       .select({
         createdAt: branchesInteractions.createdAt,
         projectId: projectsSchema.id,
@@ -247,7 +244,7 @@ export async function getUserSidebar(userId: string) {
       .leftJoin(branchesSchema, eq(branchesInteractions.branchId, branchesSchema.id))
       .leftJoin(projectsSchema, eq(branchesSchema.projectId, projectsSchema.id))
       .where(and(eq(branchesInteractions.type, 'BOOKMARK'), eq(branchesInteractions.userId, userId))),
-    await db
+    db
       .select({
         createdAt: projectsInteractions.createdAt,
         projectId: projectsSchema.id,

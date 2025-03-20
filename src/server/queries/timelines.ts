@@ -13,8 +13,8 @@ import {
 import { auth } from '../auth';
 import { getUserFollows } from './users';
 
-export async function getTrendingTimeline() {
-  const sortedProjects = await db
+async function getTrendingProjects() {
+  return db
     .select({
       id: projects.id,
       name: projects.name,
@@ -29,8 +29,10 @@ export async function getTrendingTimeline() {
     .leftJoin(projectsInteractions, eq(projects.id, projectsInteractions.projectId))
     .groupBy(projects.id)
     .orderBy(sql`COUNT(${projectsInteractions.id}) DESC`, sql`${projects.createdAt} DESC`);
+}
 
-  const sortedBranches = await db
+async function getTrendingBranches() {
+  return db
     .select({
       id: branches.id,
       name: branches.name,
@@ -48,6 +50,160 @@ export async function getTrendingTimeline() {
     .leftJoin(projects, eq(branches.projectId, projects.id))
     .groupBy(branches.id, projects.name, projects.picture)
     .orderBy(sql`COUNT(${branchesInteractions.id}) DESC`, sql`${branches.createdAt} DESC`);
+}
+
+async function getPostInteractions(followsIds: string[]) {
+  return db
+    .select({
+      interactionType: postsInteractions.type,
+      updatedAt: postsInteractions.createdAt,
+      userId: postsInteractions.userId,
+      postId: postsInteractions.postId,
+      title: posts.title,
+      content: posts.content,
+      id: postsInteractions.id,
+      author: sql<{ name: string | null; email: string }>`
+        json_build_object(
+          'name', ${users.name},
+          'email', ${users.email}
+        )
+      `.as('author'),
+      media: sql<Array<{ id: string; name: string; url: string }>>`
+        COALESCE(
+          json_agg(
+            json_build_object(
+              'id', ${postsMedia.id},
+              'name', ${postsMedia.name},
+              'url', ${postsMedia.url}
+            )
+          ) FILTER (WHERE ${postsMedia.id} IS NOT NULL),
+          '[]'::json
+        )
+      `.as('media'),
+    })
+    .from(postsInteractions)
+    .leftJoin(posts, eq(postsInteractions.postId, posts.id))
+    .leftJoin(postsMedia, eq(posts.id, postsMedia.postId))
+    .leftJoin(users, eq(postsInteractions.userId, users.id))
+    .where(inArray(postsInteractions.userId, followsIds))
+    .orderBy(sql`${postsInteractions.createdAt} DESC`);
+}
+
+async function getBranchInteractions(followsIds: string[]) {
+  return db
+    .select({
+      interactionType: branchesInteractions.type,
+      updatedAt: branchesInteractions.createdAt,
+      userId: branchesInteractions.userId,
+      branchId: branchesInteractions.branchId,
+      name: branches.name,
+      description: branches.description,
+      id: branchesInteractions.id,
+      author: sql<{ name: string | null; email: string }>`
+        json_build_object(
+          'name', ${users.name},
+          'email', ${users.email}
+        )
+      `.as('author'),
+    })
+    .from(branchesInteractions)
+    .leftJoin(branches, eq(branchesInteractions.branchId, branches.id))
+    .leftJoin(users, eq(branchesInteractions.userId, users.id))
+    .where(inArray(branchesInteractions.userId, followsIds))
+    .orderBy(sql`${branchesInteractions.createdAt} DESC`);
+}
+
+async function getProjectInteractions(followsIds: string[]) {
+  return db
+    .select({
+      interactionType: projectsInteractions.type,
+      updatedAt: projectsInteractions.createdAt,
+      userId: projectsInteractions.userId,
+      projectId: projectsInteractions.projectId,
+      name: projects.name,
+      description: projects.description,
+      id: projectsInteractions.id,
+      author: sql<{ name: string | null; email: string }>`
+        json_build_object(
+          'name', ${users.name},
+          'email', ${users.email}
+        )
+      `.as('author'),
+    })
+    .from(projectsInteractions)
+    .leftJoin(projects, eq(projectsInteractions.projectId, projects.id))
+    .leftJoin(users, eq(projectsInteractions.userId, users.id))
+    .where(inArray(projectsInteractions.userId, followsIds))
+    .orderBy(sql`${projectsInteractions.createdAt} DESC`);
+}
+
+async function getUserPosts(followsIds: string[]) {
+  return db
+    .select({
+      id: posts.id,
+      title: posts.title,
+      content: posts.content,
+      createdAt: posts.createdAt,
+      updatedAt: posts.updatedAt,
+      authorId: posts.authorId,
+      branchId: posts.branchId,
+      branchName: branches.name,
+      projectId: branches.projectId,
+      projectName: projects.name,
+      projectPicture: projects.picture,
+      media: sql<Array<{ id: string; name: string; url: string }>>`
+        COALESCE(
+          json_agg(
+            json_build_object(
+              'id', ${postsMedia.id},
+              'name', ${postsMedia.name},
+              'url', ${postsMedia.url}
+            )
+          ) FILTER (WHERE ${postsMedia.id} IS NOT NULL),
+          '[]'::json
+        )
+      `.as('media'),
+      branch: branches,
+      project: projects,
+    })
+    .from(posts)
+    .leftJoin(postsMedia, eq(posts.id, postsMedia.postId))
+    .leftJoin(branches, eq(posts.branchId, branches.id))
+    .leftJoin(projects, eq(branches.projectId, projects.id))
+    .where(inArray(posts.authorId, followsIds))
+    .groupBy(posts.id, projects.id, branches.id)
+    .orderBy(sql`${posts.updatedAt} DESC`);
+}
+
+async function getUserBranches(followsIds: string[]) {
+  return db
+    .select({
+      id: branches.id,
+      name: branches.name,
+      description: branches.description,
+      createdAt: branches.createdAt,
+      updatedAt: branches.updatedAt,
+      authorId: branches.authorId,
+      projectId: branches.projectId,
+      projectName: projects.name,
+      projectPicture: projects.picture,
+    })
+    .from(branches)
+    .where(inArray(branches.authorId, followsIds))
+    .leftJoin(projects, eq(branches.projectId, projects.id))
+    .orderBy(sql`${branches.updatedAt} DESC`);
+}
+
+async function getUserProjects(followsIds: string[]) {
+  return db
+    .select()
+    .from(projects)
+    .where(inArray(projects.authorId, followsIds))
+    .orderBy(sql`${projects.updatedAt} DESC`);
+}
+
+export async function getTrendingTimeline() {
+  const [sortedProjects, sortedBranches] = await Promise.all([getTrendingProjects(), getTrendingBranches()]);
 
   return [
     ...sortedBranches.map((branch) => ({ content: branch, type: 'branch', timestamp: branch.createdAt })),
@@ -64,138 +220,12 @@ export async function getForYouTimeline() {
 
   const [userPostInteractions, userBranchInteractions, userProjectInteractions, userPosts, userBranches, userProjects] =
     await Promise.all([
-      await db
-        .select({
-          interactionType: postsInteractions.type,
-          updatedAt: postsInteractions.createdAt,
-          userId: postsInteractions.userId,
-          postId: postsInteractions.postId,
-          title: posts.title,
-          content: posts.content,
-          id: postsInteractions.id,
-          author: sql<{ name: string | null; email: string }>`
-        json_build_object(
-          'name', ${users.name},
-          'email', ${users.email}
-        )
-      `.as('author'),
-          media: sql<Array<{ id: string; name: string; url: string }>>`
-        COALESCE(
-          json_agg(
-            json_build_object(
-              'id', ${postsMedia.id},
-              'name', ${postsMedia.name},
-              'url', ${postsMedia.url}
-            )
-          ) FILTER (WHERE ${postsMedia.id} IS NOT NULL),
-          '[]'::json
-        )
-      `.as('media'),
-        })
-        .from(postsInteractions)
-        .leftJoin(posts, eq(postsInteractions.postId, posts.id))
-        .leftJoin(postsMedia, eq(posts.id, postsMedia.postId))
-        .leftJoin(users, eq(postsInteractions.userId, users.id))
-        .where(inArray(postsInteractions.userId, followsIds))
-        .orderBy(sql`${postsInteractions.createdAt} DESC`),
-      await db
-        .select({
-          interactionType: branchesInteractions.type,
-          updatedAt: branchesInteractions.createdAt,
-          userId: branchesInteractions.userId,
-          branchId: branchesInteractions.branchId,
-          name: branches.name,
-          description: branches.description,
-          id: branchesInteractions.id,
-          author: sql<{ name: string | null; email: string }>`
-          json_build_object(
-            'name', ${users.name},
-            'email', ${users.email}
-          )
-        `.as('author'),
-        })
-        .from(branchesInteractions)
-        .leftJoin(branches, eq(branchesInteractions.branchId, branches.id))
-        .leftJoin(users, eq(branchesInteractions.userId, users.id))
-        .where(inArray(branchesInteractions.userId, followsIds))
-        .orderBy(sql`${branchesInteractions.createdAt} DESC`),
-      await db
-        .select({
-          interactionType: projectsInteractions.type,
-          updatedAt: projectsInteractions.createdAt,
-          userId: projectsInteractions.userId,
-          projectId: projectsInteractions.projectId,
-          name: projects.name,
-          description: projects.description,
-          id: projectsInteractions.id,
-          author: sql<{ name: string | null; email: string }>`
-          json_build_object(
-            'name', ${users.name},
-            'email', ${users.email}
-          )
-        `.as('author'),
-        })
-        .from(projectsInteractions)
-        .leftJoin(projects, eq(projectsInteractions.projectId, projects.id))
-        .leftJoin(users, eq(projectsInteractions.userId, users.id))
-        .where(inArray(projectsInteractions.userId, followsIds))
-        .orderBy(sql`${projectsInteractions.createdAt} DESC`),
-      await db
-        .select({
-          id: posts.id,
-          title: posts.title,
-          content: posts.content,
-          createdAt: posts.createdAt,
-          updatedAt: posts.updatedAt,
-          authorId: posts.authorId,
-          branchId: posts.branchId,
-          branchName: branches.name,
-          projectId: branches.projectId,
-          projectName: projects.name,
-          projectPicture: projects.picture,
-          media: sql<Array<{ id: string; name: string; url: string }>>`
-            COALESCE(
-              json_agg(
-                json_build_object(
-                  'id', ${postsMedia.id},
-                  'name', ${postsMedia.name},
-                  'url', ${postsMedia.url}
-                )
-              ) FILTER (WHERE ${postsMedia.id} IS NOT NULL),
-              '[]'::json
-            )
-          `.as('media'),
-          branch: branches,
-          project: projects,
-        })
-        .from(posts)
-        .leftJoin(postsMedia, eq(posts.id, postsMedia.postId))
-        .leftJoin(branches, eq(posts.branchId, branches.id))
-        .leftJoin(projects, eq(branches.projectId, projects.id))
-        .where(inArray(posts.authorId, followsIds))
-        .groupBy(posts.id, projects.id, branches.id)
-        .orderBy(sql`${posts.updatedAt} DESC`),
-      await db
-        .select({
-          id: branches.id,
-          name: branches.name,
-          description: branches.description,
-          createdAt: branches.createdAt,
-          updatedAt: branches.updatedAt,
-          authorId: branches.authorId,
-          projectId: branches.projectId,
-          projectName: projects.name,
-          projectPicture: projects.picture,
-        })
-        .from(branches)
-        .where(inArray(branches.authorId, followsIds))
-        .leftJoin(projects, eq(branches.projectId, projects.id))
-        .orderBy(sql`${branches.updatedAt} DESC`),
-      await db
-        .select()
-        .from(projects)
-        .where(inArray(projects.authorId, followsIds))
-        .orderBy(sql`${projects.updatedAt} DESC`),
+      getPostInteractions(followsIds),
+      getBranchInteractions(followsIds),
+      getProjectInteractions(followsIds),
+      getUserPosts(followsIds),
+      getUserBranches(followsIds),
+      getUserProjects(followsIds),
     ]);
 
   const postInteractions = userPostInteractions.map((post) => ({ ...post, type: 'post-interaction' }));
