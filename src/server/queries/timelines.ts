@@ -3,18 +3,21 @@ import { db } from '../db';
 import {
   branches,
   branchesInteractions,
+  branchesPermissions,
   posts,
   postsInteractions,
   postsMedia,
   projects,
   projectsInteractions,
+  projectsPermissions,
   users,
 } from '../db/schema';
 import { auth } from '../auth';
 import { getUserFollows } from './users';
+import { type Session } from 'next-auth';
 
-async function getTrendingProjects() {
-  return db
+async function getTrendingProjects(session: Session | null) {
+  const sortedProjects = await db
     .select({
       id: projects.id,
       name: projects.name,
@@ -24,15 +27,22 @@ async function getTrendingProjects() {
       updatedAt: projects.updatedAt,
       authorId: projects.authorId,
       interactionCount: sql`COUNT(${projectsInteractions.id})`,
+      permissions: projectsPermissions,
     })
     .from(projects)
     .leftJoin(projectsInteractions, eq(projects.id, projectsInteractions.projectId))
+    .leftJoin(projectsPermissions, eq(projects.id, projectsPermissions.projectId))
     .groupBy(projects.id)
     .orderBy(sql`COUNT(${projectsInteractions.id}) DESC`, sql`${projects.createdAt} DESC`);
+
+  return sortedProjects.filter(({ permissions }) => {
+    if (!permissions?.private) return true;
+    return session?.user.id && permissions?.allowedUsers.includes(session.user.id);
+  });
 }
 
-async function getTrendingBranches() {
-  return db
+async function getTrendingBranches(session: Session | null) {
+  const sortedBranches = await db
     .select({
       id: branches.id,
       name: branches.name,
@@ -44,16 +54,23 @@ async function getTrendingBranches() {
       projectName: projects.name,
       projectPicture: projects.picture,
       interactionCount: sql`COUNT(${branchesInteractions.id})`,
+      permissions: branchesPermissions,
     })
     .from(branches)
     .leftJoin(branchesInteractions, eq(branches.id, branchesInteractions.branchId))
+    .leftJoin(branchesPermissions, eq(branches.id, branchesPermissions.branchId))
     .leftJoin(projects, eq(branches.projectId, projects.id))
     .groupBy(branches.id, projects.name, projects.picture)
     .orderBy(sql`COUNT(${branchesInteractions.id}) DESC`, sql`${branches.createdAt} DESC`);
+
+  return sortedBranches.filter(({ permissions }) => {
+    if (!permissions?.private) return true;
+    return session?.user.id && permissions?.allowedUsers.includes(session.user.id);
+  });
 }
 
-async function getPostInteractions(followsIds: string[]) {
-  return db
+async function getPostInteractions(followsIds: string[], session: Session) {
+  const interactions = await db
     .select({
       interactionType: postsInteractions.type,
       updatedAt: postsInteractions.createdAt,
@@ -80,17 +97,24 @@ async function getPostInteractions(followsIds: string[]) {
           '[]'::json
         )
       `.as('media'),
+      permissions: branchesPermissions,
     })
     .from(postsInteractions)
     .leftJoin(posts, eq(postsInteractions.postId, posts.id))
+    .leftJoin(branchesPermissions, eq(posts.branchId, branchesPermissions.branchId))
     .leftJoin(postsMedia, eq(posts.id, postsMedia.postId))
     .leftJoin(users, eq(postsInteractions.userId, users.id))
     .where(inArray(postsInteractions.userId, followsIds))
     .orderBy(sql`${postsInteractions.createdAt} DESC`);
+
+  return interactions.filter((interaction) => {
+    if (!interaction.permissions?.private) return true;
+    return session?.user.id && interaction.permissions?.allowedUsers.includes(session.user.id);
+  });
 }
 
-async function getBranchInteractions(followsIds: string[]) {
-  return db
+async function getBranchInteractions(followsIds: string[], session: Session) {
+  const interactions = await db
     .select({
       interactionType: branchesInteractions.type,
       updatedAt: branchesInteractions.createdAt,
@@ -105,16 +129,23 @@ async function getBranchInteractions(followsIds: string[]) {
           'email', ${users.email}
         )
       `.as('author'),
+      permissions: branchesPermissions,
     })
     .from(branchesInteractions)
     .leftJoin(branches, eq(branchesInteractions.branchId, branches.id))
+    .leftJoin(branchesPermissions, eq(branches.id, branchesPermissions.branchId))
     .leftJoin(users, eq(branchesInteractions.userId, users.id))
     .where(inArray(branchesInteractions.userId, followsIds))
     .orderBy(sql`${branchesInteractions.createdAt} DESC`);
+
+  return interactions.filter((interaction) => {
+    if (!interaction.permissions?.private) return true;
+    return session?.user.id && interaction.permissions?.allowedUsers.includes(session.user.id);
+  });
 }
 
-async function getProjectInteractions(followsIds: string[]) {
-  return db
+async function getProjectInteractions(followsIds: string[], session: Session) {
+  const interactions = await db
     .select({
       interactionType: projectsInteractions.type,
       updatedAt: projectsInteractions.createdAt,
@@ -129,12 +160,19 @@ async function getProjectInteractions(followsIds: string[]) {
           'email', ${users.email}
         )
       `.as('author'),
+      permissions: projectsPermissions,
     })
     .from(projectsInteractions)
     .leftJoin(projects, eq(projectsInteractions.projectId, projects.id))
+    .leftJoin(projectsPermissions, eq(projects.id, projectsPermissions.projectId))
     .leftJoin(users, eq(projectsInteractions.userId, users.id))
     .where(inArray(projectsInteractions.userId, followsIds))
     .orderBy(sql`${projectsInteractions.createdAt} DESC`);
+
+  return interactions.filter((interaction) => {
+    if (!interaction.permissions?.private) return true;
+    return session?.user.id && interaction.permissions?.allowedUsers.includes(session.user.id);
+  });
 }
 
 async function getUserPosts(followsIds: string[]) {
@@ -203,7 +241,11 @@ async function getUserProjects(followsIds: string[]) {
 }
 
 export async function getTrendingTimeline() {
-  const [sortedProjects, sortedBranches] = await Promise.all([getTrendingProjects(), getTrendingBranches()]);
+  const session = await auth();
+  const [sortedProjects, sortedBranches] = await Promise.all([
+    getTrendingProjects(session),
+    getTrendingBranches(session),
+  ]);
 
   return [
     ...sortedBranches.map((branch) => ({ content: branch, type: 'branch', timestamp: branch.createdAt })),
@@ -220,9 +262,9 @@ export async function getForYouTimeline() {
 
   const [userPostInteractions, userBranchInteractions, userProjectInteractions, userPosts, userBranches, userProjects] =
     await Promise.all([
-      getPostInteractions(followsIds),
-      getBranchInteractions(followsIds),
-      getProjectInteractions(followsIds),
+      getPostInteractions(followsIds, session),
+      getBranchInteractions(followsIds, session),
+      getProjectInteractions(followsIds, session),
       getUserPosts(followsIds),
       getUserBranches(followsIds),
       getUserProjects(followsIds),
