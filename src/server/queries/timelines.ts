@@ -17,6 +17,9 @@ import { getUserFollows } from './users';
 import { type Session } from 'next-auth';
 
 async function getTrendingProjects(session: Session | null) {
+  const sevenDaysAgo = new Date();
+  sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
   const sortedProjects = await db
     .select({
       id: projects.id,
@@ -26,14 +29,17 @@ async function getTrendingProjects(session: Session | null) {
       createdAt: projects.createdAt,
       updatedAt: projects.updatedAt,
       authorId: projects.authorId,
-      interactionCount: sql`COUNT(${projectsInteractions.id})`,
+      interactionCount: sql`COUNT(CASE WHEN ${projectsInteractions.createdAt} >= ${sevenDaysAgo} THEN ${projectsInteractions.id} ELSE NULL END)`,
       permissions: projectsPermissions,
     })
     .from(projects)
     .leftJoin(projectsInteractions, eq(projects.id, projectsInteractions.projectId))
     .leftJoin(projectsPermissions, eq(projects.id, projectsPermissions.projectId))
     .groupBy(projects.id)
-    .orderBy(sql`COUNT(${projectsInteractions.id}) DESC`, sql`${projects.createdAt} DESC`);
+    .orderBy(
+      sql`COUNT(CASE WHEN ${projectsInteractions.createdAt} >= ${sevenDaysAgo} THEN ${projectsInteractions.id} ELSE NULL END) DESC`,
+      sql`${projects.createdAt} DESC`
+    );
 
   return sortedProjects.filter(({ permissions }) => {
     if (!permissions?.private) return true;
@@ -42,6 +48,9 @@ async function getTrendingProjects(session: Session | null) {
 }
 
 async function getTrendingBranches(session: Session | null) {
+  const sevenDaysAgo = new Date();
+  sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
   const sortedBranches = await db
     .select({
       id: branches.id,
@@ -53,7 +62,7 @@ async function getTrendingBranches(session: Session | null) {
       projectId: branches.projectId,
       projectName: projects.name,
       projectPicture: projects.picture,
-      interactionCount: sql`COUNT(${branchesInteractions.id})`,
+      interactionCount: sql`COUNT(CASE WHEN ${branchesInteractions.createdAt} >= ${sevenDaysAgo} THEN ${branchesInteractions.id} ELSE NULL END)`,
       permissions: branchesPermissions,
     })
     .from(branches)
@@ -61,12 +70,28 @@ async function getTrendingBranches(session: Session | null) {
     .leftJoin(branchesPermissions, eq(branches.id, branchesPermissions.branchId))
     .leftJoin(projects, eq(branches.projectId, projects.id))
     .groupBy(branches.id, projects.name, projects.picture)
-    .orderBy(sql`COUNT(${branchesInteractions.id}) DESC`, sql`${branches.createdAt} DESC`);
+    .orderBy(
+      sql`COUNT(CASE WHEN ${branchesInteractions.createdAt} >= ${sevenDaysAgo} THEN ${branchesInteractions.id} ELSE NULL END) DESC`,
+      sql`${branches.createdAt} DESC`
+    );
 
   return sortedBranches.filter(({ permissions }) => {
     if (!permissions?.private) return true;
     return session?.user.id && permissions?.allowedUsers.includes(session.user.id);
   });
+}
+
+export async function getTrendingTimeline() {
+  const session = await auth();
+  const [sortedProjects, sortedBranches] = await Promise.all([
+    getTrendingProjects(session),
+    getTrendingBranches(session),
+  ]);
+
+  return [
+    ...sortedBranches.map((branch) => ({ content: branch, type: 'branch', timestamp: branch.createdAt })),
+    ...sortedProjects.map((project) => ({ content: project, type: 'project', timestamp: project.createdAt })),
+  ].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
 }
 
 async function getPostInteractions(followsIds: string[], session: Session) {
@@ -241,19 +266,6 @@ async function getUserProjects(followsIds: string[]) {
     .from(projects)
     .where(inArray(projects.authorId, followsIds))
     .orderBy(sql`${projects.updatedAt} DESC`);
-}
-
-export async function getTrendingTimeline() {
-  const session = await auth();
-  const [sortedProjects, sortedBranches] = await Promise.all([
-    getTrendingProjects(session),
-    getTrendingBranches(session),
-  ]);
-
-  return [
-    ...sortedBranches.map((branch) => ({ content: branch, type: 'branch', timestamp: branch.createdAt })),
-    ...sortedProjects.map((project) => ({ content: project, type: 'project', timestamp: project.createdAt })),
-  ].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
 }
 
 export async function getForYouTimeline() {
