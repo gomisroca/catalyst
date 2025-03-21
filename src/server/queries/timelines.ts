@@ -79,8 +79,9 @@ async function getPostInteractions(followsIds: string[], session: Session) {
       title: posts.title,
       content: posts.content,
       id: postsInteractions.id,
-      author: sql<{ name: string | null; email: string }>`
+      author: sql<{ id: string; name: string | null; email: string }>`
         json_build_object(
+          'id', ${users.id},
           'name', ${users.name},
           'email', ${users.email}
         )
@@ -123,8 +124,9 @@ async function getBranchInteractions(followsIds: string[], session: Session) {
       name: branches.name,
       description: branches.description,
       id: branchesInteractions.id,
-      author: sql<{ name: string | null; email: string }>`
+      author: sql<{ id: string; name: string | null; email: string }>`
         json_build_object(
+          'id', ${users.id},
           'name', ${users.name},
           'email', ${users.email}
         )
@@ -154,8 +156,9 @@ async function getProjectInteractions(followsIds: string[], session: Session) {
       name: projects.name,
       description: projects.description,
       id: projectsInteractions.id,
-      author: sql<{ name: string | null; email: string }>`
+      author: sql<{ id: string; name: string | null; email: string }>`
         json_build_object(
+          'id', ${users.id},
           'name', ${users.name},
           'email', ${users.email}
         )
