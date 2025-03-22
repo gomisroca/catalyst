@@ -1,3 +1,4 @@
+import 'server-only';
 import { eq, inArray, sql } from 'drizzle-orm';
 import { db } from '../db';
 import {
@@ -16,9 +17,18 @@ import { auth } from '../auth';
 import { getUserFollows } from './users';
 import { type Session } from 'next-auth';
 
-async function getTrendingProjects(session: Session | null) {
+async function getTrendingProjects({
+  session,
+  page = 1,
+  pageSize = 10,
+}: {
+  session: Session | null;
+  page?: number;
+  pageSize?: number;
+}) {
   const sevenDaysAgo = new Date();
   sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+  const sevenDaysAgoString = sevenDaysAgo.toISOString().split('T')[0];
 
   const sortedProjects = await db
     .select({
@@ -29,17 +39,19 @@ async function getTrendingProjects(session: Session | null) {
       createdAt: projects.createdAt,
       updatedAt: projects.updatedAt,
       authorId: projects.authorId,
-      interactionCount: sql`COUNT(CASE WHEN ${projectsInteractions.createdAt} >= ${sevenDaysAgo} THEN ${projectsInteractions.id} ELSE NULL END)`,
+      interactionCount: sql`COUNT(CASE WHEN ${projectsInteractions.createdAt} >= ${sevenDaysAgoString} THEN ${projectsInteractions.id} ELSE NULL END)`,
       permissions: projectsPermissions,
     })
     .from(projects)
     .leftJoin(projectsInteractions, eq(projects.id, projectsInteractions.projectId))
     .leftJoin(projectsPermissions, eq(projects.id, projectsPermissions.projectId))
-    .groupBy(projects.id)
+    .groupBy(projects.id, projectsPermissions.id)
     .orderBy(
-      sql`COUNT(CASE WHEN ${projectsInteractions.createdAt} >= ${sevenDaysAgo} THEN ${projectsInteractions.id} ELSE NULL END) DESC`,
+      sql`COUNT(CASE WHEN ${projectsInteractions.createdAt} >= ${sevenDaysAgoString} THEN ${projectsInteractions.id} ELSE NULL END) DESC`,
       sql`${projects.createdAt} DESC`
-    );
+    )
+    .limit(pageSize)
+    .offset((page - 1) * pageSize);
 
   return sortedProjects.filter(({ permissions }) => {
     if (!permissions?.private) return true;
@@ -47,9 +59,18 @@ async function getTrendingProjects(session: Session | null) {
   });
 }
 
-async function getTrendingBranches(session: Session | null) {
+async function getTrendingBranches({
+  session,
+  page = 1,
+  pageSize = 10,
+}: {
+  session: Session | null;
+  page?: number;
+  pageSize?: number;
+}) {
   const sevenDaysAgo = new Date();
   sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+  const sevenDaysAgoString = sevenDaysAgo.toISOString().split('T')[0];
 
   const sortedBranches = await db
     .select({
@@ -62,18 +83,20 @@ async function getTrendingBranches(session: Session | null) {
       projectId: branches.projectId,
       projectName: projects.name,
       projectPicture: projects.picture,
-      interactionCount: sql`COUNT(CASE WHEN ${branchesInteractions.createdAt} >= ${sevenDaysAgo} THEN ${branchesInteractions.id} ELSE NULL END)`,
+      interactionCount: sql`COUNT(CASE WHEN ${branchesInteractions.createdAt} >= ${sevenDaysAgoString} THEN ${branchesInteractions.id} ELSE NULL END)`,
       permissions: branchesPermissions,
     })
     .from(branches)
     .leftJoin(branchesInteractions, eq(branches.id, branchesInteractions.branchId))
     .leftJoin(branchesPermissions, eq(branches.id, branchesPermissions.branchId))
     .leftJoin(projects, eq(branches.projectId, projects.id))
-    .groupBy(branches.id, projects.name, projects.picture)
+    .groupBy(branches.id, projects.name, projects.picture, branchesPermissions.id)
     .orderBy(
-      sql`COUNT(CASE WHEN ${branchesInteractions.createdAt} >= ${sevenDaysAgo} THEN ${branchesInteractions.id} ELSE NULL END) DESC`,
+      sql`COUNT(CASE WHEN ${branchesInteractions.createdAt} >= ${sevenDaysAgoString} THEN ${branchesInteractions.id} ELSE NULL END) DESC`,
       sql`${branches.createdAt} DESC`
-    );
+    )
+    .limit(pageSize)
+    .offset((page - 1) * pageSize);
 
   return sortedBranches.filter(({ permissions }) => {
     if (!permissions?.private) return true;
@@ -81,11 +104,11 @@ async function getTrendingBranches(session: Session | null) {
   });
 }
 
-export async function getTrendingTimeline() {
+export async function getTrendingTimeline({ page = 1, pageSize = 10 }: { page?: number; pageSize?: number }) {
   const session = await auth();
   const [sortedProjects, sortedBranches] = await Promise.all([
-    getTrendingProjects(session),
-    getTrendingBranches(session),
+    getTrendingProjects({ session, page, pageSize: pageSize }),
+    getTrendingBranches({ session, page, pageSize: pageSize }),
   ]);
 
   return [
