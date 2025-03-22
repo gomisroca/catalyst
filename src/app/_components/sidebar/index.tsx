@@ -116,7 +116,7 @@ export default function Sidebar({ session, data }: { session: Session | null; da
       <Button className="w-fit" onClick={() => setOpen(!open)}>
         {!open ? <FaCircleChevronDown size={20} /> : <FaCircleChevronUp size={20} />}
       </Button>
-      <div ref={parent} className="relative">
+      <div ref={parent} className="relative z-[999]">
         {open && <SidebarContent session={session} data={data} />}
       </div>
     </aside>
