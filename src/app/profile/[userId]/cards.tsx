@@ -9,8 +9,10 @@ import {
   type BranchInteraction,
   type ProjectInteraction,
 } from './types';
+import { format } from 'date-fns';
 
 export function ProjectCard({ project }: { project: Project }) {
+  const formattedDate = format(new Date(project.updatedAt), 'dd/MM/yyyy');
   return (
     <li
       key={project.id}
@@ -31,7 +33,7 @@ export function ProjectCard({ project }: { project: Project }) {
             className="w-full font-bold transition duration-200 ease-in-out hover:scale-105 hover:text-rose-500 md:w-auto md:text-lg dark:hover:text-rose-700">
             {project.name}
           </Link>
-          <p className="w-full text-zinc-400 md:w-auto">{project.updatedAt.toLocaleDateString()}</p>
+          <p className="w-full text-zinc-400 md:w-auto">{formattedDate}</p>
         </header>
         <div className="my-2 line-clamp-5 px-2 md:px-4">{project.description}</div>
       </section>
@@ -40,6 +42,7 @@ export function ProjectCard({ project }: { project: Project }) {
 }
 
 export function BranchCard({ branch }: { branch: Branch }) {
+  const formattedDate = format(new Date(branch.updatedAt), 'dd/MM/yyyy');
   return (
     <li
       key={branch.id}
@@ -68,7 +71,7 @@ export function BranchCard({ branch }: { branch: Branch }) {
               <FaCodeBranch size={16} /> {branch.name}
             </Link>
           </div>
-          <p className="w-full text-zinc-400 md:w-auto">{branch.updatedAt.toLocaleDateString()}</p>
+          <p className="w-full text-zinc-400 md:w-auto">{formattedDate}</p>
         </header>
         <div className="my-2 line-clamp-5 px-2 md:px-4">{branch.description}</div>
       </section>
