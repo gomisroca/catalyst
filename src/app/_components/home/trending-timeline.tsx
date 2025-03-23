@@ -6,9 +6,9 @@ import { BranchCard, ProjectCard } from '@/app/profile/[userId]/cards';
 import { type Branch, type Project } from '@/app/profile/[userId]/types';
 import Button from '@/app/_components/ui/button';
 
-export default function TrendingTimelineClient() {
-  const [page, setPage] = useState(1);
-  const [timelineData, setTimelineData] = useState([]);
+export default function TrendingTimelineClient({ initialData }: { initialData: any }) {
+  const [page, setPage] = useState(2);
+  const [timelineData, setTimelineData] = useState(initialData);
 
   useEffect(() => {
     const loadData = async () => {
@@ -16,7 +16,9 @@ export default function TrendingTimelineClient() {
       if (data) setTimelineData((prevData) => [...prevData, ...data]);
     };
 
-    void loadData();
+    if (page > 1) {
+      void loadData();
+    }
   }, [page]);
 
   const handleLoadMore = () => {
