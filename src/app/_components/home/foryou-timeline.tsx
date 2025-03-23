@@ -1,5 +1,7 @@
-import { getForYouTimeline } from '@/server/queries/timelines';
-import Link from '../ui/link';
+'use client';
+
+import Link from '@/app/_components/ui/link';
+import Button from '@/app/_components/ui/button';
 import { type Session } from 'next-auth';
 import {
   BranchCard,
@@ -17,8 +19,30 @@ import {
   type Post,
   type Project,
 } from '@/app/profile/[userId]/types';
+import { useEffect, useState } from 'react';
+import { fetchForYouTimeline } from './actions';
 
-export default async function ForYouTimeline({ session }: { session: Session | null }) {
+export default function ForYouTimeline({ session, initialData }: { session: Session | null; initialData: any }) {
+  const [page, setPage] = useState(2);
+
+  // Have to make this and the one in trending not complain
+  const [timelineData, setTimelineData] = useState(initialData);
+
+  useEffect(() => {
+    const loadData = async () => {
+      const data = await fetchForYouTimeline({ page, pageSize: 5 });
+      if (data) setTimelineData((prevData) => [...prevData, ...data]);
+    };
+
+    if (page > 1) {
+      void loadData();
+    }
+  }, [page]);
+
+  const handleLoadMore = () => {
+    setPage((prevPage) => prevPage + 1);
+  };
+
   if (!session) {
     return (
       <div className="flex flex-col gap-4">
@@ -27,9 +51,6 @@ export default async function ForYouTimeline({ session }: { session: Session | n
       </div>
     );
   }
-
-  const timelineData = await getForYouTimeline();
-
   return (
     <div className="flex flex-col gap-4">
       {timelineData.map((data) =>
@@ -47,6 +68,9 @@ export default async function ForYouTimeline({ session }: { session: Session | n
           <PostInteractionCard key={data.content.id} interaction={data.content as PostInteraction} />
         ) : null
       )}
+      <Button onClick={handleLoadMore} className="mx-auto w-fit">
+        Load More
+      </Button>
     </div>
   );
 }

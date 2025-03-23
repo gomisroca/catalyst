@@ -107,8 +107,8 @@ async function getTrendingBranches({
 export async function getTrendingTimeline({ page = 1, pageSize = 10 }: { page?: number; pageSize?: number }) {
   const session = await auth();
   const [sortedProjects, sortedBranches] = await Promise.all([
-    getTrendingProjects({ session, page, pageSize: pageSize }),
-    getTrendingBranches({ session, page, pageSize: pageSize }),
+    getTrendingProjects({ session, page, pageSize }),
+    getTrendingBranches({ session, page, pageSize }),
   ]);
 
   return [
@@ -117,7 +117,17 @@ export async function getTrendingTimeline({ page = 1, pageSize = 10 }: { page?: 
   ].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
 }
 
-async function getPostInteractions(followsIds: string[], session: Session) {
+async function getPostInteractions({
+  followsIds,
+  session,
+  page = 1,
+  pageSize = 10,
+}: {
+  followsIds: string[];
+  session: Session;
+  page?: number;
+  pageSize?: number;
+}) {
   const interactions = await db
     .select({
       interactionType: postsInteractions.type,
@@ -154,7 +164,9 @@ async function getPostInteractions(followsIds: string[], session: Session) {
     .leftJoin(postsMedia, eq(posts.id, postsMedia.postId))
     .leftJoin(users, eq(postsInteractions.userId, users.id))
     .where(inArray(postsInteractions.userId, followsIds))
-    .orderBy(sql`${postsInteractions.createdAt} DESC`);
+    .orderBy(sql`${postsInteractions.createdAt} DESC`)
+    .limit(pageSize)
+    .offset((page - 1) * pageSize);
 
   return interactions.filter((interaction) => {
     if (!interaction.permissions?.private) return true;
@@ -162,7 +174,17 @@ async function getPostInteractions(followsIds: string[], session: Session) {
   });
 }
 
-async function getBranchInteractions(followsIds: string[], session: Session) {
+async function getBranchInteractions({
+  followsIds,
+  session,
+  page = 1,
+  pageSize = 10,
+}: {
+  followsIds: string[];
+  session: Session;
+  page?: number;
+  pageSize?: number;
+}) {
   const interactions = await db
     .select({
       interactionType: branchesInteractions.type,
@@ -186,7 +208,9 @@ async function getBranchInteractions(followsIds: string[], session: Session) {
     .leftJoin(branchesPermissions, eq(branches.id, branchesPermissions.branchId))
     .leftJoin(users, eq(branchesInteractions.userId, users.id))
     .where(inArray(branchesInteractions.userId, followsIds))
-    .orderBy(sql`${branchesInteractions.createdAt} DESC`);
+    .orderBy(sql`${branchesInteractions.createdAt} DESC`)
+    .limit(pageSize)
+    .offset((page - 1) * pageSize);
 
   return interactions.filter((interaction) => {
     if (!interaction.permissions?.private) return true;
@@ -194,7 +218,17 @@ async function getBranchInteractions(followsIds: string[], session: Session) {
   });
 }
 
-async function getProjectInteractions(followsIds: string[], session: Session) {
+async function getProjectInteractions({
+  followsIds,
+  session,
+  page = 1,
+  pageSize = 10,
+}: {
+  followsIds: string[];
+  session: Session;
+  page?: number;
+  pageSize?: number;
+}) {
   const interactions = await db
     .select({
       interactionType: projectsInteractions.type,
@@ -218,7 +252,9 @@ async function getProjectInteractions(followsIds: string[], session: Session) {
     .leftJoin(projectsPermissions, eq(projects.id, projectsPermissions.projectId))
     .leftJoin(users, eq(projectsInteractions.userId, users.id))
     .where(inArray(projectsInteractions.userId, followsIds))
-    .orderBy(sql`${projectsInteractions.createdAt} DESC`);
+    .orderBy(sql`${projectsInteractions.createdAt} DESC`)
+    .limit(pageSize)
+    .offset((page - 1) * pageSize);
 
   return interactions.filter((interaction) => {
     if (!interaction.permissions?.private) return true;
@@ -226,7 +262,15 @@ async function getProjectInteractions(followsIds: string[], session: Session) {
   });
 }
 
-async function getUserPosts(followsIds: string[]) {
+async function getUserPosts({
+  followsIds,
+  page = 1,
+  pageSize = 10,
+}: {
+  followsIds: string[];
+  page?: number;
+  pageSize?: number;
+}) {
   return db
     .select({
       id: posts.id,
@@ -261,10 +305,20 @@ async function getUserPosts(followsIds: string[]) {
     .leftJoin(projects, eq(branches.projectId, projects.id))
     .where(inArray(posts.authorId, followsIds))
     .groupBy(posts.id, projects.id, branches.id)
-    .orderBy(sql`${posts.updatedAt} DESC`);
+    .orderBy(sql`${posts.updatedAt} DESC`)
+    .limit(pageSize)
+    .offset((page - 1) * pageSize);
 }
 
-async function getUserBranches(followsIds: string[]) {
+async function getUserBranches({
+  followsIds,
+  page = 1,
+  pageSize = 10,
+}: {
+  followsIds: string[];
+  page?: number;
+  pageSize?: number;
+}) {
   return db
     .select({
       id: branches.id,
@@ -280,18 +334,30 @@ async function getUserBranches(followsIds: string[]) {
     .from(branches)
     .where(inArray(branches.authorId, followsIds))
     .leftJoin(projects, eq(branches.projectId, projects.id))
-    .orderBy(sql`${branches.updatedAt} DESC`);
+    .orderBy(sql`${branches.updatedAt} DESC`)
+    .limit(pageSize)
+    .offset((page - 1) * pageSize);
 }
 
-async function getUserProjects(followsIds: string[]) {
+async function getUserProjects({
+  followsIds,
+  page = 1,
+  pageSize = 10,
+}: {
+  followsIds: string[];
+  page?: number;
+  pageSize?: number;
+}) {
   return db
     .select()
     .from(projects)
     .where(inArray(projects.authorId, followsIds))
-    .orderBy(sql`${projects.updatedAt} DESC`);
+    .orderBy(sql`${projects.updatedAt} DESC`)
+    .limit(pageSize)
+    .offset((page - 1) * pageSize);
 }
 
-export async function getForYouTimeline() {
+export async function getForYouTimeline({ page = 1, pageSize = 10 }: { page?: number; pageSize?: number }) {
   const session = await auth();
   if (!session) throw new Error('Not authenticated');
 
@@ -300,12 +366,12 @@ export async function getForYouTimeline() {
 
   const [userPostInteractions, userBranchInteractions, userProjectInteractions, userPosts, userBranches, userProjects] =
     await Promise.all([
-      getPostInteractions(followsIds, session),
-      getBranchInteractions(followsIds, session),
-      getProjectInteractions(followsIds, session),
-      getUserPosts(followsIds),
-      getUserBranches(followsIds),
-      getUserProjects(followsIds),
+      getPostInteractions({ followsIds, session, page, pageSize }),
+      getBranchInteractions({ followsIds, session, page, pageSize }),
+      getProjectInteractions({ followsIds, session, page, pageSize }),
+      getUserPosts({ followsIds, page, pageSize }),
+      getUserBranches({ followsIds, page, pageSize }),
+      getUserProjects({ followsIds, page, pageSize }),
     ]);
 
   const postInteractions = userPostInteractions.map((post) => ({ ...post, type: 'post-interaction' }));

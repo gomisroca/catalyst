@@ -1,5 +1,5 @@
 'use server';
-import { getTrendingTimeline } from '@/server/queries/timelines';
+import { getForYouTimeline, getTrendingTimeline } from '@/server/queries/timelines';
 
 export async function fetchTrendingTimeline({ page, pageSize }: { page: number; pageSize: number }) {
   try {
@@ -16,9 +16,8 @@ export async function fetchTrendingTimeline({ page, pageSize }: { page: number; 
 
 export async function fetchForYouTimeline({ page, pageSize }: { page: number; pageSize: number }) {
   try {
-    // const response = await getForYouTimeline({ page, pageSize });
-    // return response;
-    return [];
+    const response = await getForYouTimeline({ page, pageSize });
+    return response;
   } catch (error) {
     // eslint-disable-next-line no-console
     console.error('Failed to fetch for you timeline:', error);
