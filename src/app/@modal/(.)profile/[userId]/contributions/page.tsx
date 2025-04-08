@@ -1,5 +1,5 @@
 import Modal from '@/app/_components/ui/modal';
-import { BranchCard, PostCard, ProjectCard } from '@/app/profile/[userId]/cards';
+import { BranchCard, PostCard, ProjectCard } from '@/app/_components/cards';
 import { type Branch, type Post, type Project } from '@/app/profile/[userId]/types';
 import { getUserContributions } from '@/server/queries/users';
 

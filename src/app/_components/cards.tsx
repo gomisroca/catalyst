@@ -8,11 +8,12 @@ import {
   type PostInteraction,
   type BranchInteraction,
   type ProjectInteraction,
-} from './types';
+} from '@/app/profile/[userId]/types';
 import { format } from 'date-fns';
+import { type TimelinePost, type TimelineBranch, type TimelineProject, type TimelineProjectInteraction } from 'types';
 
-export function ProjectCard({ project }: { project: Project }) {
-  const formattedDate = format(new Date(project.updatedAt), 'dd/MM/yyyy');
+export function ProjectCard({ project }: { project: Project | TimelineProject }) {
+  const formattedDate = format(new Date(project.updatedAt!), 'dd/MM/yyyy');
   return (
     <li
       key={project.id}
@@ -41,8 +42,8 @@ export function ProjectCard({ project }: { project: Project }) {
   );
 }
 
-export function BranchCard({ branch }: { branch: Branch }) {
-  const formattedDate = format(new Date(branch.updatedAt), 'dd/MM/yyyy');
+export function BranchCard({ branch }: { branch: Branch | TimelineBranch }) {
+  const formattedDate = format(new Date(branch.updatedAt!), 'dd/MM/yyyy');
   return (
     <li
       key={branch.id}
@@ -79,7 +80,7 @@ export function BranchCard({ branch }: { branch: Branch }) {
   );
 }
 
-export function PostCard({ post }: { post: Post }) {
+export function PostCard({ post }: { post: Post | TimelinePost }) {
   return (
     <li
       key={post.id}
@@ -98,7 +99,7 @@ export function PostCard({ post }: { post: Post }) {
             <FaCodeBranch size={16} /> {post.branchName}
           </Link>
         </div>
-        <p className="w-full text-zinc-400 md:w-auto">{post.updatedAt.toLocaleDateString()}</p>
+        <p className="w-full text-zinc-400 md:w-auto">{post.updatedAt!.toLocaleDateString()}</p>
       </header>
       <section className="my-2 px-2 md:px-4">
         <h3 className="text-xl font-semibold">{post.title}</h3>
@@ -130,15 +131,19 @@ const interactionIcons = {
   },
 };
 
-export function ProjectInteractionCard({ interaction }: { interaction: ProjectInteraction }) {
+export function ProjectInteractionCard({
+  interaction,
+}: {
+  interaction: ProjectInteraction | TimelineProjectInteraction;
+}) {
+  const type = interaction.interactionType as 'LIKE' | 'SHARE' | 'BOOKMARK';
   return (
     <li
       key={interaction.id}
       className="group flex max-w-full flex-col rounded-lg bg-zinc-300 drop-shadow-sm transition duration-200 ease-in-out hover:scale-105 hover:drop-shadow-md active:drop-shadow-none active:duration-100 dark:bg-zinc-950">
       <header className="flex flex-col items-center justify-between rounded-t-lg bg-white px-2 py-2 transition duration-200 ease-in-out md:flex-row md:px-4 dark:bg-black">
         <p className="flex w-full items-center justify-start gap-1 font-semibold text-zinc-500">
-          {interactionIcons[interaction.interactionType].icon} {interactionIcons[interaction.interactionType].text} a
-          project
+          {interactionIcons[type].icon} {interactionIcons[type].text} a project
         </p>
         <p className="w-full text-zinc-400 md:w-auto">{interaction.updatedAt.toLocaleDateString()}</p>
       </header>
@@ -161,14 +166,14 @@ export function ProjectInteractionCard({ interaction }: { interaction: ProjectIn
 }
 
 export function BranchInteractionCard({ interaction }: { interaction: BranchInteraction }) {
+  const type = interaction.interactionType as 'LIKE' | 'SHARE' | 'BOOKMARK';
   return (
     <li
       key={interaction.id}
       className="group flex max-w-full flex-col rounded-lg bg-zinc-300 drop-shadow-sm transition duration-200 ease-in-out hover:scale-105 hover:drop-shadow-md active:drop-shadow-none active:duration-100 dark:bg-zinc-950">
       <header className="flex flex-col items-center justify-between rounded-t-lg bg-white px-2 py-2 transition duration-200 ease-in-out md:flex-row md:px-4 dark:bg-black">
         <p className="flex w-full items-center justify-start gap-1 font-semibold text-zinc-500">
-          {interactionIcons[interaction.interactionType].icon} {interactionIcons[interaction.interactionType].text} a
-          branch
+          {interactionIcons[type].icon} {interactionIcons[type].text} a branch
         </p>
         <p className="w-full text-zinc-400 md:w-auto">{interaction.updatedAt.toLocaleDateString()}</p>
       </header>
@@ -191,14 +196,14 @@ export function BranchInteractionCard({ interaction }: { interaction: BranchInte
 }
 
 export function PostInteractionCard({ interaction }: { interaction: PostInteraction }) {
+  const type = interaction.interactionType as 'LIKE' | 'SHARE' | 'BOOKMARK';
   return (
     <li
       key={interaction.id}
       className="group flex max-w-full flex-col rounded-lg bg-zinc-300 drop-shadow-sm transition duration-200 ease-in-out hover:scale-105 hover:drop-shadow-md active:drop-shadow-none active:duration-100 dark:bg-zinc-950">
       <header className="flex flex-col items-center justify-between rounded-t-lg bg-white px-2 py-2 transition duration-200 ease-in-out md:flex-row md:px-4 dark:bg-black">
         <p className="flex w-full items-center justify-start gap-1 font-semibold text-zinc-500">
-          {interactionIcons[interaction.interactionType].icon} {interactionIcons[interaction.interactionType].text} a
-          post
+          {interactionIcons[type].icon} {interactionIcons[type].text} a post
         </p>
         <p className="w-full text-zinc-400 md:w-auto">{interaction.updatedAt.toLocaleDateString()}</p>
       </header>
