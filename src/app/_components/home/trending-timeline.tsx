@@ -2,18 +2,40 @@
 
 import { useState, useEffect } from 'react';
 import { fetchTrendingTimeline } from './actions';
-import { BranchCard, ProjectCard } from '@/app/profile/[userId]/cards';
+import { BranchCard, ProjectCard } from '@/app/_components/cards';
 import { type Branch, type Project } from '@/app/profile/[userId]/types';
 import Button from '@/app/_components/ui/button';
+import { type TimelineItemBranch, type TimelineItemProject, type TrendingTimelineData } from 'types';
 
-export default function TrendingTimelineClient({ initialData }: { initialData: any }) {
+type TrendingTimelineProps = {
+  initialData: TrendingTimelineData | null;
+};
+
+function sortTimelineData(data: TrendingTimelineData) {
+  const combinedData = [...data.branches, ...data.projects];
+  return combinedData.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+}
+
+export default function TrendingTimeline({ initialData }: TrendingTimelineProps) {
   const [page, setPage] = useState(2);
-  const [timelineData, setTimelineData] = useState(initialData);
+
+  const [timelineData, setTimelineData] = useState<(TimelineItemBranch | TimelineItemProject)[]>([]);
+
+  useEffect(() => {
+    if (!initialData) return;
+
+    const sortedData = sortTimelineData(initialData);
+
+    setTimelineData(sortedData);
+  }, [initialData]);
 
   useEffect(() => {
     const loadData = async () => {
-      const data = await fetchTrendingTimeline({ page, pageSize: 5 });
-      if (data) setTimelineData((prevData) => [...prevData, ...data]);
+      const data: TrendingTimelineData | null = await fetchTrendingTimeline({ page, pageSize: 3 });
+      if (data) {
+        const sortedData = sortTimelineData(data);
+        setTimelineData((prevData) => [...prevData, ...sortedData]);
+      }
     };
 
     if (page > 1) {

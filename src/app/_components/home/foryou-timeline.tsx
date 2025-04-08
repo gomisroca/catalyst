@@ -10,28 +10,71 @@ import {
   PostInteractionCard,
   ProjectCard,
   ProjectInteractionCard,
-} from '@/app/profile/[userId]/cards';
-import {
-  type BranchInteraction,
-  type PostInteraction,
-  type ProjectInteraction,
-  type Branch,
-  type Post,
-  type Project,
-} from '@/app/profile/[userId]/types';
+} from '@/app/_components/cards';
 import { useEffect, useState } from 'react';
 import { fetchForYouTimeline } from './actions';
+import {
+  type TimelineItemBranch,
+  type TimelineItemBranchInteraction,
+  type TimelineItemPost,
+  type TimelineItemPostInteraction,
+  type TimelineItemProject,
+  type TimelineItemProjectInteraction,
+  type TimelineProject,
+  type TimelineBranch,
+  type TimelinePost,
+  type TimelineProjectInteraction,
+  type TimelineBranchInteraction,
+  type TimelinePostInteraction,
+  type ForYouTimelineData,
+} from 'types';
 
-export default function ForYouTimeline({ session, initialData }: { session: Session | null; initialData: any }) {
+type ForYouTimelineProps = {
+  session: Session | null; // Replace `any` with the actual type of the session
+  initialData: ForYouTimelineData | null;
+};
+
+function sortTimelineData(data: ForYouTimelineData) {
+  const combinedData = [
+    ...data.postInteractions,
+    ...data.branchInteractions,
+    ...data.projectInteractions,
+    ...data.posts,
+    ...data.branches,
+    ...data.projects,
+  ];
+  return combinedData.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+}
+
+export default function ForYouTimeline({ session, initialData }: ForYouTimelineProps) {
   const [page, setPage] = useState(2);
 
-  // Have to make this and the one in trending not complain
-  const [timelineData, setTimelineData] = useState(initialData);
+  const [timelineData, setTimelineData] = useState<
+    (
+      | TimelineItemPostInteraction
+      | TimelineItemBranchInteraction
+      | TimelineItemProjectInteraction
+      | TimelineItemPost
+      | TimelineItemBranch
+      | TimelineItemProject
+    )[]
+  >([]);
+
+  useEffect(() => {
+    if (!initialData) return;
+
+    const sortedData = sortTimelineData(initialData);
+
+    setTimelineData(sortedData);
+  }, [initialData]);
 
   useEffect(() => {
     const loadData = async () => {
-      const data = await fetchForYouTimeline({ page, pageSize: 5 });
-      if (data) setTimelineData((prevData) => [...prevData, ...data]);
+      const data: ForYouTimelineData | null = await fetchForYouTimeline({ page, pageSize: 1 });
+      if (data) {
+        const sortedData = sortTimelineData(data);
+        setTimelineData((prevData) => [...prevData, ...sortedData]);
+      }
     };
 
     if (page > 1) {
@@ -53,21 +96,22 @@ export default function ForYouTimeline({ session, initialData }: { session: Sess
   }
   return (
     <div className="flex flex-col gap-4">
-      {timelineData.map((data) =>
-        data.type === 'project' ? (
-          <ProjectCard key={data.content.id} project={data.content as Project} />
-        ) : data.type === 'branch' ? (
-          <BranchCard key={data.content.id} branch={data.content as Branch} />
-        ) : data.type === 'post' ? (
-          <PostCard key={data.content.id} post={data.content as Post} />
-        ) : data.type === 'projectInteraction' ? (
-          <ProjectInteractionCard key={data.content.id} interaction={data.content as ProjectInteraction} />
-        ) : data.type === 'branchInteraction' ? (
-          <BranchInteractionCard key={data.content.id} interaction={data.content as BranchInteraction} />
-        ) : data.type === 'postInteraction' ? (
-          <PostInteractionCard key={data.content.id} interaction={data.content as PostInteraction} />
-        ) : null
-      )}
+      {timelineData.map((item, index) => (
+        <div key={index}>
+          {item.type === 'postInteraction' && (
+            <PostInteractionCard interaction={item.content as TimelinePostInteraction} />
+          )}
+          {item.type === 'branchInteraction' && (
+            <BranchInteractionCard interaction={item.content as TimelineBranchInteraction} />
+          )}
+          {item.type === 'projectInteraction' && (
+            <ProjectInteractionCard interaction={item.content as TimelineProjectInteraction} />
+          )}
+          {item.type === 'post' && <PostCard post={item.content as TimelinePost} />}
+          {item.type === 'branch' && <BranchCard branch={item.content as TimelineBranch} />}
+          {item.type === 'project' && <ProjectCard project={item.content as TimelineProject} />}
+        </div>
+      ))}
       <Button onClick={handleLoadMore} className="mx-auto w-fit">
         Load More
       </Button>

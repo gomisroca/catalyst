@@ -8,9 +8,7 @@ export async function fetchTrendingTimeline({ page, pageSize }: { page: number; 
   } catch (error) {
     // eslint-disable-next-line no-console
     console.error('Failed to fetch trending timeline:', error);
-    return {
-      error: 'An unexpected error occurred.',
-    };
+    return null;
   }
 }
 
@@ -21,8 +19,6 @@ export async function fetchForYouTimeline({ page, pageSize }: { page: number; pa
   } catch (error) {
     // eslint-disable-next-line no-console
     console.error('Failed to fetch for you timeline:', error);
-    return {
-      error: 'An unexpected error occurred.',
-    };
+    return null;
   }
 }
