@@ -16,6 +16,14 @@ import {
 import { auth } from '../auth';
 import { getUserFollows } from './users';
 import { type Session } from 'next-auth';
+import {
+  type TimelineBranch,
+  type TimelinePost,
+  type TimelineBranchInteraction,
+  type TimelinePostInteraction,
+  type TimelineProjectInteraction,
+  type TimelineProject,
+} from 'types';
 
 async function getTrendingProjects({
   session,
@@ -25,7 +33,7 @@ async function getTrendingProjects({
   session: Session | null;
   page?: number;
   pageSize?: number;
-}) {
+}): Promise<TimelineProject[]> {
   const sevenDaysAgo = new Date();
   sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
   const sevenDaysAgoString = sevenDaysAgo.toISOString().split('T')[0];
@@ -67,7 +75,7 @@ async function getTrendingBranches({
   session: Session | null;
   page?: number;
   pageSize?: number;
-}) {
+}): Promise<TimelineBranch[]> {
   const sevenDaysAgo = new Date();
   sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
   const sevenDaysAgoString = sevenDaysAgo.toISOString().split('T')[0];
@@ -111,10 +119,10 @@ export async function getTrendingTimeline({ page = 1, pageSize = 10 }: { page?: 
     getTrendingBranches({ session, page, pageSize }),
   ]);
 
-  return [
-    ...sortedBranches.map((branch) => ({ content: branch, type: 'branch', timestamp: branch.createdAt })),
-    ...sortedProjects.map((project) => ({ content: project, type: 'project', timestamp: project.createdAt })),
-  ].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+  return {
+    branches: sortedBranches.map((branch) => ({ content: branch, type: 'branch', timestamp: branch.createdAt })),
+    projects: sortedProjects.map((project) => ({ content: project, type: 'project', timestamp: project.createdAt })),
+  };
 }
 
 async function getPostInteractions({
@@ -127,16 +135,18 @@ async function getPostInteractions({
   session: Session;
   page?: number;
   pageSize?: number;
-}) {
+}): Promise<TimelinePostInteraction[]> {
   const interactions = await db
     .select({
       interactionType: postsInteractions.type,
+      createdAt: postsInteractions.createdAt,
       updatedAt: postsInteractions.createdAt,
       userId: postsInteractions.userId,
       postId: postsInteractions.postId,
       title: posts.title,
       content: posts.content,
       id: postsInteractions.id,
+      type: postsInteractions.type,
       author: sql<{ id: string; name: string | null; email: string }>`
         json_build_object(
           'id', ${users.id},
@@ -164,6 +174,17 @@ async function getPostInteractions({
     .leftJoin(postsMedia, eq(posts.id, postsMedia.postId))
     .leftJoin(users, eq(postsInteractions.userId, users.id))
     .where(inArray(postsInteractions.userId, followsIds))
+    .groupBy(
+      postsInteractions.id,
+      postsInteractions.type,
+      postsInteractions.createdAt,
+      postsInteractions.userId,
+      postsInteractions.postId,
+      posts.title,
+      posts.content,
+      users.id,
+      branchesPermissions.id
+    )
     .orderBy(sql`${postsInteractions.createdAt} DESC`)
     .limit(pageSize)
     .offset((page - 1) * pageSize);
@@ -184,10 +205,11 @@ async function getBranchInteractions({
   session: Session;
   page?: number;
   pageSize?: number;
-}) {
+}): Promise<TimelineBranchInteraction[]> {
   const interactions = await db
     .select({
       interactionType: branchesInteractions.type,
+      createdAt: branchesInteractions.createdAt,
       updatedAt: branchesInteractions.createdAt,
       userId: branchesInteractions.userId,
       branchId: branchesInteractions.branchId,
@@ -201,6 +223,7 @@ async function getBranchInteractions({
           'email', ${users.email}
         )
       `.as('author'),
+      type: branchesInteractions.type,
       permissions: branchesPermissions,
     })
     .from(branchesInteractions)
@@ -208,6 +231,17 @@ async function getBranchInteractions({
     .leftJoin(branchesPermissions, eq(branches.id, branchesPermissions.branchId))
     .leftJoin(users, eq(branchesInteractions.userId, users.id))
     .where(inArray(branchesInteractions.userId, followsIds))
+    .groupBy(
+      branchesInteractions.id,
+      branchesInteractions.type,
+      branchesInteractions.createdAt,
+      branchesInteractions.userId,
+      branchesInteractions.branchId,
+      branches.name,
+      branches.description,
+      branchesPermissions.id,
+      users.id
+    )
     .orderBy(sql`${branchesInteractions.createdAt} DESC`)
     .limit(pageSize)
     .offset((page - 1) * pageSize);
@@ -228,10 +262,11 @@ async function getProjectInteractions({
   session: Session;
   page?: number;
   pageSize?: number;
-}) {
+}): Promise<TimelineProjectInteraction[]> {
   const interactions = await db
     .select({
       interactionType: projectsInteractions.type,
+      createdAt: projectsInteractions.createdAt,
       updatedAt: projectsInteractions.createdAt,
       userId: projectsInteractions.userId,
       projectId: projectsInteractions.projectId,
@@ -245,6 +280,7 @@ async function getProjectInteractions({
           'email', ${users.email}
         )
       `.as('author'),
+      type: projectsInteractions.type,
       permissions: projectsPermissions,
     })
     .from(projectsInteractions)
@@ -252,6 +288,17 @@ async function getProjectInteractions({
     .leftJoin(projectsPermissions, eq(projects.id, projectsPermissions.projectId))
     .leftJoin(users, eq(projectsInteractions.userId, users.id))
     .where(inArray(projectsInteractions.userId, followsIds))
+    .groupBy(
+      projectsInteractions.id,
+      projectsInteractions.type,
+      projectsInteractions.createdAt,
+      projectsInteractions.userId,
+      projectsInteractions.projectId,
+      projects.name,
+      projects.description,
+      projectsPermissions.id,
+      users.id
+    )
     .orderBy(sql`${projectsInteractions.createdAt} DESC`)
     .limit(pageSize)
     .offset((page - 1) * pageSize);
@@ -270,7 +317,7 @@ async function getUserPosts({
   followsIds: string[];
   page?: number;
   pageSize?: number;
-}) {
+}): Promise<TimelinePost[]> {
   return db
     .select({
       id: posts.id,
@@ -304,7 +351,7 @@ async function getUserPosts({
     .leftJoin(branches, eq(posts.branchId, branches.id))
     .leftJoin(projects, eq(branches.projectId, projects.id))
     .where(inArray(posts.authorId, followsIds))
-    .groupBy(posts.id, projects.id, branches.id)
+    .groupBy(posts.id, projects.id, branches.id, posts.authorId, projects.description)
     .orderBy(sql`${posts.updatedAt} DESC`)
     .limit(pageSize)
     .offset((page - 1) * pageSize);
@@ -318,7 +365,7 @@ async function getUserBranches({
   followsIds: string[];
   page?: number;
   pageSize?: number;
-}) {
+}): Promise<TimelineBranch[]> {
   return db
     .select({
       id: branches.id,
@@ -334,6 +381,7 @@ async function getUserBranches({
     .from(branches)
     .where(inArray(branches.authorId, followsIds))
     .leftJoin(projects, eq(branches.projectId, projects.id))
+    .groupBy(branches.id, branches.authorId, projects.name, projects.picture)
     .orderBy(sql`${branches.updatedAt} DESC`)
     .limit(pageSize)
     .offset((page - 1) * pageSize);
@@ -347,11 +395,12 @@ async function getUserProjects({
   followsIds: string[];
   page?: number;
   pageSize?: number;
-}) {
+}): Promise<TimelineProject[]> {
   return db
     .select()
     .from(projects)
     .where(inArray(projects.authorId, followsIds))
+    .groupBy(projects.id, projects.name, projects.authorId)
     .orderBy(sql`${projects.updatedAt} DESC`)
     .limit(pageSize)
     .offset((page - 1) * pageSize);
@@ -378,24 +427,36 @@ export async function getForYouTimeline({ page = 1, pageSize = 10 }: { page?: nu
   const branchInteractions = userBranchInteractions.map((branch) => ({ ...branch, type: 'branch-interaction' }));
   const projectInteractions = userProjectInteractions.map((project) => ({ ...project, type: 'project-interaction' }));
 
-  return [
-    ...postInteractions.map((interaction) => ({
-      content: interaction,
-      type: 'postInteraction',
-      timestamp: interaction.updatedAt,
-    })),
-    ...branchInteractions.map((interaction) => ({
-      content: interaction,
-      type: 'branchInteraction' as const,
-      timestamp: interaction.updatedAt,
-    })),
-    ...projectInteractions.map((interaction) => ({
-      content: interaction,
-      type: 'projectInteraction' as const,
-      timestamp: interaction.updatedAt,
-    })),
-    ...userPosts.map((post) => ({ content: post, type: 'post' as const, timestamp: post.createdAt })),
-    ...userBranches.map((branch) => ({ content: branch, type: 'branch' as const, timestamp: branch.createdAt })),
-    ...userProjects.map((project) => ({ content: project, type: 'project' as const, timestamp: project.createdAt })),
-  ].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+  return {
+    postInteractions: postInteractions
+      .map((interaction) => ({
+        content: interaction,
+        type: 'postInteraction',
+        timestamp: interaction.updatedAt,
+      }))
+      .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()),
+    branchInteractions: branchInteractions
+      .map((interaction) => ({
+        content: interaction,
+        type: 'branchInteraction' as const,
+        timestamp: interaction.updatedAt,
+      }))
+      .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()),
+    projectInteractions: projectInteractions
+      .map((interaction) => ({
+        content: interaction,
+        type: 'projectInteraction' as const,
+        timestamp: interaction.updatedAt,
+      }))
+      .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()),
+    posts: userPosts
+      .map((post) => ({ content: post, type: 'post' as const, timestamp: post.createdAt }))
+      .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()),
+    branches: userBranches
+      .map((branch) => ({ content: branch, type: 'branch' as const, timestamp: branch.createdAt }))
+      .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()),
+    projects: userProjects
+      .map((project) => ({ content: project, type: 'project' as const, timestamp: project.createdAt }))
+      .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()),
+  };
 }
