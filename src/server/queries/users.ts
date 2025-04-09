@@ -1,30 +1,29 @@
 import 'server-only';
 import { db } from '../db';
-import { eq, sql } from 'drizzle-orm';
+import { and, eq, sql } from 'drizzle-orm';
 import {
   branchesInteractions,
+  branchesPermissions,
   branches as branchesSchema,
   follows,
   postsInteractions,
   postsMedia,
   posts as postsSchema,
   projectsInteractions,
+  projectsPermissions,
   projects as projectsSchema,
   users,
 } from '../db/schema';
+import { auth } from '../auth';
 
 export async function getUserProfile(userId: string) {
-  const data = await db
-    .select({
-      user: users,
-    })
-    .from(users)
-    .where(eq(users.id, userId))
-    .groupBy(users.id);
+  const userData = await db.select({ user: users }).from(users).where(eq(users.id, userId)).groupBy(users.id);
 
-  if (!data[0]) throw new Error('User with the given ID does not exist');
+  if (!userData[0]) {
+    throw new Error('User with the given ID does not exist');
+  }
 
-  return data[0].user;
+  return userData[0].user;
 }
 
 export async function getUserFollowers(userId: string) {
@@ -41,7 +40,9 @@ export async function getUserFollowers(userId: string) {
     .where(eq(follows.followedId, userId))
     .groupBy(follows.id, users.id);
 
-  if (!followersData) throw new Error('Could not find followers for the given user');
+  if (!followersData.length) {
+    throw new Error('Could not find followers for the given user');
+  }
 
   return followersData.map((user) => ({
     ...user,
@@ -63,7 +64,9 @@ export async function getUserFollows(userId: string) {
     .where(eq(follows.followerId, userId))
     .groupBy(follows.id, users.id);
 
-  if (!followsData) throw new Error('Could not find follows for the given user');
+  if (!followsData.length) {
+    throw new Error('Could not find follows for the given user');
+  }
 
   return followsData.map((user) => ({
     ...user,
@@ -73,35 +76,32 @@ export async function getUserFollows(userId: string) {
 
 export async function getUserContributions(userId: string) {
   const [projects, branches, posts] = await Promise.all([
-    await db
+    db
       .select()
       .from(projectsSchema)
       .where(eq(projectsSchema.authorId, userId))
       .orderBy(sql`${projectsSchema.createdAt} DESC`),
-    await db
-      .select({
-        branch: branchesSchema,
-        project: projectsSchema,
-      })
+    db
+      .select({ branch: branchesSchema, project: projectsSchema })
       .from(branchesSchema)
       .where(eq(branchesSchema.authorId, userId))
       .leftJoin(projectsSchema, eq(branchesSchema.projectId, projectsSchema.id))
       .orderBy(sql`${branchesSchema.createdAt} DESC`),
-    await db
+    db
       .select({
         post: postsSchema,
         media: sql<Array<{ id: string; name: string; url: string }>>`
-        COALESCE(
-          json_agg(
-            json_build_object(
-              'id', ${postsMedia.id},
-              'name', ${postsMedia.name},
-              'url', ${postsMedia.url}
-            )
-          ) FILTER (WHERE ${postsMedia.id} IS NOT NULL),
-          '[]'::json
-        )
-      `.as('media'),
+          COALESCE(
+            json_agg(
+              json_build_object(
+                'id', ${postsMedia.id},
+                'name', ${postsMedia.name},
+                'url', ${postsMedia.url}
+              )
+            ) FILTER (WHERE ${postsMedia.id} IS NOT NULL),
+            '[]'::json
+          )
+        `.as('media'),
         branch: branchesSchema,
         project: projectsSchema,
       })
@@ -145,27 +145,27 @@ export async function getUserContributions(userId: string) {
 }
 
 export async function getUserInteractions(userId: string) {
-  const branchInteractions = await db
-    .select()
-    .from(branchesInteractions)
-    .where(eq(branchesInteractions.userId, userId))
-    .leftJoin(branchesSchema, eq(branchesInteractions.branchId, branchesSchema.id))
-    .leftJoin(users, eq(branchesSchema.authorId, users.id));
-
-  const postInteractions = await db
-    .select()
-    .from(postsInteractions)
-    .where(eq(postsInteractions.userId, userId))
-    .leftJoin(postsSchema, eq(postsInteractions.postId, postsSchema.id))
-    .leftJoin(postsMedia, eq(postsSchema.id, postsMedia.postId))
-    .leftJoin(users, eq(postsSchema.authorId, users.id));
-
-  const projectInteractions = await db
-    .select()
-    .from(projectsInteractions)
-    .where(eq(projectsInteractions.userId, userId))
-    .leftJoin(projectsSchema, eq(projectsInteractions.projectId, projectsSchema.id))
-    .leftJoin(users, eq(projectsSchema.authorId, users.id));
+  const [branchInteractions, postInteractions, projectInteractions] = await Promise.all([
+    db
+      .select()
+      .from(branchesInteractions)
+      .where(eq(branchesInteractions.userId, userId))
+      .leftJoin(branchesSchema, eq(branchesInteractions.branchId, branchesSchema.id))
+      .leftJoin(users, eq(branchesSchema.authorId, users.id)),
+    db
+      .select()
+      .from(postsInteractions)
+      .where(eq(postsInteractions.userId, userId))
+      .leftJoin(postsSchema, eq(postsInteractions.postId, postsSchema.id))
+      .leftJoin(postsMedia, eq(postsSchema.id, postsMedia.postId))
+      .leftJoin(users, eq(postsSchema.authorId, users.id)),
+    db
+      .select()
+      .from(projectsInteractions)
+      .where(eq(projectsInteractions.userId, userId))
+      .leftJoin(projectsSchema, eq(projectsInteractions.projectId, projectsSchema.id))
+      .leftJoin(users, eq(projectsSchema.authorId, users.id)),
+  ]);
 
   return {
     postInteractions: postInteractions.map((interaction) => ({
@@ -214,5 +214,97 @@ export async function getUserInteractions(userId: string) {
       },
       type: 'project-interaction',
     })),
+  };
+}
+
+export async function getUserSidebar(userId: string) {
+  const session = await auth();
+
+  const contributions = await getUserContributions(userId);
+  const [postBookmarks, branchBookmarks, projectBookmarks] = await Promise.all([
+    db
+      .select({
+        createdAt: postsInteractions.createdAt,
+        postId: postsSchema.id,
+        branchId: branchesSchema.id,
+        projectId: projectsSchema.id,
+        postTitle: postsSchema.title,
+        branchName: branchesSchema.name,
+        projectName: projectsSchema.name,
+        permissions: branchesPermissions,
+      })
+      .from(postsInteractions)
+      .leftJoin(postsSchema, eq(postsInteractions.postId, postsSchema.id))
+      .leftJoin(branchesSchema, eq(postsSchema.branchId, branchesSchema.id))
+      .leftJoin(projectsSchema, eq(branchesSchema.projectId, projectsSchema.id))
+      .leftJoin(branchesPermissions, eq(branchesSchema.id, branchesPermissions.branchId))
+      .where(and(eq(postsInteractions.type, 'BOOKMARK'), eq(postsInteractions.userId, userId))),
+    db
+      .select({
+        createdAt: branchesInteractions.createdAt,
+        projectId: projectsSchema.id,
+        branchId: branchesSchema.id,
+        branchName: branchesSchema.name,
+        projectName: projectsSchema.name,
+        permissions: branchesPermissions,
+      })
+      .from(branchesInteractions)
+      .leftJoin(branchesSchema, eq(branchesInteractions.branchId, branchesSchema.id))
+      .leftJoin(projectsSchema, eq(branchesSchema.projectId, projectsSchema.id))
+      .leftJoin(branchesPermissions, eq(branchesSchema.id, branchesPermissions.branchId))
+      .where(and(eq(branchesInteractions.type, 'BOOKMARK'), eq(branchesInteractions.userId, userId))),
+    db
+      .select({
+        createdAt: projectsInteractions.createdAt,
+        projectId: projectsSchema.id,
+        projectName: projectsSchema.name,
+        permissions: projectsPermissions,
+      })
+      .from(projectsInteractions)
+      .leftJoin(projectsSchema, eq(projectsInteractions.projectId, projectsSchema.id))
+      .leftJoin(projectsPermissions, eq(projectsSchema.id, projectsPermissions.projectId))
+      .where(and(eq(projectsInteractions.type, 'BOOKMARK'), eq(projectsInteractions.userId, userId))),
+  ]);
+
+  const bookmarks = [
+    ...postBookmarks.map((bookmark) => ({
+      createdAt: bookmark.createdAt,
+      postId: bookmark.postId,
+      branchId: bookmark.branchId,
+      projectId: bookmark.projectId,
+      postTitle: bookmark.postTitle,
+      branchName: bookmark.branchName,
+      projectName: bookmark.projectName,
+      permissions: bookmark.permissions,
+    })),
+    ...branchBookmarks.map((bookmark) => ({
+      createdAt: bookmark.createdAt,
+      projectId: bookmark.projectId,
+      branchId: bookmark.branchId,
+      branchName: bookmark.branchName,
+      projectName: bookmark.projectName,
+      permissions: bookmark.permissions,
+    })),
+    ...projectBookmarks.map((bookmark) => ({
+      createdAt: bookmark.createdAt,
+      projectId: bookmark.projectId,
+      projectName: bookmark.projectName,
+      permissions: bookmark.permissions,
+    })),
+  ];
+
+  bookmarks
+    .filter((bookmark) => {
+      if (!bookmark.permissions?.private) return true;
+      return session?.user.id && bookmark.permissions?.allowedUsers.includes(session.user.id);
+    })
+    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+
+  return {
+    contributions: {
+      projects: contributions.projects,
+      branches: contributions.branches,
+    },
+    bookmarks,
   };
 }

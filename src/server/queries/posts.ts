@@ -60,7 +60,10 @@ export async function getPostInteractions(postId: string) {
     .from(postsInteractions)
     .where(eq(postsInteractions.postId, postId))
     .leftJoin(usersSchema, eq(usersSchema.id, postsInteractions.userId));
-  if (!interactions) throw new Error('Branch with the given ID does not exist');
+
+  if (!interactions.length) {
+    throw new Error('Post with the given ID does not exist');
+  }
 
   const likes = interactions.filter((data) => data.interaction.type === 'LIKE');
   const shares = interactions.filter((data) => data.interaction.type === 'SHARE');

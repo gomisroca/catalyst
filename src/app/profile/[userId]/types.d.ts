@@ -28,51 +28,51 @@ interface Post {
 
 interface PostInteraction {
   id: string;
-  postId: string;
-  userId: string;
-  interactionType: 'LIKE' | 'SHARE' | 'BOOKMARK';
+  postId: string | null;
+  userId: string | null;
+  interactionType: string;
   updatedAt: Date;
-  title: string;
-  content: string;
+  title: string | null;
+  content: string | null;
   author: {
     id: string;
     name: string | null;
     email: string;
   };
   media: Array<{ id: string; name: string; url: string }> | null;
-  type: 'post-interaction';
+  type: string;
 }
 
 interface BranchInteraction {
   id: string;
-  branchId: string;
-  userId: string;
-  interactionType: 'LIKE' | 'SHARE' | 'BOOKMARK';
+  branchId: string | null;
+  userId: string | null;
+  interactionType: string;
   updatedAt: Date;
-  name: string;
-  description: string;
+  name: string | null;
+  description: string | null;
   author: {
     id: string;
     name: string | null;
     email: string;
   };
-  type: 'branch-interaction';
+  type: string;
 }
 
 interface ProjectInteraction {
   id: string;
-  projectId: string;
-  userId: string;
-  interactionType: 'LIKE' | 'SHARE' | 'BOOKMARK';
+  projectId: string | null;
+  userId: string | null;
+  interactionType: string;
   updatedAt: Date;
-  name: string;
-  description: string;
+  name: string | null;
+  description: string | null;
   author: {
     id: string;
     name: string | null;
     email: string;
   };
-  type: 'project-interaction';
+  type: string;
 }
 
 export type { Project, Branch, Post, PostInteraction, BranchInteraction, ProjectInteraction };

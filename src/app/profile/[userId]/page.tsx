@@ -14,7 +14,7 @@ import {
   PostInteractionCard,
   ProjectCard,
   ProjectInteractionCard,
-} from './cards';
+} from '@/app/_components/cards';
 
 export default async function ProfileTimeline({ params }: { params: Promise<{ userId: string }> }) {
   const data = await getUserContributions((await params).userId);
