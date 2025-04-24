@@ -39,11 +39,16 @@ function MenuToggle({
 
 function Menu({ session }: { session: Session | null }) {
   return (
-    <div className="absolute top-[0.75rem] right-0 bottom-0 flex min-h-16 w-42 items-center justify-center gap-2 rounded-lg bg-zinc-100 px-4 py-2 dark:bg-zinc-950">
+    <div className="absolute top-[0.75rem] right-0 bottom-0 flex h-fit w-42 items-center justify-center gap-2 rounded-lg bg-zinc-100 px-4 py-2 dark:bg-zinc-950">
       {session ? (
-        <Button onClick={() => signOut()} className="w-full text-center">
-          Sign Out
-        </Button>
+        <div className="flex w-full flex-col items-center justify-center gap-2">
+          <Button onClick={() => signOut()} className="w-full text-center">
+            Sign Out
+          </Button>
+          <Link href="/settings" className="w-full text-center">
+            Settings
+          </Link>
+        </div>
       ) : (
         <Link href="/sign-in" className="w-full text-center">
           Sign In
