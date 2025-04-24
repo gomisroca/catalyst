@@ -7,7 +7,7 @@ services:
       args:
         - SUPABASE_PROJECT_URL=${SUPABASE_PROJECT_URL}
         - IMAGE_PROXY_HOSTNAME=${IMAGE_PROXY_HOSTNAME}
-        - BASE_URL=${BASE_URL}
+        - NEXT_PUBLIC_BASE_URL=${NEXT_PUBLIC_BASE_URL}
         - NEXTAUTH_URL=${NEXTAUTH_URL}
     working_dir: /app
     ports:
