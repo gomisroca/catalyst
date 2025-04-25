@@ -40,14 +40,12 @@ export async function getUserFollowers(userId: string) {
     .where(eq(follows.followedId, userId))
     .groupBy(follows.id, users.id);
 
-  if (!followersData.length) {
-    throw new Error('Could not find followers for the given user');
-  }
-
-  return followersData.map((user) => ({
-    ...user,
-    name: user.name ?? user.email?.split('@')[0],
-  }));
+  return followersData.length
+    ? followersData.map((user) => ({
+        ...user,
+        name: user.name ?? user.email?.split('@')[0],
+      }))
+    : [];
 }
 
 export async function getUserFollows(userId: string) {
@@ -64,14 +62,12 @@ export async function getUserFollows(userId: string) {
     .where(eq(follows.followerId, userId))
     .groupBy(follows.id, users.id);
 
-  if (!followsData.length) {
-    throw new Error('Could not find follows for the given user');
-  }
-
-  return followsData.map((user) => ({
-    ...user,
-    name: user.name ?? user.email?.split('@')[0],
-  }));
+  return followsData.length
+    ? followsData.map((user) => ({
+        ...user,
+        name: user.name ?? user.email?.split('@')[0],
+      }))
+    : [];
 }
 
 export async function getUserContributions(userId: string) {
