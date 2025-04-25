@@ -49,8 +49,32 @@ export default function UserSettingsForm({ user }: { user: User }) {
           className="rounded-lg border-2 border-zinc-300 bg-zinc-200 p-2 focus:ring-2 focus:ring-sky-300 focus:outline-none dark:border-zinc-700 dark:bg-zinc-800 dark:focus:ring-sky-700"
           type="text"
           name="name"
-          placeholder="My New Project"
-          required
+          placeholder={user.name ?? 'Your Username'}
+        />
+      </section>
+
+      <section className="flex w-full flex-col">
+        <label htmlFor="name">Email</label>
+        <input
+          className="rounded-lg border-2 border-zinc-300 bg-zinc-200 p-2 focus:ring-2 focus:ring-sky-300 focus:outline-none dark:border-zinc-700 dark:bg-zinc-800 dark:focus:ring-sky-700"
+          type="email"
+          name="email"
+          placeholder={user.email ?? 'Your Email'}
+        />
+      </section>
+
+      <section className="flex w-full flex-col">
+        <label htmlFor="imageFile">Avatar</label>
+        <input
+          className="rounded-lg border-2 border-zinc-300 bg-zinc-200 file:mr-4 file:bg-zinc-300 file:p-2 file:transition file:duration-200 file:hover:bg-zinc-400 focus:ring-2 focus:ring-sky-300 focus:outline-none dark:border-zinc-700 dark:bg-zinc-800 dark:file:bg-zinc-700 dark:file:hover:bg-zinc-600 dark:focus:ring-sky-700"
+          type="file"
+          onChange={(e) => {
+            const file = e.target.files?.[0];
+            if (file) setFile(file);
+          }}
+          name="imageFile"
+          accept="image/*"
+          multiple={false}
         />
       </section>
     </Form>
