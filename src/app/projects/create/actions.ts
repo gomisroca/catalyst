@@ -3,6 +3,7 @@
 import { auth } from '@/server/auth';
 import { db } from '@/server/db';
 import { branches, branchesPermissions, projects, projectsPermissions } from '@/server/db/schema';
+import { eq } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { z } from 'zod';
@@ -18,7 +19,7 @@ const ProjectSchema = z.object({
 
 export async function createProject(formData: FormData) {
   const session = await auth();
-  if (!session?.user) throw new Error('You must be signed in to create a project');
+  if (!session?.user) return { msg: 'You must be signed in to create a project' };
 
   // Extract and validate the data
   const validatedFields = ProjectSchema.safeParse({
@@ -36,7 +37,13 @@ export async function createProject(formData: FormData) {
       msg: validatedFields.error.toString(),
     };
   }
+  // Check if a project with the same name already exists
+  const existingProject = await db.query.projects.findFirst({
+    where: eq(projects.name, formData.get('name') as string),
+  });
+  if (existingProject) return { msg: 'A project with this name already exists' };
 
+  // Init a variable to store the project id, for redirection purposes
   let projectId: string | undefined;
   try {
     const { id } = await db.transaction(async (trx) => {
