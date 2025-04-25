@@ -19,19 +19,19 @@ function MenuToggle({
   session: Session | null;
 }) {
   return (
-    <Button onClick={() => setOpen(!open)}>
+    <Button onClick={() => setOpen(!open)} className="p-1">
       {open ? (
-        <MdClear size={20} />
+        <MdClear size={30} />
       ) : session ? (
         <Image
-          src={session.user?.avatar ?? '/user.jpg'}
+          src={session.user?.image ?? '/user.jpg'}
           alt="Profile Picture"
-          width={20}
-          height={20}
-          className="rounded-full"
+          width={30}
+          height={30}
+          className="aspect-square rounded-full"
         />
       ) : (
-        <MdOutlineMenu size={20} />
+        <MdOutlineMenu size={30} />
       )}
     </Button>
   );
