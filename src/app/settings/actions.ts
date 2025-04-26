@@ -3,7 +3,7 @@
 import { auth } from '@/server/auth';
 import { db } from '@/server/db';
 import { users } from '@/server/db/schema';
-import { eq } from 'drizzle-orm';
+import { eq, or } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { z } from 'zod';
@@ -18,71 +18,79 @@ export async function updateUserSettings(formData: FormData) {
   // Get the user's session, if they're not signed in, return an error
   const session = await auth();
   if (!session?.user) return { msg: 'You must be signed in to update user settings' };
-
-  // Check if the user exists
-  const existingUser = await db.query.users.findFirst({
-    where: eq(users.id, session.user.id),
-  });
-  if (!existingUser) return { msg: 'User not found in the database' };
+  // Extract form data with proper type handling
+  const nameValue = formData.get('name');
+  const emailValue = formData.get('email');
+  const pictureValue = formData.get('picture');
 
   // Extract and validate the data
   const validatedFields = UserSettingsSchema.safeParse({
-    name: formData.get('name') ?? session.user.name,
-    email: formData.get('email') ?? session.user.email,
-    picture: formData.get('picture') ?? session.user.image,
+    name: typeof nameValue === 'string' ? nameValue : session.user.name,
+    email: typeof emailValue === 'string' ? emailValue : session.user.email,
+    picture: typeof pictureValue === 'string' ? pictureValue : session.user.image,
   });
-
-  // If validation fails, return the errors
   if (!validatedFields.success) {
     return {
       msg: validatedFields.error.toString(),
     };
   }
-  // If name is being changed, check if it's already in use
-  if (validatedFields.data.name && validatedFields.data.name !== existingUser.name) {
-    const nameExists = await db.query.users.findFirst({
-      where: eq(users.name, validatedFields.data.name),
-    });
 
-    if (nameExists) {
-      return { msg: 'Name is already in use' };
-    }
-  }
-  // If email is being changed, check if it's already in use
-  if (validatedFields.data.email && validatedFields.data.email !== existingUser.email) {
-    const emailExists = await db.query.users.findFirst({
-      where: eq(users.email, validatedFields.data.email),
-    });
-
-    if (emailExists) {
-      return { msg: 'Email is already in use' };
-    }
-  }
-
-  // Try to update user
-  let userId: string | undefined;
+  const { data } = validatedFields;
   try {
+    // Check for existing user and name/email conflicts in a single query
+    const conflicts = await db.query.users.findMany({
+      where: or(
+        eq(users.id, session.user.id),
+        ...(data.name ? [eq(users.name, data.name)] : []),
+        ...(data.email ? [eq(users.email, data.email)] : [])
+      ),
+    });
+
+    // Check if user exists
+    const existingUser = conflicts.find((user) => user.id === session.user.id);
+    if (!existingUser) {
+      return { msg: 'User not found in the database' };
+    }
+
+    // Check for name conflicts (excluding the current user)
+    if (data.name && data.name !== existingUser.name) {
+      const nameConflict = conflicts.find((user) => user.id !== session.user.id && user.name === data.name);
+      if (nameConflict) {
+        return { msg: 'Name is already in use' };
+      }
+    }
+
+    // Check for email conflicts (excluding the current user)
+    if (data.email && data.email !== existingUser.email) {
+      const emailConflict = conflicts.find((user) => user.id !== session.user.id && user.email === data.email);
+      if (emailConflict) {
+        return { msg: 'Email is already in use' };
+      }
+    }
+
+    // Update only the fields that changed
+    const updateFields: Record<string, string> = {};
+    if (data.name && data.name !== existingUser.name) updateFields.name = data.name;
+    if (data.email && data.email !== existingUser.email) updateFields.email = data.email;
+    if (data.picture && data.picture !== existingUser.image) updateFields.image = data.picture;
+
+    // If no changes after comparing with existing data, return early
+    if (Object.keys(updateFields).length === 0) {
+      return { msg: 'No changes detected' };
+    }
+
+    // Update user with only the changed fields
     const [user] = await db
       .update(users)
-      .set({
-        name: validatedFields.data.name,
-        email: validatedFields.data.email,
-        image: validatedFields.data.picture,
-      })
+      .set(updateFields)
       .where(eq(users.id, session.user.id))
       .returning({ id: users.id });
-    userId = user?.id;
+
+    console.log(`User settings updated by user ${session.user.id}`);
+    revalidatePath(`/profile/${user!.id}`);
   } catch (error) {
     console.error('Failed to update user settings:', error);
     return { msg: 'An unexpected error occurred' };
   }
-  // If successful, log the update and redirect to the user's profile
-  if (userId) {
-    console.log(`User settings updated by user ${session.user.id}`);
-    revalidatePath(`/profile/${userId}`);
-    redirect(`/profile/${userId}`);
-  }
-
-  // Return generic error
-  return { msg: 'Failed to update user settings' };
+  redirect(`/profile/${session.user.id}`);
 }
