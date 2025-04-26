@@ -30,7 +30,6 @@ export default function UserSettingsForm({ user }: { user: User }) {
           }
 
           const { msg } = await updateUserSettings(formData);
-
           if (msg) {
             setMessage(msg);
             return;
@@ -40,7 +39,13 @@ export default function UserSettingsForm({ user }: { user: User }) {
           setFile(null);
           setMessage('Settings updated successfully.');
         } catch (error) {
-          setMessage(error instanceof Error ? error.message : 'An error occurred');
+          setMessage(
+            error instanceof Error
+              ? error.message === 'NEXT_REDIRECT'
+                ? 'Settings updated successfully.'
+                : error.message
+              : 'An unexpected error occurred.'
+          );
         }
       }}>
       <section className="flex w-full flex-col">
