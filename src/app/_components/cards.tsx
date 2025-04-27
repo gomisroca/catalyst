@@ -28,13 +28,13 @@ export function ProjectCard({ project }: { project: Project | TimelineProject })
         />
       )}
       <section className="flex h-full w-full flex-col">
-        <header className="flex flex-col items-center justify-between rounded-tr-lg bg-white px-2 py-2 transition duration-200 ease-in-out md:flex-row md:px-4 dark:bg-black">
+        <header className="flex flex-col items-start justify-between rounded-tr-lg bg-white px-2 py-2 transition duration-200 ease-in-out md:flex-row md:items-center md:px-4 dark:bg-black">
           <Link
             href={`/projects/${project.id}/`}
-            className="w-full font-bold transition duration-200 ease-in-out hover:scale-105 hover:text-rose-500 md:w-auto md:text-lg dark:hover:text-rose-700">
+            className="w-full leading-3 font-bold transition duration-200 ease-in-out hover:scale-105 hover:text-rose-500 md:w-auto md:text-lg dark:hover:text-rose-700">
             {project.name}
           </Link>
-          <p className="w-full text-zinc-400 md:w-auto">{formattedDate}</p>
+          <p className="w-full text-sm leading-3 text-zinc-400 md:w-auto md:text-base">{formattedDate}</p>
         </header>
         <div className="my-2 line-clamp-5 px-2 md:px-4">{project.description}</div>
       </section>
@@ -59,20 +59,20 @@ export function BranchCard({ branch }: { branch: Branch | TimelineBranch }) {
       )}
       <section className="flex h-full w-full flex-col">
         <header className="flex flex-col items-center justify-between rounded-tr-lg bg-white px-2 py-2 transition duration-200 ease-in-out md:flex-row md:px-4 dark:bg-black">
-          <div className="flex w-full items-center gap-2 md:w-auto">
+          <div className="flex w-full flex-col items-start md:w-auto md:flex-row md:items-center md:gap-2">
             <Link
               href={`/projects/${branch.projectId}/`}
-              className="font-bold transition duration-200 ease-in-out hover:scale-105 hover:text-rose-500 md:text-lg dark:hover:text-rose-700">
+              className="text-sm leading-3 font-bold transition duration-200 ease-in-out hover:scale-105 hover:text-rose-500 md:text-base dark:hover:text-rose-700">
               {branch.projectName}
             </Link>
-            <span>•</span>
+            <span className="hidden leading-3 md:block">•</span>
             <Link
               href={`/projects/${branch.projectId}/${branch.id}`}
-              className="flex items-center gap-1 font-bold text-zinc-500 transition duration-200 ease-in-out hover:scale-105 hover:text-rose-500 dark:hover:text-rose-700">
-              <FaCodeBranch size={16} /> {branch.name}
+              className="flex items-center gap-1 leading-3 font-bold text-zinc-500 transition duration-200 ease-in-out hover:scale-105 hover:text-rose-500 dark:hover:text-rose-700">
+              <FaCodeBranch size={14} /> {branch.name}
             </Link>
           </div>
-          <p className="w-full text-zinc-400 md:w-auto">{formattedDate}</p>
+          <p className="w-full text-sm leading-3 text-zinc-400 md:w-auto md:text-base">{formattedDate}</p>
         </header>
         <div className="my-2 line-clamp-5 px-2 md:px-4">{branch.description}</div>
       </section>
@@ -86,29 +86,36 @@ export function PostCard({ post }: { post: Post | TimelinePost }) {
       key={post.id}
       className="group flex max-w-full flex-col rounded-lg bg-zinc-300 drop-shadow-sm transition duration-200 ease-in-out hover:scale-105 hover:drop-shadow-md active:drop-shadow-none active:duration-100 dark:bg-zinc-950">
       <header className="flex flex-col items-center justify-between rounded-t-lg bg-white px-2 py-2 transition duration-200 ease-in-out md:flex-row md:px-4 dark:bg-black">
-        <div className="flex w-full items-center gap-2 md:w-auto">
+        <div className="flex w-full flex-col items-start text-sm md:w-auto md:flex-row md:items-center md:gap-2 md:text-base">
           <Link
             href={`/projects/${post.projectId}`}
-            className="font-bold transition duration-200 ease-in-out hover:scale-105 hover:text-rose-500 md:text-lg dark:hover:text-rose-700">
+            className="text-sm leading-3 font-bold transition duration-200 ease-in-out hover:scale-105 hover:text-rose-500 md:text-base dark:hover:text-rose-700">
             {post.projectName}
           </Link>
-          <span>•</span>
+          <span className="hidden leading-3 md:block">•</span>
           <Link
             href={`/projects/${post.projectId}/${post.branchId}`}
-            className="flex items-center gap-1 font-bold text-zinc-500 transition duration-200 ease-in-out hover:scale-105 hover:text-rose-500 dark:hover:text-rose-700">
-            <FaCodeBranch size={16} /> {post.branchName}
+            className="flex items-center gap-1 text-sm leading-3 font-bold text-zinc-500 transition duration-200 ease-in-out hover:scale-105 hover:text-rose-500 md:text-base dark:hover:text-rose-700">
+            <FaCodeBranch size={14} /> {post.branchName}
           </Link>
         </div>
-        <p className="w-full text-zinc-400 md:w-auto">{post.updatedAt!.toLocaleDateString()}</p>
+        <p className="w-full text-sm leading-3 text-zinc-400 md:w-auto md:text-base">
+          {post.updatedAt!.toLocaleDateString()}
+        </p>
       </header>
-      <section className="my-2 px-2 md:px-4">
-        <h3 className="text-xl font-semibold">{post.title}</h3>
+      <section className="my-2 flex flex-col gap-2 px-2 md:px-4">
+        <h3 className="text-xl leading-3 font-semibold">{post.title}</h3>
         <p className="line-clamp-5 text-zinc-500">{post.content}</p>
-        <div className="flex flex-wrap">
+        <div className="flex flex-wrap gap-2">
           {post.media.map((media) => (
-            <div key={media.id} className="h-10 w-10 p-2">
-              <Image fill src={media.url} alt={media.name} />
-            </div>
+            <Image
+              src={media.url}
+              alt={media.name}
+              height={150}
+              width={300}
+              className="max-h-40 w-auto rounded-lg"
+              key={media.id}
+            />
           ))}
         </div>
       </section>

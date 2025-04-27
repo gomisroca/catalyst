@@ -30,7 +30,7 @@ import {
 } from 'types';
 
 type ForYouTimelineProps = {
-  session: Session | null; // Replace `any` with the actual type of the session
+  session: Session | null;
   initialData: ForYouTimelineData | null;
 };
 

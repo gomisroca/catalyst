@@ -1,5 +1,6 @@
 'use server';
 
+import { env } from '@/env';
 import { signIn } from '@/server/auth';
 import { z } from 'zod';
 
@@ -21,7 +22,10 @@ export async function signInWithEmail(formData: FormData) {
       };
     }
 
-    await signIn('nodemailer', { redirect: false, callbackUrl: '/', email: validatedFields.data.email });
+    await signIn('nodemailer', {
+      redirectTo: env.NEXT_PUBLIC_BASE_URL,
+      email: validatedFields.data.email,
+    });
 
     return { errors: {} };
   } catch (error) {

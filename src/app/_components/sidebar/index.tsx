@@ -47,43 +47,55 @@ function SidebarContent({ session, data }: { session: Session | null; data: Side
     <nav className="flex min-h-16 w-42 flex-col items-center justify-center gap-2 rounded-lg bg-zinc-100 px-4 py-2 dark:bg-zinc-950">
       <div className="flex w-full flex-col items-center gap-2">
         <h4 className="text-lg font-semibold">Projects</h4>
-        {data.contributions.projects.map((project) => (
-          <Link href={`/projects/${project.id}`} key={project.id} className="w-full">
-            {project.name}
-          </Link>
-        ))}
+        {data.contributions.projects.length === 0 ? (
+          <p className="text-center text-xs">You have no projects yet.</p>
+        ) : (
+          data.contributions.projects.map((project) => (
+            <Link href={`/projects/${project.id}`} key={project.id} className="w-full text-center">
+              {project.name}
+            </Link>
+          ))
+        )}
       </div>
       <hr className="w-full border border-zinc-300 dark:border-zinc-700" />
       <div className="flex w-full flex-col items-center gap-2">
         <h4 className="text-lg font-semibold">Branches</h4>
-        {data.contributions.branches.map((branch) => (
-          <Link href={`/projects/${branch.projectId}/${branch.id}`} key={branch.id} className="w-full">
-            {branch.name}
-          </Link>
-        ))}
+        {data.contributions.branches.length === 0 ? (
+          <p className="text-center text-xs">You have no branches yet.</p>
+        ) : (
+          data.contributions.branches.map((branch) => (
+            <Link href={`/projects/${branch.projectId}/${branch.id}`} key={branch.id} className="w-full text-center">
+              {branch.name}
+            </Link>
+          ))
+        )}
       </div>
       <hr className="w-full border border-zinc-300 dark:border-zinc-700" />
       <div className="flex w-full flex-col items-center gap-2">
         <h4 className="text-lg font-semibold">Bookmarks</h4>
-        {data.bookmarks.map((bookmark) =>
-          bookmark.postId ? (
-            <Link
-              href={`/projects/${bookmark.projectId}/${bookmark.branchId}`}
-              key={bookmark.postId}
-              className="w-full">
-              {bookmark.postTitle}
-            </Link>
-          ) : bookmark.branchId ? (
-            <Link
-              href={`/projects/${bookmark.projectId}/${bookmark.branchId}`}
-              key={bookmark.branchId}
-              className="w-full">
-              {bookmark.projectName} - {bookmark.branchName}
-            </Link>
-          ) : (
-            <Link href={`/projects/${bookmark.projectId}`} key={bookmark.projectId} className="w-full">
-              {bookmark.projectName}
-            </Link>
+        {data.bookmarks.length === 0 ? (
+          <p className="text-center text-xs">You have no bookmarks yet.</p>
+        ) : (
+          data.bookmarks.map((bookmark) =>
+            bookmark.postId ? (
+              <Link
+                href={`/projects/${bookmark.projectId}/${bookmark.branchId}`}
+                key={bookmark.postId}
+                className="w-full text-center">
+                {bookmark.postTitle}
+              </Link>
+            ) : bookmark.branchId ? (
+              <Link
+                href={`/projects/${bookmark.projectId}/${bookmark.branchId}`}
+                key={bookmark.branchId}
+                className="w-full text-center">
+                {bookmark.projectName} - {bookmark.branchName}
+              </Link>
+            ) : (
+              <Link href={`/projects/${bookmark.projectId}`} key={bookmark.projectId} className="w-full text-center">
+                {bookmark.projectName}
+              </Link>
+            )
           )
         )}
       </div>

@@ -1,5 +1,5 @@
 ##### DEPENDENCIES
-FROM --platform=linux/amd64 node:20-alpine AS deps
+FROM --platform=linux/amd64 node:slim AS deps
 RUN apk add --no-cache libc6-compat openssl
 WORKDIR /app
 
@@ -9,7 +9,7 @@ COPY prisma ./prisma/
 RUN npm ci
 
 ##### BUILDER
-FROM --platform=linux/amd64 node:20-alpine AS builder
+FROM --platform=linux/amd64 node:slim AS builder
 
 ARG DATABASE_URL
 ARG DIRECT_URL
@@ -22,7 +22,7 @@ ARG EMAIL_FROM
 ARG SUPABASE_ANON_KEY
 ARG SUPABASE_PROJECT_URL
 ARG IMAGE_PROXY_HOSTNAME
-ARG BASE_URL
+ARG NEXT_PUBLIC_BASE_URL
 
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
@@ -31,13 +31,13 @@ COPY . .
 ENV NEXT_TELEMETRY_DISABLED 1
 ENV SUPABASE_PROJECT_URL=${SUPABASE_PROJECT_URL}
 ENV IMAGE_PROXY_HOSTNAME=${IMAGE_PROXY_HOSTNAME}
-ENV BASE_URL=${BASE_URL}
+ENV NEXT_PUBLIC_BASE_URL=${NEXT_PUBLIC_BASE_URL}
 ENV NEXTAUTH_URL=${NEXTAUTH_URL}
 
 RUN SKIP_ENV_VALIDATION=1 npm run build
 
 ##### RUNNER
-FROM --platform=linux/amd64 node:20-alpine AS runner
+FROM --platform=linux/amd64 node:slim AS runner
 WORKDIR /app
 
 ENV NODE_ENV production
