@@ -4,6 +4,24 @@ import { db } from '../db';
 import { eq, sql } from 'drizzle-orm';
 import { postsInteractions, postsMedia, posts as postsSchema, users as usersSchema } from '../db/schema';
 
+export async function getPost(postId: string) {
+  // Ensure post exists
+  const post = await db.query.posts.findFirst({
+    where: eq(postsSchema.id, postId),
+    with: {
+      author: true,
+      media: true,
+    },
+  });
+  if (!post) throw new Error('Post with the given ID does not exist');
+
+  // Ensure user has access to post
+  const session = await auth();
+  if (post.authorId !== session?.user.id) throw new Error('Unauthorized');
+
+  return post;
+}
+
 export async function getPosts(branchId: string) {
   // Ensure branch exists, and user has access to it
   const session = await auth();
@@ -18,8 +36,9 @@ export async function getPosts(branchId: string) {
   const posts = await db
     .select({
       data: postsSchema,
-      author: sql<{ name: string | null; email: string }>`
+      author: sql<{ id: string; name: string | null; email: string }>`
       json_build_object(
+        'id', ${usersSchema.id},
         'name', ${usersSchema.name},
         'email', ${usersSchema.email}
       )
@@ -50,8 +69,9 @@ export async function getPostInteractions(postId: string) {
   const interactions = await db
     .select({
       interaction: postsInteractions,
-      user: sql<{ name: string | null; email: string }>`
+      user: sql<{ id: string; name: string | null; email: string }>`
       json_build_object(
+        'id', ${usersSchema.id},
         'name', ${usersSchema.name},
         'email', ${usersSchema.email}
       )
