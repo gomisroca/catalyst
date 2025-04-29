@@ -27,4 +27,4 @@ src/stories/assets/
 Dockerfile
 docker-compose.yml
 *.webp
-drizzle/
+prisma/
