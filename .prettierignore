@@ -28,3 +28,4 @@ Dockerfile
 docker-compose.yml
 *.webp
 prisma/
+generated/
