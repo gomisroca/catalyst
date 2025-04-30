@@ -7,14 +7,13 @@ import { messageAtom } from '@/atoms/message';
 import { useRef } from 'react';
 import { useParams } from 'next/navigation';
 import { updateBranch } from './actions';
-import { type InferSelectModel } from 'drizzle-orm';
-import { type branchesPermissions, type branches } from '@/server/db/schema';
+import { type Prisma } from 'generated/prisma';
 
-export default function UpdateBranchForm({
-  branch,
-}: {
-  branch: InferSelectModel<typeof branches> & { permissions: InferSelectModel<typeof branchesPermissions> };
-}) {
+type BranchWithPermissions = Prisma.BranchGetPayload<{
+  include: { permissions: true };
+}>;
+
+export default function UpdateBranchForm({ branch }: { branch: BranchWithPermissions }) {
   const setMessage = useSetAtom(messageAtom);
   const formRef = useRef<HTMLFormElement>(null);
   const params = useParams<{ projectId: string; branchId: string }>();
@@ -77,7 +76,7 @@ export default function UpdateBranchForm({
           <input
             type="checkbox"
             name="private"
-            defaultChecked={branch.permissions.private ?? false}
+            defaultChecked={branch.permissions?.private ?? false}
             className="h-5 w-5"
           />
         </section>
@@ -87,7 +86,7 @@ export default function UpdateBranchForm({
           <input
             type="checkbox"
             name="allowCollaborate"
-            defaultChecked={branch.permissions.allowCollaborate ?? true}
+            defaultChecked={branch.permissions?.allowCollaborate ?? true}
             className="h-5 w-5"
           />
         </section>
@@ -97,7 +96,7 @@ export default function UpdateBranchForm({
           <input
             type="checkbox"
             name="allowBranch"
-            defaultChecked={branch.permissions.allowBranch ?? true}
+            defaultChecked={branch.permissions?.allowBranch ?? true}
             className="h-5 w-5"
           />
         </section>
@@ -107,7 +106,7 @@ export default function UpdateBranchForm({
           <input
             type="checkbox"
             name="allowShare"
-            defaultChecked={branch.permissions.allowShare ?? true}
+            defaultChecked={branch.permissions?.allowShare ?? true}
             className="h-5 w-5"
           />
         </section>

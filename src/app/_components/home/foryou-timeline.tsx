@@ -14,57 +14,70 @@ import {
 import { useEffect, useState } from 'react';
 import { fetchForYouTimeline } from './actions';
 import {
-  type TimelineItemBranch,
-  type TimelineItemBranchInteraction,
-  type TimelineItemPost,
-  type TimelineItemPostInteraction,
-  type TimelineItemProject,
-  type TimelineItemProjectInteraction,
-  type TimelineProject,
-  type TimelineBranch,
-  type TimelinePost,
-  type TimelineProjectInteraction,
-  type TimelineBranchInteraction,
-  type TimelinePostInteraction,
-  type ForYouTimelineData,
+  type ExtendedBranch,
+  type ExtendedPost,
+  type ExtendedProject,
+  type ExtendedPostInteraction,
+  type ExtendedBranchInteraction,
+  type ExtendedProjectInteraction,
 } from 'types';
 
+type ForYouTimelineData = {
+  posts: ExtendedPost[];
+  branches: ExtendedBranch[];
+  projects: ExtendedProject[];
+  postInteractions: ExtendedPostInteraction[];
+  branchInteractions: ExtendedBranchInteraction[];
+  projectInteractions: ExtendedProjectInteraction[];
+};
 type ForYouTimelineProps = {
   session: Session | null;
-  initialData: ForYouTimelineData | null;
+  initialData: ForYouTimelineData;
 };
 
 function sortTimelineData(data: ForYouTimelineData) {
   const combinedData = [
-    ...data.postInteractions,
-    ...data.branchInteractions,
-    ...data.projectInteractions,
-    ...data.posts,
-    ...data.branches,
-    ...data.projects,
+    ...data.postInteractions.map((interaction) => ({
+      type: 'post-interaction',
+      content: { ...interaction, updatedAt: interaction.createdAt },
+    })),
+    ...data.branchInteractions.map((interaction) => ({
+      type: 'branch-interaction',
+      content: { ...interaction, updatedAt: interaction.createdAt },
+    })),
+    ...data.projectInteractions.map((interaction) => ({
+      type: 'project-interaction',
+      content: { ...interaction, updatedAt: interaction.createdAt },
+    })),
+    ...data.posts.map((post) => ({ type: 'post', content: post })),
+    ...data.branches.map((branch) => ({ type: 'branch', content: branch })),
+    ...data.projects.map((project) => ({ type: 'project', content: project })),
   ];
-  return combinedData.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+  return combinedData.sort(
+    (a, b) =>
+      new Date(b.content.updatedAt ?? b.content.createdAt).getTime() -
+      new Date(a.content.updatedAt ?? a.content.createdAt).getTime()
+  );
 }
 
 export default function ForYouTimeline({ session, initialData }: ForYouTimelineProps) {
   const [page, setPage] = useState(2);
 
   const [timelineData, setTimelineData] = useState<
-    (
-      | TimelineItemPostInteraction
-      | TimelineItemBranchInteraction
-      | TimelineItemProjectInteraction
-      | TimelineItemPost
-      | TimelineItemBranch
-      | TimelineItemProject
-    )[]
+    {
+      type: string;
+      content:
+        | ExtendedPostInteraction
+        | ExtendedBranchInteraction
+        | ExtendedProjectInteraction
+        | ExtendedPost
+        | ExtendedBranch
+        | ExtendedProject;
+    }[]
   >([]);
 
   useEffect(() => {
-    if (!initialData) return;
-
     const sortedData = sortTimelineData(initialData);
-
     setTimelineData(sortedData);
   }, [initialData]);
 
@@ -96,20 +109,20 @@ export default function ForYouTimeline({ session, initialData }: ForYouTimelineP
   }
   return (
     <div className="flex flex-col gap-4">
-      {timelineData.map((item, index) => (
-        <div key={index}>
-          {item.type === 'postInteraction' && (
-            <PostInteractionCard interaction={item.content as TimelinePostInteraction} />
+      {timelineData.map((data) => (
+        <div key={data.content.id}>
+          {data.type === 'postInteraction' && (
+            <PostInteractionCard interaction={data.content as ExtendedPostInteraction} />
           )}
-          {item.type === 'branchInteraction' && (
-            <BranchInteractionCard interaction={item.content as TimelineBranchInteraction} />
+          {data.type === 'branchInteraction' && (
+            <BranchInteractionCard interaction={data.content as ExtendedBranchInteraction} />
           )}
-          {item.type === 'projectInteraction' && (
-            <ProjectInteractionCard interaction={item.content as TimelineProjectInteraction} />
+          {data.type === 'projectInteraction' && (
+            <ProjectInteractionCard interaction={data.content as ExtendedProjectInteraction} />
           )}
-          {item.type === 'post' && <PostCard post={item.content as TimelinePost} />}
-          {item.type === 'branch' && <BranchCard branch={item.content as TimelineBranch} />}
-          {item.type === 'project' && <ProjectCard project={item.content as TimelineProject} />}
+          {data.type === 'post' && <PostCard post={data.content as ExtendedPost} />}
+          {data.type === 'branch' && <BranchCard branch={data.content as ExtendedBranch} />}
+          {data.type === 'project' && <ProjectCard project={data.content as ExtendedProject} />}
         </div>
       ))}
       <Button onClick={handleLoadMore} className="mx-auto w-fit">

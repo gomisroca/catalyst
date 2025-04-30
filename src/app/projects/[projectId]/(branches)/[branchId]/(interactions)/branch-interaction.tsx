@@ -2,15 +2,16 @@
 
 import Button from '@/app/_components/ui/button';
 import { useParams } from 'next/navigation';
-import { addInteractionAction, removeInteractionAction } from './actions';
+import { interactionAction } from './actions';
 import { useSetAtom } from 'jotai';
 import { messageAtom } from '@/atoms/message';
 import { FaBookmark, FaEye, FaShare, FaStar } from 'react-icons/fa6';
 import { MdWarning } from 'react-icons/md';
 import { type User } from 'next-auth';
-import { type BranchInteractionWithUser } from 'types';
 import { twMerge } from 'tailwind-merge';
 import { startTransition, useOptimistic } from 'react';
+import { type Prisma } from 'generated/prisma';
+import { type InteractionType } from 'types';
 
 const types = {
   LIKE: <FaStar size={12} />,
@@ -20,12 +21,15 @@ const types = {
   HIDE: <FaEye size={12} />,
 };
 
+type BranchInteractionWithUser = Prisma.BranchInteractionGetPayload<{
+  include: { user: true };
+}>;
 export default function BranchInteraction({
   type,
   data,
   user,
 }: {
-  type: 'LIKE' | 'SHARE' | 'BOOKMARK' | 'REPORT' | 'HIDE';
+  type: InteractionType;
   data?: BranchInteractionWithUser[];
   user?: User;
 }) {
@@ -43,54 +47,55 @@ export default function BranchInteraction({
     }
   );
 
-  const hasInteracted = optimisticInteractions.filter((i) => i.user.email === user?.email).length > 0;
+  const hasInteracted = optimisticInteractions.some((i) => i.user.email === user?.email && i.type === type);
 
-  const handleInteraction = async (type: 'LIKE' | 'SHARE' | 'BOOKMARK' | 'REPORT' | 'HIDE') => {
+  const handleInteraction = async (type: InteractionType) => {
     startTransition(async () => {
       try {
         if (hasInteracted) {
           setOptimisticInteraction({
             action: 'remove',
             newInteraction: {
-              interaction: {
-                type,
-                id: Math.random().toString(36),
-                branchId: params.branchId,
-                createdAt: new Date(),
-                userId: user!.id!,
-              },
+              type,
+              id: Math.random().toString(36),
+              branchId: params.branchId,
+              createdAt: new Date(),
+              userId: user!.id!,
               user: {
+                id: Math.random().toString(36),
                 name: user!.name!,
                 email: user!.email!,
+                emailVerified: null,
+                image: null,
               },
             },
           });
-          const { msg } = await removeInteractionAction(type, params.projectId, params.branchId);
-          if (msg) setMessage(msg);
-          return;
         } else {
           setOptimisticInteraction({
             action: 'add',
             newInteraction: {
-              interaction: {
-                type,
-                id: Math.random().toString(36),
-                branchId: params.branchId,
-                createdAt: new Date(),
-                userId: user!.id!,
-              },
+              type,
+              id: Math.random().toString(36),
+              branchId: params.branchId,
+              createdAt: new Date(),
+              userId: user!.id!,
               user: {
+                id: Math.random().toString(36),
                 name: user!.name!,
                 email: user!.email!,
+                emailVerified: null,
+                image: null,
               },
             },
           });
-          const { msg } = await addInteractionAction(type, params.projectId, params.branchId);
-          if (msg) setMessage(msg);
-          return;
         }
+
+        const { msg } = await interactionAction(type, params.projectId, params.branchId);
+        if (msg) setMessage(msg);
+        return;
       } catch (error) {
         console.log(error);
+        setMessage('Something went wrong with the interaction.');
       }
     });
   };

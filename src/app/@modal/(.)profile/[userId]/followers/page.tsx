@@ -4,22 +4,22 @@ import { getUserFollowers } from '@/server/queries/users';
 import Modal from '@/app/_components/ui/modal';
 
 export default async function FollowerListModal({ params }: { params: Promise<{ userId: string }> }) {
-  const followers = await getUserFollowers((await params).userId);
-  if (!followers) return null;
+  const data = await getUserFollowers((await params).userId);
+
   return (
     <Modal>
       <ul className="flex flex-col gap-1">
-        {followers.map((follower) => (
-          <li key={follower.email} className="flex items-start gap-2">
-            <Link href={`/profile/${follower.followerId}`} className="flex items-center justify-center gap-2">
+        {data.map((data) => (
+          <li key={data.follower.email} className="flex items-start gap-2">
+            <Link href={`/profile/${data.follower.id}`} className="flex items-center justify-center gap-2">
               <Image
-                src={follower.avatar ?? '/user.jpg'}
-                alt="Profile Picture"
+                src={data.follower.image ?? '/user.jpg'}
+                alt={data.follower.name ?? 'Profile Picture'}
                 width={30}
                 height={30}
                 className="h-8 w-8 rounded-full"
               />
-              <span>{follower.name}</span>
+              <span>{data.follower.name}</span>
             </Link>
           </li>
         ))}

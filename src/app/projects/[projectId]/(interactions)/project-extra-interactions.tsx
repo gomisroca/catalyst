@@ -5,10 +5,13 @@ import { useState } from 'react';
 import { BsThreeDotsVertical } from 'react-icons/bs';
 import { twMerge } from 'tailwind-merge';
 import { useAutoAnimate } from '@formkit/auto-animate/react';
-import { type ProjectInteractionWithUser } from 'types';
 import { type User } from 'next-auth';
 import ProjectInteraction from './project-interaction';
+import { type Prisma } from 'generated/prisma';
 
+type ProjectInteractionWithUser = Prisma.ProjectInteractionGetPayload<{
+  include: { user: true };
+}>;
 type ProjectExtraInteractions = {
   user?: User;
   data: {

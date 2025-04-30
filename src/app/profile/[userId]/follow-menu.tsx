@@ -3,25 +3,14 @@
 import Button from '@/app/_components/ui/button';
 import { type Session } from 'next-auth';
 import { BsHeart, BsHeartFill } from 'react-icons/bs';
-import { followUser, unfollowUser } from './actions';
+import { followUser } from './actions';
 import { useParams, useRouter } from 'next/navigation';
 import { messageAtom } from '@/atoms/message';
 import { useSetAtom } from 'jotai';
 import { startTransition, useOptimistic } from 'react';
+import { type ExtendedFollow } from 'types';
 
-export default function FollowMenu({
-  session,
-  followers,
-}: {
-  session: Session | null;
-  followers: Array<{
-    email: string | null;
-    name: string | undefined;
-    followerId: string;
-    followedId: string;
-    avatar: string | null;
-  }>;
-}) {
+export default function FollowMenu({ session, followers }: { session: Session | null; followers: ExtendedFollow[] }) {
   const navigate = useRouter();
   const params = useParams<{ userId: string }>();
   const setMessage = useSetAtom(messageAtom);
@@ -35,7 +24,19 @@ export default function FollowMenu({
         follow,
       }: {
         action: 'add' | 'remove';
-        follow: { email: string; name: string; followerId: string; followedId: string; avatar: string | null };
+        follow: {
+          follower: {
+            name: string | null;
+            id: string;
+            email: string;
+            emailVerified: Date | null;
+            image: string | null;
+          };
+          id: string;
+          followerId: string;
+          followedId: string;
+          createdAt: Date;
+        };
       }
     ) => {
       if (action === 'add') {
@@ -56,29 +57,39 @@ export default function FollowMenu({
           setOptimisticFollowers({
             action: 'remove',
             follow: {
-              email: session.user.email,
-              name: session.user.name,
+              id: Math.random().toString(36),
+              createdAt: new Date(),
               followerId: session.user.id,
               followedId: params.userId,
-              avatar: session.user.image ?? '',
+              follower: {
+                id: session.user.id,
+                name: session.user.name,
+                email: session.user.email,
+                emailVerified: null,
+                image: null,
+              },
             },
           });
-          const { msg } = await unfollowUser({ followedId: params.userId });
-          setMessage(msg);
         } else {
           setOptimisticFollowers({
             action: 'add',
             follow: {
-              email: session.user.email,
-              name: session.user.name,
+              id: Math.random().toString(36),
+              createdAt: new Date(),
               followerId: session.user.id,
               followedId: params.userId,
-              avatar: session.user.image ?? '',
+              follower: {
+                id: session.user.id,
+                name: session.user.name,
+                email: session.user.email,
+                emailVerified: null,
+                image: null,
+              },
             },
           });
-          const { msg } = await followUser({ followedId: params.userId });
-          setMessage(msg);
         }
+        const { msg } = await followUser({ followedId: params.userId });
+        setMessage(msg);
       } catch (error) {
         console.error(error);
         setMessage('An unexpected error occurred');

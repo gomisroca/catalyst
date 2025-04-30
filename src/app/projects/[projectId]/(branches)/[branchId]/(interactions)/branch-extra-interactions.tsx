@@ -7,8 +7,11 @@ import BranchInteraction from './branch-interaction';
 import { twMerge } from 'tailwind-merge';
 import { useAutoAnimate } from '@formkit/auto-animate/react';
 import { type User } from 'next-auth';
-import { type BranchInteractionWithUser } from 'types';
+import { type Prisma } from 'generated/prisma';
 
+type BranchInteractionWithUser = Prisma.BranchInteractionGetPayload<{
+  include: { user: true };
+}>;
 type BranchExtraInteractionsProps = {
   user?: User;
   data: {

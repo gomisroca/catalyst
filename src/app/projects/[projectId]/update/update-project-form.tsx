@@ -6,17 +6,16 @@ import { useUploadThing } from '@/utils/uploadthing';
 import { useSetAtom } from 'jotai';
 import { messageAtom } from '@/atoms/message';
 import { useRef, useState } from 'react';
-import { type InferSelectModel } from 'drizzle-orm';
-import { type projectsPermissions, type projects } from '@/server/db/schema';
 import { updateProject } from './actions';
 import { useParams } from 'next/navigation';
 import Image from 'next/image';
+import { type Prisma } from 'generated/prisma';
 
-export default function UpdateProjectForm({
-  project,
-}: {
-  project: InferSelectModel<typeof projects> & { permissions: InferSelectModel<typeof projectsPermissions> | null };
-}) {
+type ProjectWithPermissions = Prisma.ProjectGetPayload<{
+  include: { permissions: true };
+}>;
+
+export default function UpdateProjectForm({ project }: { project: ProjectWithPermissions }) {
   const params = useParams<{ projectId: string }>();
   const [file, setFile] = useState<File | null>(null);
   const setMessage = useSetAtom(messageAtom);

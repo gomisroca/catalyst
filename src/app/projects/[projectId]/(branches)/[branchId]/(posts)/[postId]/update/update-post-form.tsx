@@ -9,14 +9,13 @@ import { useParams } from 'next/navigation';
 import { updatePost } from './actions';
 import { useUploadThing } from '@/utils/uploadthing';
 import Image from 'next/image';
-import { type InferSelectModel } from 'drizzle-orm';
-import { type postsMedia, type posts } from '@/server/db/schema';
+import { type Prisma } from 'generated/prisma';
 
-export default function UpdatePostForm({
-  post,
-}: {
-  post: InferSelectModel<typeof posts> & { media: Array<InferSelectModel<typeof postsMedia>> };
-}) {
+type PostWithMedia = Prisma.PostGetPayload<{
+  include: { media: true };
+}>;
+
+export default function UpdatePostForm({ post }: { post: PostWithMedia }) {
   const [files, setFiles] = useState<FileList | null>(null);
   const setMessage = useSetAtom(messageAtom);
   const formRef = useRef<HTMLFormElement>(null);
@@ -96,7 +95,7 @@ export default function UpdatePostForm({
               <Image
                 key={media.id}
                 className="rounded-lg border-2 border-zinc-300 bg-zinc-200 focus:ring-2 focus:ring-sky-300 focus:outline-none dark:border-zinc-700 dark:bg-zinc-800 dark:focus:ring-sky-700"
-                src={media.url!}
+                src={media.url}
                 height={200}
                 width={200}
                 alt={media.name ?? media.id}
