@@ -30,7 +30,11 @@ declare module 'next-auth' {
  */
 export const authConfig = {
   providers: [
-    Google({ clientId: env.GOOGLE_CLIENT_ID, clientSecret: env.GOOGLE_CLIENT_SECRET }),
+    Google({
+      allowDangerousEmailAccountLinking: true,
+      clientId: env.GOOGLE_CLIENT_ID,
+      clientSecret: env.GOOGLE_CLIENT_SECRET,
+    }),
     EmailProvider({ server: env.EMAIL_SERVER, from: env.EMAIL_FROM }),
   ],
   adapter: PrismaAdapter(db) as Adapter,
