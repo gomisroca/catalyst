@@ -2,7 +2,6 @@
 
 import { auth } from '@/server/auth';
 import { db } from '@/server/db';
-import { posts, postsMedia } from '@/server/db/schema';
 import { getBranch } from '@/server/queries/branches';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
@@ -16,11 +15,11 @@ const PostSchema = z.object({
 
 export async function createPost(formData: FormData, branchId: string) {
   const session = await auth();
-  if (!session?.user) throw new Error('You must be signed in to create a post');
+  if (!session?.user) return { msg: 'You must be signed in to create a post' };
 
   const branch = await getBranch(branchId);
   if (!branch.permissions?.allowCollaborate && session.user.id !== branch.authorId)
-    throw new Error('You do not have permission to collaborate in this branch');
+    return { msg: 'You do not have permission to collaborate in this branch' };
 
   // Extract and validate the data
   const validatedFields = PostSchema.safeParse({
@@ -28,52 +27,44 @@ export async function createPost(formData: FormData, branchId: string) {
     content: formData.get('content'),
     media: formData.getAll('media'),
   });
-
-  // If validation fails, return the errors
   if (!validatedFields.success) {
     return {
       error: validatedFields.error.toString(),
     };
   }
 
-  let postId: string | undefined;
+  const { data } = validatedFields;
+
+  let newPostId: string | undefined;
   try {
-    const { id } = await db.transaction(async (trx) => {
-      const [result] = await trx
-        .insert(posts)
-        .values({
-          title: validatedFields.data.title,
-          content: validatedFields.data.content,
+    newPostId = await db.$transaction(async (trx) => {
+      const newPost = await trx.post.create({
+        data: {
+          title: data.title,
+          content: data.content,
           authorId: session.user.id,
           branchId: branchId,
-        })
-        .returning({ id: posts.id });
-
-      if (!result) throw new Error('Failed to create post');
-
-      if (!validatedFields.data.media) return result;
-      for (const media of validatedFields.data.media) {
-        await trx.insert(postsMedia).values({
-          name: media.split('/').pop(),
-          url: media,
-          postId: result.id,
+        },
+      });
+      if (!data.media) return newPost.id;
+      for (const media of data.media) {
+        await trx.postMedia.create({
+          data: {
+            name: media.split('/').pop() ?? media,
+            url: media,
+            postId: newPost.id,
+          },
         });
       }
 
-      return result;
+      return newPost.id;
     });
 
-    postId = id;
+    console.log(`Post ${newPostId} created by user ${session.user.id}`);
+    revalidatePath(`/projects/${branch.projectId}/${branchId}`);
   } catch (error) {
     console.error('Failed to create post:', error);
-    return { msg: 'An unexpected error occurred' };
+    return { msg: 'An unexpected error occurred while creating the post' };
   }
-
-  if (postId) {
-    console.log(`Post created: ${postId} by user: ${session.user.id}`);
-    revalidatePath(`/projects/${branch.projectId}/${branchId}`);
-    redirect(`/projects/${branch.projectId}/${branchId}`);
-  }
-
-  return { msg: 'Failed to create post' };
+  redirect(`/projects/${branch.projectId}/${branchId}`);
 }

@@ -2,16 +2,25 @@
 
 import { auth } from '@/server/auth';
 import { db } from '@/server/db';
-import { branches, branchesPermissions, projects, projectsPermissions } from '@/server/db/schema';
-import { eq } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { z } from 'zod';
 
+const MediaUrlSchema = z
+  .string()
+  .url('Media URL must be a valid URL')
+  .refine(
+    (url) => {
+      const validExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.mp4', '.webm'];
+      return validExtensions.some((ext) => url.toLowerCase().endsWith(ext));
+    },
+    { message: 'Media URL must point to a supported file type' }
+  );
+
 const ProjectSchema = z.object({
-  name: z.string().min(3, 'Project name must be at least 3 characters long'),
+  name: z.string().min(3, 'Project name must be at least 3 characters long').max(100, 'Project name is too long'),
   description: z.string().optional(),
-  picture: z.string().optional(),
+  picture: z.string(MediaUrlSchema).optional(),
   private: z.boolean(),
   allowCollaborate: z.boolean(),
   allowShare: z.boolean(),
@@ -22,87 +31,88 @@ export async function createProject(formData: FormData) {
   if (!session?.user) return { msg: 'You must be signed in to create a project' };
 
   // Extract and validate the data
+  const privateFlag = formData.get('private') === 'on';
+  const allowCollaborateFlag = formData.get('allowCollaborate') === 'on';
+  const allowShareFlag = formData.get('allowShare') === 'on';
+
   const validatedFields = ProjectSchema.safeParse({
     name: formData.get('name'),
     description: formData.get('description'),
     picture: formData.get('picture') ?? undefined,
-    private: formData.get('private') === 'on',
-    allowCollaborate: formData.get('allowCollaborate') === 'on',
-    allowShare: formData.get('allowShare') === 'on',
+    private: privateFlag,
+    allowCollaborate: allowCollaborateFlag,
+    allowShare: allowShareFlag,
   });
-
-  // If validation fails, return the errors
   if (!validatedFields.success) {
     return {
       msg: validatedFields.error.toString(),
     };
   }
+
+  const { data } = validatedFields;
+
   // Check if a project with the same name already exists
-  const existingProject = await db.query.projects.findFirst({
-    where: eq(projects.name, formData.get('name') as string),
+  const existingProject = await db.project.findFirst({
+    where: {
+      name: data.name,
+    },
   });
   if (existingProject) return { msg: 'A project with this name already exists' };
 
-  // Init a variable to store the project id, for redirection purposes
-  let projectId: string | undefined;
+  let newProjectId: string | undefined;
   try {
-    const { id } = await db.transaction(async (trx) => {
-      const [result] = await trx
-        .insert(projects)
-        .values({
-          name: validatedFields.data.name,
-          description: validatedFields.data.description,
-          picture: validatedFields.data.picture,
+    newProjectId = await db.$transaction(async (trx) => {
+      const newProject = await trx.project.create({
+        data: {
+          name: data.name,
+          description: data.description,
+          picture: data.picture,
           authorId: session.user.id,
-        })
-        .returning({ id: projects.id });
-
-      if (!result) throw new Error('Failed to create project');
-
-      await trx.insert(projectsPermissions).values({
-        projectId: result.id,
-        allowedUsers: [session.user.id],
-        private: validatedFields.data.private,
-        allowCollaborate: validatedFields.data.allowCollaborate,
-        allowShare: validatedFields.data.allowShare,
+        },
       });
 
-      const [branch] = await trx
-        .insert(branches)
-        .values({
+      await trx.projectPermissions.create({
+        data: {
+          projectId: newProject.id,
+          private: data.private,
+          allowCollaborate: data.allowCollaborate,
+          allowShare: data.allowShare,
+        },
+      });
+
+      const mainBranch = await trx.branch.create({
+        data: {
           name: 'main',
           description: null,
           default: true,
-          projectId: result.id,
+          projectId: newProject.id,
           authorId: session.user.id,
-        })
-        .returning({ id: branches.id });
-
-      if (!branch) throw new Error('Failed to create main branch of project');
-
-      await trx.insert(branchesPermissions).values({
-        branchId: branch.id,
-        allowedUsers: [session.user.id],
-        private: validatedFields.data.private,
-        allowCollaborate: validatedFields.data.allowCollaborate,
-        allowShare: validatedFields.data.allowShare,
-        allowBranch: validatedFields.data.allowCollaborate,
+        },
       });
 
-      return result;
+      await trx.branchPermissions.create({
+        data: {
+          branchId: mainBranch.id,
+          allowedUsers: {
+            connect: {
+              id: session.user.id,
+            },
+          },
+          private: validatedFields.data.private,
+          allowCollaborate: validatedFields.data.allowCollaborate,
+          allowShare: validatedFields.data.allowShare,
+          allowBranch: validatedFields.data.allowCollaborate,
+        },
+      });
+
+      return newProject.id;
     });
 
-    projectId = id;
+    console.log(`Project ${newProjectId} created by user ${session.user.id}`);
+    revalidatePath('/projects');
   } catch (error) {
     console.error('Failed to create project:', error);
-    return { msg: 'An unexpected error occurred' };
+    return { msg: 'An unexpected error occurred while creating the project' };
   }
-
-  if (projectId) {
-    console.log(`Project created: ${projectId} by user: ${session.user.id}`);
-    revalidatePath('/projects');
-    redirect(`/projects/${projectId}`);
-  }
-
-  return { msg: 'Failed to create project' };
+  redirect(`/projects/${newProjectId}`);
 }

@@ -1,0 +1,239 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum InteractionType {
+  LIKE
+  SHARE
+  BOOKMARK
+  REPORT
+  HIDE
+}
+
+model User {
+  id            String    @id @default(uuid())
+  name          String?
+  email         String    @unique
+  emailVerified DateTime? @default(now())
+  image         String?
+
+  accounts            Account[]
+  sessions            Session[]
+  follows             Follow[]             @relation("FollowedBy")
+  following           Follow[]             @relation("Following")
+  posts               Post[]
+  branches            Branch[]
+  projects            Project[]
+  postInteractions    PostInteraction[]
+  branchInteractions  BranchInteraction[]
+  projectInteractions ProjectInteraction[]
+  allowedBranches     BranchPermissions[]
+  allowedProjects     ProjectPermissions[]
+}
+
+model Account {
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([provider, providerAccountId])
+}
+
+model Session {
+  sessionToken String   @id
+  userId       String
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+}
+
+model VerificationToken {
+  identifier String
+  token      String
+  expires    DateTime
+
+  @@id([identifier, token])
+}
+
+model Follow {
+  id         String   @id @default(uuid())
+  followerId String
+  followedId String
+  createdAt  DateTime @default(now())
+
+  follower User @relation("Following", fields: [followerId], references: [id], onDelete: Cascade)
+  followed User @relation("FollowedBy", fields: [followedId], references: [id], onDelete: Cascade)
+
+  @@unique([followerId, followedId])
+  @@index([followerId])
+  @@index([followedId])
+}
+
+model Post {
+  id        String    @id @default(uuid())
+  title     String
+  content   String?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime? @updatedAt
+  branchId  String
+  authorId  String
+
+  branch       Branch            @relation(fields: [branchId], references: [id], onDelete: Cascade)
+  author       User              @relation(fields: [authorId], references: [id])
+  media        PostMedia[]
+  interactions PostInteraction[]
+
+  @@index([createdAt])
+  @@index([authorId])
+  @@index([authorId, createdAt])
+}
+
+model PostMedia {
+  id     String @id @default(uuid())
+  name   String
+  url    String
+  postId String
+
+  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+}
+
+model PostInteraction {
+  id        String          @id @default(uuid())
+  type      InteractionType
+  createdAt DateTime        @default(now())
+  postId    String
+  userId    String
+
+  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([postId, userId, type])
+  @@index([postId])
+  @@index([userId])
+}
+
+model Branch {
+  id          String    @id @default(uuid())
+  name        String
+  description String?
+  default     Boolean   @default(false)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime? @updatedAt
+  projectId   String
+  authorId    String
+
+  author       User                @relation(fields: [authorId], references: [id])
+  project      Project             @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  permissions  BranchPermissions?
+  interactions BranchInteraction[]
+  posts        Post[]
+
+  @@index([createdAt])
+  @@index([updatedAt])
+  @@index([authorId])
+  @@index([projectId])
+  @@index([authorId, createdAt])
+}
+
+model BranchPermissions {
+  id               String  @id @default(uuid())
+  private          Boolean @default(false)
+  allowedUsers     User[]
+  allowCollaborate Boolean @default(true)
+  allowBranch      Boolean @default(true)
+  allowShare       Boolean @default(true)
+  branchId         String  @unique
+
+  branch Branch @relation(fields: [branchId], references: [id], onDelete: Cascade)
+
+  @@index([branchId])
+}
+
+model BranchInteraction {
+  id        String          @id @default(uuid())
+  type      InteractionType
+  createdAt DateTime        @default(now())
+  branchId  String
+  userId    String
+
+  branch Branch @relation(fields: [branchId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([branchId, userId, type])
+  @@index([branchId])
+  @@index([userId])
+}
+
+model Project {
+  id          String    @id @default(uuid())
+  picture     String?
+  name        String
+  description String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime? @updatedAt
+  authorId    String
+
+  author       User                 @relation(fields: [authorId], references: [id])
+  permissions  ProjectPermissions?
+  interactions ProjectInteraction[]
+  branches     Branch[]
+
+  @@index([createdAt])
+  @@index([updatedAt])
+  @@index([authorId])
+  @@index([authorId, createdAt])
+}
+
+model ProjectPermissions {
+  id               String  @id @default(uuid())
+  private          Boolean @default(false)
+  allowedUsers     User[]
+  allowCollaborate Boolean @default(true)
+  allowBranch      Boolean @default(true)
+  allowShare       Boolean @default(true)
+  projectId        String  @unique
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId])
+}
+
+model ProjectInteraction {
+  id        String          @id @default(uuid())
+  type      InteractionType
+  createdAt DateTime        @default(now())
+  projectId String
+  userId    String
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, userId, type])
+  @@index([projectId])
+  @@index([userId])
+}

@@ -1,27 +1,16 @@
 'use client';
 
-import { type branches as branchesSchema } from '@/server/db/schema';
+import { type Branch } from 'generated/prisma';
 import { goToBranch } from './actions';
 import { useParams } from 'next/navigation';
 
-type TrimmedBranch = {
-  id: string;
-  name: string;
-};
-
 type BranchSelectionProps = {
   projectId: string;
-  branches: (TrimmedBranch | null)[] | null;
+  branches: Branch[];
 };
 
 export default function BranchSelection({ projectId, branches }: BranchSelectionProps) {
   const params = useParams<{ projectId: string; branchId: string }>();
-
-  // Filter out null values
-  const validBranches = branches?.filter((branch): branch is typeof branchesSchema.$inferSelect => branch !== null);
-  if (!validBranches || validBranches.length === 0 || params.branchId === 'create') {
-    return null;
-  }
 
   return (
     <form
@@ -40,7 +29,7 @@ export default function BranchSelection({ projectId, branches }: BranchSelection
         <option value="" disabled className="hidden">
           Branch
         </option>
-        {validBranches.map((branch) => (
+        {branches.map((branch) => (
           <option key={branch.id} value={branch.id} className="rounded-lg bg-zinc-200 dark:bg-zinc-800">
             {branch.name}
           </option>

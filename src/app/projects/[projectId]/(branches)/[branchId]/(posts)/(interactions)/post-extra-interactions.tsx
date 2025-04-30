@@ -6,9 +6,12 @@ import { BsThreeDotsVertical } from 'react-icons/bs';
 import { twMerge } from 'tailwind-merge';
 import { useAutoAnimate } from '@formkit/auto-animate/react';
 import { type User } from 'next-auth';
-import { type PostInteractionWithUser } from 'types';
 import PostInteraction from './post-interaction';
+import { type Prisma } from 'generated/prisma';
 
+type PostInteractionWithUser = Prisma.PostInteractionGetPayload<{
+  include: { user: true };
+}>;
 type PostExtraInteractionsProps = {
   postId: string;
   user?: User;

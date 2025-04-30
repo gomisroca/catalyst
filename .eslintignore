@@ -19,6 +19,7 @@ README.md
 .eslintrc
 .eslintignore
 prisma/
+generated/
 public/
 .env.example
 .dockerignore

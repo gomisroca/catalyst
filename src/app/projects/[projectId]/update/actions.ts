@@ -2,8 +2,6 @@
 
 import { auth } from '@/server/auth';
 import { db } from '@/server/db';
-import { projects, projectsPermissions } from '@/server/db/schema';
-import { and, eq } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { z } from 'zod';
@@ -20,10 +18,11 @@ const MediaUrlSchema = z
   );
 
 const ProjectSchema = z.object({
-  name: z.string().min(3, 'Project name must be at least 3 characters long'),
+  name: z.string().min(3, 'Project name must be at least 3 characters long').max(100, 'Project name is too long'),
   description: z.string().optional(),
   picture: z.string(MediaUrlSchema).optional(),
   private: z.boolean(),
+  allowedUsers: z.string().array().optional(),
   allowCollaborate: z.boolean(),
   allowShare: z.boolean(),
 });
@@ -32,23 +31,31 @@ export async function updateProject({ formData, projectId }: { formData: FormDat
   const session = await auth();
   if (!session?.user) return { msg: 'You must be signed in to update a project' };
 
-  // Check if branch exists
-  const existingProject = await db.query.projects.findFirst({
-    where: and(eq(projects.id, projectId), eq(projects.authorId, session.user.id)),
+  // Check if project exists
+  const existingProject = await db.project.findFirst({
+    where: {
+      id: projectId,
+      authorId: session.user.id,
+    },
   });
   if (!existingProject) {
-    console.log(`Project ${projectId} not found in the database`);
-    return { msg: 'Project not found in the database' };
+    console.log(`Project ${projectId} not found for user ${session.user.id}`);
+    return { msg: 'Project not found or you do not have permission to update it.' };
   }
 
   // Extract and validate the data
+  const privateFlag = formData.get('private') === 'on';
+  const allowCollaborateFlag = formData.get('allowCollaborate') === 'on';
+  const allowShareFlag = formData.get('allowShare') === 'on';
+
   const validatedFields = ProjectSchema.safeParse({
     name: formData.get('name') ?? existingProject.name,
     description: formData.get('description') ?? existingProject.description,
     picture: formData.get('picture') ?? undefined,
-    private: formData.get('private') === 'on',
-    allowCollaborate: formData.get('allowCollaborate') === 'on',
-    allowShare: formData.get('allowShare') === 'on',
+    private: privateFlag,
+    allowedUsers: formData.getAll('allowedUsers'),
+    allowCollaborate: allowCollaborateFlag,
+    allowShare: allowShareFlag,
   });
   if (!validatedFields.success) {
     return {
@@ -58,29 +65,33 @@ export async function updateProject({ formData, projectId }: { formData: FormDat
 
   const { data } = validatedFields;
   try {
-    await db.transaction(async (trx) => {
-      await trx
-        .update(projects)
-        .set({
+    await db.$transaction(async (trx) => {
+      await trx.project.update({
+        where: { id: projectId },
+        data: {
           name: data.name,
           description: data.description,
-        })
-        .where(eq(projects.id, projectId));
-
-      await trx
-        .update(projectsPermissions)
-        .set({
+          picture: data.picture,
+          updatedAt: new Date(),
+        },
+      });
+      await trx.projectPermissions.update({
+        where: { projectId },
+        data: {
           private: data.private,
+          allowedUsers: {
+            connect: data.allowedUsers?.map((userId: string) => ({ id: userId })),
+          },
           allowCollaborate: data.allowCollaborate,
           allowShare: data.allowShare,
-        })
-        .where(eq(projectsPermissions.projectId, projectId));
+        },
+      });
     });
     console.log(`Project ${projectId} updated by user ${session.user.id}`);
     revalidatePath(`/projects/${projectId}`);
   } catch (error) {
     console.error('Failed to update project:', error);
-    return { msg: 'An unexpected error occurred' };
+    return { msg: 'An unexpected error occurred while updating the project' };
   }
   redirect(`/projects/${projectId}`);
 }

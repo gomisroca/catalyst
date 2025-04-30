@@ -2,8 +2,6 @@
 
 import { auth } from '@/server/auth';
 import { db } from '@/server/db';
-import { posts, postsMedia } from '@/server/db/schema';
-import { and, eq } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { z } from 'zod';
@@ -21,7 +19,7 @@ const MediaUrlSchema = z
 
 const PostSchema = z.object({
   title: z.string().min(3, 'Post title must be at least 3 characters long'),
-  content: z.string(),
+  content: z.string().optional(),
   media: z.array(MediaUrlSchema).max(5).optional(),
 });
 
@@ -41,12 +39,16 @@ export async function updatePost(params: UpdatePostParams) {
   if (!session?.user) return { msg: 'You must be signed in to update a post' };
 
   // Check if post exists
-  const existingPost = await db.query.posts.findFirst({
-    where: and(eq(posts.id, postId), eq(posts.authorId, session.user.id), eq(posts.branchId, branchId)),
+  const existingPost = await db.post.findFirst({
+    where: {
+      id: postId,
+      authorId: session.user.id,
+      branchId,
+    },
   });
   if (!existingPost) {
-    console.log(`Post ${postId} not found in the database`);
-    return { msg: 'Post not found in the database' };
+    console.log(`Post ${postId} not found for user ${session.user.id}`);
+    return { msg: 'Post not found or you do not have permission to update it.' };
   }
 
   // Extract and validate the data
@@ -63,25 +65,31 @@ export async function updatePost(params: UpdatePostParams) {
 
   const { data } = validatedFields;
   try {
-    await db.transaction(async (trx) => {
-      await trx
-        .update(posts)
-        .set({
+    await db.$transaction(async (trx) => {
+      await trx.post.update({
+        where: { id: postId },
+        data: {
           title: data.title,
           content: data.content,
           updatedAt: new Date(),
-        })
-        .where(eq(posts.id, postId));
-      if (!data.media) return;
-      for (const media of data.media) {
-        await trx.delete(postsMedia).where(eq(postsMedia.postId, postId));
-        await trx.insert(postsMedia).values({
-          name: media.split('/').pop(),
-          url: media,
-          postId: postId,
+        },
+      });
+
+      if (data.media && data.media.length > 0) {
+        await trx.postMedia.deleteMany({
+          where: { postId },
+        });
+
+        await trx.postMedia.createMany({
+          data: data.media.map((url) => ({
+            name: url.split('/').pop() ?? '',
+            url,
+            postId,
+          })),
         });
       }
     });
+
     console.log(`Post ${postId} updated by user ${session.user.id}`);
     revalidatePath(`/projects/${projectId}/${branchId}`);
   } catch (error) {

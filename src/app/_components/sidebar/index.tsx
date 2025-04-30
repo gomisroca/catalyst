@@ -6,6 +6,7 @@ import { FaCircleChevronDown, FaCircleChevronUp } from 'react-icons/fa6';
 import { useAutoAnimate } from '@formkit/auto-animate/react';
 import Button from '../ui/button';
 import Link from '../ui/link';
+import { type ExtendedProject, type ExtendedBranch } from 'types';
 
 interface Bookmark {
   createdAt: Date;
@@ -16,25 +17,10 @@ interface Bookmark {
   branchName?: string | null;
   projectName?: string | null;
 }
-
 interface SidebarData {
   contributions: {
-    projects: {
-      id: string;
-      name: string;
-      description: string | null;
-      picture: string | null;
-      updatedAt: Date;
-    }[];
-    branches: {
-      id: string;
-      name: string;
-      description: string | null;
-      updatedAt: Date;
-      projectId: string | null;
-      projectName: string | undefined;
-      projectPicture: string | null | undefined;
-    }[];
+    projects: ExtendedProject[];
+    branches: ExtendedBranch[];
   };
   bookmarks: Bookmark[];
 }

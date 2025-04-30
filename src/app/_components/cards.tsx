@@ -1,18 +1,17 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { FaBookmark, FaCodeBranch, FaShare, FaStar } from 'react-icons/fa6';
-import {
-  type Branch,
-  type Post,
-  type Project,
-  type PostInteraction,
-  type BranchInteraction,
-  type ProjectInteraction,
-} from '@/app/profile/[userId]/types';
 import { format } from 'date-fns';
-import { type TimelinePost, type TimelineBranch, type TimelineProject, type TimelineProjectInteraction } from 'types';
+import {
+  type ExtendedBranch,
+  type ExtendedPost,
+  type ExtendedProject,
+  type ExtendedBranchInteraction,
+  type ExtendedPostInteraction,
+  type ExtendedProjectInteraction,
+} from 'types';
 
-export function ProjectCard({ project }: { project: Project | TimelineProject }) {
+export function ProjectCard({ project }: { project: ExtendedProject }) {
   const formattedDate = format(new Date(project.updatedAt!), 'dd/MM/yyyy');
   return (
     <li
@@ -42,15 +41,15 @@ export function ProjectCard({ project }: { project: Project | TimelineProject })
   );
 }
 
-export function BranchCard({ branch }: { branch: Branch | TimelineBranch }) {
+export function BranchCard({ branch }: { branch: ExtendedBranch }) {
   const formattedDate = format(new Date(branch.updatedAt!), 'dd/MM/yyyy');
   return (
     <li
       key={branch.id}
       className="group flex max-w-full rounded-lg bg-zinc-300 drop-shadow-sm transition duration-200 ease-in-out hover:scale-105 hover:drop-shadow-md active:drop-shadow-none active:duration-100 dark:bg-zinc-950">
-      {branch.projectPicture && (
+      {branch.project.picture && (
         <Image
-          src={branch.projectPicture}
+          src={branch.project.picture}
           alt="Project Picture"
           width={150}
           height={150}
@@ -63,7 +62,7 @@ export function BranchCard({ branch }: { branch: Branch | TimelineBranch }) {
             <Link
               href={`/projects/${branch.projectId}/`}
               className="text-sm leading-3 font-bold transition duration-200 ease-in-out hover:scale-105 hover:text-rose-500 md:text-base dark:hover:text-rose-700">
-              {branch.projectName}
+              {branch.project.name}
             </Link>
             <span className="hidden leading-3 md:block">•</span>
             <Link
@@ -80,7 +79,7 @@ export function BranchCard({ branch }: { branch: Branch | TimelineBranch }) {
   );
 }
 
-export function PostCard({ post }: { post: Post | TimelinePost }) {
+export function PostCard({ post }: { post: ExtendedPost }) {
   return (
     <li
       key={post.id}
@@ -88,15 +87,15 @@ export function PostCard({ post }: { post: Post | TimelinePost }) {
       <header className="flex flex-col items-center justify-between rounded-t-lg bg-white px-2 py-2 transition duration-200 ease-in-out md:flex-row md:px-4 dark:bg-black">
         <div className="flex w-full flex-col items-start text-sm md:w-auto md:flex-row md:items-center md:gap-2 md:text-base">
           <Link
-            href={`/projects/${post.projectId}`}
+            href={`/projects/${post.branch.projectId}`}
             className="text-sm leading-3 font-bold transition duration-200 ease-in-out hover:scale-105 hover:text-rose-500 md:text-base dark:hover:text-rose-700">
-            {post.projectName}
+            {post.branch.project.name}
           </Link>
           <span className="hidden leading-3 md:block">•</span>
           <Link
-            href={`/projects/${post.projectId}/${post.branchId}`}
+            href={`/projects/${post.branch.projectId}/${post.branch.id}`}
             className="flex items-center gap-1 text-sm leading-3 font-bold text-zinc-500 transition duration-200 ease-in-out hover:scale-105 hover:text-rose-500 md:text-base dark:hover:text-rose-700">
-            <FaCodeBranch size={14} /> {post.branchName}
+            <FaCodeBranch size={14} /> {post.branch.name}
           </Link>
         </div>
         <p className="w-full text-sm leading-3 text-zinc-400 md:w-auto md:text-base">
@@ -138,12 +137,8 @@ const interactionIcons = {
   },
 };
 
-export function ProjectInteractionCard({
-  interaction,
-}: {
-  interaction: ProjectInteraction | TimelineProjectInteraction;
-}) {
-  const type = interaction.interactionType as 'LIKE' | 'SHARE' | 'BOOKMARK';
+export function ProjectInteractionCard({ interaction }: { interaction: ExtendedProjectInteraction }) {
+  const type = interaction.type as 'LIKE' | 'SHARE' | 'BOOKMARK';
   return (
     <li
       key={interaction.id}
@@ -152,28 +147,28 @@ export function ProjectInteractionCard({
         <p className="flex w-full items-center justify-start gap-1 font-semibold text-zinc-500">
           {interactionIcons[type].icon} {interactionIcons[type].text} a project
         </p>
-        <p className="w-full text-zinc-400 md:w-auto">{interaction.updatedAt.toLocaleDateString()}</p>
+        <p className="w-full text-zinc-400 md:w-auto">{interaction.createdAt.toLocaleDateString()}</p>
       </header>
       <section className="my-2 px-2 md:px-4">
         <div className="flex justify-between font-semibold">
-          <h3 className="flex-1 text-xl">{interaction.name}</h3>
+          <h3 className="flex-1 text-xl">{interaction.project.name}</h3>
           <div className="flex gap-1 text-zinc-400">
             <span className="font-normal">by</span>
             <Link
-              href={`/profile/${interaction.author.id}`}
+              href={`/profile/${interaction.user.id}`}
               className="transition duration-200 ease-in-out hover:text-zinc-600">
-              {interaction.author.name ?? interaction.author.email?.split('@')[0]}
+              {interaction.user.name ?? interaction.user.email.split('@')[0]}
             </Link>
           </div>
         </div>
-        <p className="line-clamp-5 text-zinc-500">{interaction.description}</p>
+        <p className="line-clamp-5 text-zinc-500">{interaction.project.description}</p>
       </section>
     </li>
   );
 }
 
-export function BranchInteractionCard({ interaction }: { interaction: BranchInteraction }) {
-  const type = interaction.interactionType as 'LIKE' | 'SHARE' | 'BOOKMARK';
+export function BranchInteractionCard({ interaction }: { interaction: ExtendedBranchInteraction }) {
+  const type = interaction.type as 'LIKE' | 'SHARE' | 'BOOKMARK';
   return (
     <li
       key={interaction.id}
@@ -182,28 +177,28 @@ export function BranchInteractionCard({ interaction }: { interaction: BranchInte
         <p className="flex w-full items-center justify-start gap-1 font-semibold text-zinc-500">
           {interactionIcons[type].icon} {interactionIcons[type].text} a branch
         </p>
-        <p className="w-full text-zinc-400 md:w-auto">{interaction.updatedAt.toLocaleDateString()}</p>
+        <p className="w-full text-zinc-400 md:w-auto">{interaction.createdAt.toLocaleDateString()}</p>
       </header>
       <section className="my-2 px-2 md:px-4">
         <div className="flex justify-between font-semibold">
-          <h3 className="flex-1 text-xl">{interaction.name}</h3>
+          <h3 className="flex-1 text-xl">{interaction.branch.name}</h3>
           <div className="flex gap-1 text-zinc-400">
             <span className="font-normal">by</span>
             <Link
-              href={`/profile/${interaction.author.id}`}
+              href={`/profile/${interaction.user.id}`}
               className="transition duration-200 ease-in-out hover:text-zinc-600">
-              {interaction.author.name ?? interaction.author.email?.split('@')[0]}
+              {interaction.user.name ?? interaction.user.email.split('@')[0]}
             </Link>
           </div>
         </div>
-        <p className="line-clamp-5 text-zinc-500">{interaction.description}</p>
+        <p className="line-clamp-5 text-zinc-500">{interaction.branch.description}</p>
       </section>
     </li>
   );
 }
 
-export function PostInteractionCard({ interaction }: { interaction: PostInteraction }) {
-  const type = interaction.interactionType as 'LIKE' | 'SHARE' | 'BOOKMARK';
+export function PostInteractionCard({ interaction }: { interaction: ExtendedPostInteraction }) {
+  const type = interaction.type as 'LIKE' | 'SHARE' | 'BOOKMARK';
   return (
     <li
       key={interaction.id}
@@ -212,24 +207,24 @@ export function PostInteractionCard({ interaction }: { interaction: PostInteract
         <p className="flex w-full items-center justify-start gap-1 font-semibold text-zinc-500">
           {interactionIcons[type].icon} {interactionIcons[type].text} a post
         </p>
-        <p className="w-full text-zinc-400 md:w-auto">{interaction.updatedAt.toLocaleDateString()}</p>
+        <p className="w-full text-zinc-400 md:w-auto">{interaction.createdAt.toLocaleDateString()}</p>
       </header>
       <section className="my-2 px-2 md:px-4">
         <div className="flex justify-between font-semibold">
-          <h3 className="flex-1 text-xl">{interaction.title}</h3>
+          <h3 className="flex-1 text-xl">{interaction.post.title}</h3>
           <div className="flex gap-1 text-zinc-400">
             <span className="font-normal">by</span>
             <Link
-              href={`/profile/${interaction.author.id}`}
+              href={`/profile/${interaction.user.id}`}
               className="transition duration-200 ease-in-out hover:text-zinc-600">
-              {interaction.author.name ?? interaction.author.email?.split('@')[0]}
+              {interaction.user.name ?? interaction.user.email.split('@')[0]}
             </Link>
           </div>
         </div>
-        <p className="line-clamp-5 text-zinc-500">{interaction.content}</p>
-        {interaction.media && (
+        <p className="line-clamp-5 text-zinc-500">{interaction.post.content}</p>
+        {interaction.post.media && (
           <div className="flex flex-wrap">
-            {interaction.media.map((media) => (
+            {interaction.post.media.map((media) => (
               <div key={media.id} className="h-10 w-10 p-2">
                 <Image fill src={media.url} alt={media.name} />
               </div>
