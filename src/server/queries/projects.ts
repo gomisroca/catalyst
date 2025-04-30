@@ -1,114 +1,101 @@
 import 'server-only';
 import { auth } from '@/server/auth';
-import { db } from '../db';
-import { eq, sql } from 'drizzle-orm';
-import {
-  branches as branchesSchema,
-  projectsInteractions,
-  projectsPermissions,
-  projects as projectsSchema,
-  users as userSchema,
-} from '../db/schema';
+import { db } from '@/server/db';
 
 export async function getProject(id: string) {
   const session = await auth();
 
-  const project = await db
-    .select({
-      project: projectsSchema,
-      author: sql<{ id: string; name: string | null; email: string }>`
-      json_build_object(
-        'id', ${userSchema.id},
-        'name', ${userSchema.name},
-        'email', ${userSchema.email}
-      )
-    `.as('author'),
-      permissions: projectsPermissions,
-      branches: sql<Array<{ id: string; name: string }>>`
-      json_agg(
-        json_build_object(
-          'id', ${branchesSchema.id},
-          'name', \${branchesSchema.name}
-        )
-      )
-    `.as('branches'),
+  const project = await db.project
+    .findFirstOrThrow({
+      where: {
+        id,
+        OR: [
+          { permissions: { private: false } },
+          {
+            permissions: {
+              private: true,
+              allowedUsers: {
+                some: {
+                  id: session?.user.id,
+                },
+              },
+            },
+          },
+        ],
+      },
+      include: {
+        branches: {
+          where: {
+            OR: [
+              { permissions: { private: false } },
+              {
+                permissions: {
+                  private: true,
+                  allowedUsers: {
+                    some: {
+                      id: session?.user.id,
+                    },
+                  },
+                },
+              },
+            ],
+          },
+        },
+        permissions: true,
+        author: true,
+      },
     })
-    .from(projectsSchema)
-    .where(eq(projectsSchema.id, id))
-    .leftJoin(userSchema, eq(userSchema.id, projectsSchema.authorId))
-    .leftJoin(projectsPermissions, eq(projectsSchema.id, projectsPermissions.projectId))
-    .leftJoin(branchesSchema, eq(branchesSchema.projectId, id))
-    .groupBy(projectsSchema.id, userSchema.id, userSchema.email, projectsPermissions.id);
+    .catch(() => {
+      throw new Error('Project with the given ID does not exist or you do not have access to it');
+    });
 
-  if (!project[0]) throw new Error('Project with the given ID does not exist');
-
-  const projectData = project[0];
-
-  if (
-    projectData.permissions?.private &&
-    (!session?.user.id || !projectData.permissions.allowedUsers.includes(session?.user.id))
-  ) {
-    throw new Error('Unauthorized');
-  }
-
-  return {
-    ...projectData.project,
-    author: {
-      id: projectData.author?.id,
-      name: projectData.author?.name ?? projectData.author?.email.split('@')[0],
-    },
-    branches: projectData.branches,
-    permissions: projectData.permissions,
-  };
+  return project;
 }
 
 export async function getProjects() {
   const session = await auth();
 
-  // Start with getting all projects
-  const projects = await db
-    .select({
-      project: projectsSchema,
-      permissions: projectsPermissions,
-    })
-    .from(projectsSchema)
-    .leftJoin(projectsPermissions, eq(projectsSchema.id, projectsPermissions.projectId));
-
-  // Filter projects based on permissions
-  const filteredProjects = projects.filter(({ permissions }) => {
-    if (!permissions?.private) return true;
-    return session?.user.id && permissions?.allowedUsers.includes(session.user.id);
+  const projects = await db.project.findMany({
+    where: {
+      OR: [
+        { permissions: { private: false } },
+        {
+          permissions: {
+            private: true,
+            allowedUsers: {
+              some: {
+                id: session?.user.id,
+              },
+            },
+          },
+        },
+      ],
+    },
+    include: {
+      permissions: true,
+      author: true,
+    },
   });
 
-  // Return only the project data, not the permissions
-  return filteredProjects.map(({ project }) => project);
+  return projects;
 }
 
 export async function getProjectInteractions(projectId: string) {
-  const interactions = await db
-    .select({
-      interaction: projectsInteractions,
-      user: sql<{ name: string | null; email: string }>`
-      json_build_object(
-        'name', ${userSchema.name},
-        'email', ${userSchema.email}
-      )
-    `.as('user'),
-    })
-    .from(projectsInteractions)
-    .where(eq(projectsInteractions.projectId, projectId))
-    .leftJoin(userSchema, eq(userSchema.id, projectsInteractions.userId));
+  const interactions = await db.projectInteraction.findMany({
+    where: {
+      projectId,
+    },
+    include: {
+      user: true,
+    },
+  });
 
-  if (!interactions.length) {
-    throw new Error('Project with the given ID does not exist');
-  }
+  const likes = interactions.filter((data) => data.type === 'LIKE');
+  const shares = interactions.filter((data) => data.type === 'SHARE');
+  const bookmarks = interactions.filter((data) => data.type === 'BOOKMARK');
 
-  const likes = interactions.filter((data) => data.interaction.type === 'LIKE');
-  const shares = interactions.filter((data) => data.interaction.type === 'SHARE');
-  const bookmarks = interactions.filter((data) => data.interaction.type === 'BOOKMARK');
-
-  const reports = interactions.filter((data) => data.interaction.type === 'REPORT');
-  const hides = interactions.filter((data) => data.interaction.type === 'HIDE');
+  const reports = interactions.filter((data) => data.type === 'REPORT');
+  const hides = interactions.filter((data) => data.type === 'HIDE');
 
   return {
     interactions: {
