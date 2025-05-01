@@ -100,9 +100,11 @@ model Post {
   content   String?
   createdAt DateTime  @default(now())
   updatedAt DateTime? @updatedAt
+  projectId String
   branchId  String
   authorId  String
 
+  project      Project           @relation(fields: [projectId], references: [id], onDelete: Cascade)
   branch       Branch            @relation(fields: [branchId], references: [id], onDelete: Cascade)
   author       User              @relation(fields: [authorId], references: [id])
   media        PostMedia[]
@@ -202,6 +204,7 @@ model Project {
   permissions  ProjectPermissions?
   interactions ProjectInteraction[]
   branches     Branch[]
+  posts        Post[]
 
   @@index([createdAt])
   @@index([updatedAt])

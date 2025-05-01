@@ -43,7 +43,8 @@ export async function createPost(formData: FormData, branchId: string) {
           title: data.title,
           content: data.content,
           authorId: session.user.id,
-          branchId: branchId,
+          projectId: branch.projectId,
+          branchId: branch.id,
         },
       });
       if (!data.media) return newPost.id;
