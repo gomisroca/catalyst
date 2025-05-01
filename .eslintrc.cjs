@@ -6,7 +6,6 @@ const config = {
   },
   "plugins": [
     "@typescript-eslint",
-    "drizzle",
     "prettier",
     "vitest-globals"
   ],
@@ -45,24 +44,6 @@ const config = {
         }
       }
     ],
-    "drizzle/enforce-delete-with-where": [
-      "error",
-      {
-        "drizzleObjectName": [
-          "db",
-          "ctx.db"
-        ]
-      }
-    ],
-    "drizzle/enforce-update-with-where": [
-      "error",
-      {
-        "drizzleObjectName": [
-          "db",
-          "ctx.db"
-        ]
-      }
-    ]
   }
 }
 module.exports = config;

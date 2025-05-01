@@ -9,7 +9,7 @@ export default async function UserSettings() {
   if (!session)
     return (
       <div className="flex flex-col gap-4">
-        <p>You need to be logged in to see change your settings.</p>
+        <p>You need to be logged in to change your settings.</p>
 
         <Link href="/sign-in" className="mx-auto w-1/2 text-center">
           Login
@@ -19,7 +19,7 @@ export default async function UserSettings() {
 
   return (
     <div>
-      <h1 className="mb-4 text-xl font-bold">Settings</h1>
+      <h1 className="mb-4 text-xl font-bold">User Settings</h1>
       <Suspense fallback={<LoadingSpinner />}>
         <UserSettingsForm user={session.user} />
       </Suspense>

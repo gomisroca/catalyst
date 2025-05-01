@@ -13,6 +13,10 @@ const config = {
         hostname: '0xcjng4vx9.ufs.sh',
         pathname: '/f/*',
       },
+      {
+        protocol: 'https',
+        hostname: '**.googleusercontent.com',
+      },
     ],
   },
 };
