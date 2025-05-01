@@ -5,6 +5,7 @@ import { FaCodeBranch, FaPen } from 'react-icons/fa6';
 import ExpandedDescription from '@/app/_components/projects/expanded-description';
 import BranchInteractionsMenu from './(interactions)/branch-interactions-menu';
 import PostList from './post-list';
+import AuthorActions from '@/app/_components/projects/author-actions';
 
 export default async function BranchPage({ params }: { params: Promise<{ projectId: string; branchId: string }> }) {
   const session = await auth();
@@ -12,6 +13,7 @@ export default async function BranchPage({ params }: { params: Promise<{ project
   if (!branch) return null;
 
   const allowCollaborate =
+    (session && session.user.id === branch.author.id) ??
     (session && branch.permissions?.allowCollaborate) ??
     (session && branch.permissions?.allowedUsers?.some((user) => user.id === session.user.id));
 
@@ -23,7 +25,7 @@ export default async function BranchPage({ params }: { params: Promise<{ project
             <FaCodeBranch size={12} />
             <h1 className="text-lg font-bold">{branch.name}</h1>
           </div>
-          <div className="flex gap-1 text-sm font-medium text-zinc-500 dark:text-zinc-400">
+          <div className="flex items-center gap-1 text-sm font-medium text-zinc-500 dark:text-zinc-400">
             <span>{branch.author?.name ? branch.author?.name : branch.author?.email.split('@')[0]}</span>
             <span>•</span>
             <span>
@@ -33,6 +35,9 @@ export default async function BranchPage({ params }: { params: Promise<{ project
                 day: 'numeric',
               })}
             </span>
+            {session?.user.id === branch.author.id && (
+              <AuthorActions type="branch" projectId={branch.projectId} branchId={branch.id} />
+            )}
           </div>
         </section>
         {branch.description && <ExpandedDescription description={branch.description} />}
