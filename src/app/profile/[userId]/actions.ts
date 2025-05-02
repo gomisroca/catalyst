@@ -2,6 +2,7 @@
 
 import { auth } from '@/server/auth';
 import { db } from '@/server/db';
+import { toErrorMessage } from '@/utils/errors';
 import { revalidatePath } from 'next/cache';
 
 export async function followUser({ followedId }: { followedId: string }) {
@@ -24,15 +25,15 @@ export async function followUser({ followedId }: { followedId: string }) {
         where: { followerId_followedId: where },
       });
       revalidatePath(`/profile/${followedId}`);
-      return { msg: 'User unfollowed successfully' };
+      return { message: 'User unfollowed successfully' };
     }
 
     await db.follow.create({ data: where });
 
     revalidatePath(`/profile/${followedId}`);
-    return { msg: 'User followed successfully' };
+    return { message: 'User followed successfully' };
   } catch (error) {
     console.error('Failed to follow or unfollow user:', error);
-    return { msg: 'An unexpected error occurred while following or unfollowing' };
+    throw new Error(toErrorMessage(error, 'Failed to follow or unfollow user'));
   }
 }
