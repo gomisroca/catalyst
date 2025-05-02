@@ -102,6 +102,7 @@ async function main() {
     data: {
       title: "First Post",
       content: "Welcome to my project!",
+      projectId: branch1.projectId,
       branchId: branch1.id,
       authorId: alice.id,
     },
@@ -111,6 +112,7 @@ async function main() {
     data: {
       title: "Bob's Update",
       content: "Initial commit on feature branch",
+      projectId: branch2.projectId,
       branchId: branch2.id,
       authorId: bob.id,
     },
