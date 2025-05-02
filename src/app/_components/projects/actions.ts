@@ -1,8 +1,8 @@
 'use server';
 
 import { db } from '@/server/db';
+import { toErrorMessage } from '@/utils/errors';
 import { revalidatePath } from 'next/cache';
-import { redirect } from 'next/navigation';
 
 export async function deleteProject({ projectId }: { projectId: string }) {
   try {
@@ -11,11 +11,11 @@ export async function deleteProject({ projectId }: { projectId: string }) {
         id: projectId,
       },
     });
+    return { message: 'Project deleted successfully', redirect: '/' };
   } catch (error) {
-    console.log(error);
-    return { msg: 'An unexpected error occurred while deleting the project' };
+    console.log('Failed to delete project:', error);
+    throw new Error(toErrorMessage(error, 'Failed to delete project'));
   }
-  return redirect(`/`);
 }
 
 export async function deleteBranch({ projectId, branchId }: { projectId: string; branchId: string }) {
@@ -25,12 +25,12 @@ export async function deleteBranch({ projectId, branchId }: { projectId: string;
         id: branchId,
       },
     });
+    revalidatePath(`/projects/${projectId}}`);
+    return { message: 'Branch deleted successfully', redirect: `/projects/${projectId}` };
   } catch (error) {
-    console.log(error);
-    return { msg: 'An unexpected error occurred while deleting the branch' };
+    console.log('Failed to delete branch:', error);
+    throw new Error(toErrorMessage(error, 'Failed to delete branch'));
   }
-  revalidatePath(`/projects/${projectId}}`);
-  return redirect(`/projects/${projectId}`);
 }
 
 export async function deletePost({
@@ -48,10 +48,10 @@ export async function deletePost({
         id: postId,
       },
     });
+    revalidatePath(`/projects/${projectId}/${branchId}`);
+    return { message: 'Post deleted successfully', redirect: `/projects/${projectId}/${branchId}` };
   } catch (error) {
-    console.log(error);
-    return { msg: 'An unexpected error occurred while deleting the post' };
+    console.log('Failed to delete post:', error);
+    throw new Error(toErrorMessage(error, 'Failed to delete post'));
   }
-  revalidatePath(`/projects/${projectId}/${branchId}`);
-  return redirect(`/projects/${projectId}/${branchId}`);
 }

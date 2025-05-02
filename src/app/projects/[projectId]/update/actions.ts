@@ -2,6 +2,7 @@
 
 import { auth } from '@/server/auth';
 import { db } from '@/server/db';
+import { toErrorMessage } from '@/utils/errors';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { z } from 'zod';
@@ -29,7 +30,7 @@ const ProjectSchema = z.object({
 
 export async function updateProject({ formData, projectId }: { formData: FormData; projectId: string }) {
   const session = await auth();
-  if (!session?.user) return { msg: 'You must be signed in to update a project' };
+  if (!session?.user) throw new Error('You must be signed in to update a project');
 
   // Check if project exists
   const existingProject = await db.project.findFirst({
@@ -38,10 +39,7 @@ export async function updateProject({ formData, projectId }: { formData: FormDat
       authorId: session.user.id,
     },
   });
-  if (!existingProject) {
-    console.log(`Project ${projectId} not found for user ${session.user.id}`);
-    return { msg: 'Project not found or you do not have permission to update it.' };
-  }
+  if (!existingProject) throw new Error('Project not found or you do not have permission to update it.');
 
   // Extract and validate the data
   const privateFlag = formData.get('private') === 'on';
@@ -57,11 +55,7 @@ export async function updateProject({ formData, projectId }: { formData: FormDat
     allowCollaborate: allowCollaborateFlag,
     allowShare: allowShareFlag,
   });
-  if (!validatedFields.success) {
-    return {
-      msg: validatedFields.error.toString(),
-    };
-  }
+  if (!validatedFields.success) throw new Error(validatedFields.error.toString());
 
   const { data } = validatedFields;
   try {
@@ -89,9 +83,9 @@ export async function updateProject({ formData, projectId }: { formData: FormDat
     });
     console.log(`Project ${projectId} updated by user ${session.user.id}`);
     revalidatePath(`/projects/${projectId}`);
+    return { message: 'Project updated successfully.', redirect: `/projects/${projectId}` };
   } catch (error) {
     console.error('Failed to update project:', error);
-    return { msg: 'An unexpected error occurred while updating the project' };
+    throw new Error(toErrorMessage(error, 'Failed to update project'));
   }
-  redirect(`/projects/${projectId}`);
 }

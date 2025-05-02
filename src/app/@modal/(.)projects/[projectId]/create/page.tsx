@@ -4,7 +4,7 @@ import CreateBranchForm from '@/app/projects/[projectId]/(branches)/create/page'
 export default function CreateBranchModal() {
   return (
     <Modal>
-      <CreateBranchForm />
+      <CreateBranchForm modal />
     </Modal>
   );
 }

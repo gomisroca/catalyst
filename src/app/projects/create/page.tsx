@@ -7,8 +7,12 @@ import { useUploadThing } from '@/utils/uploadthing';
 import { useSetAtom } from 'jotai';
 import { messageAtom } from '@/atoms/message';
 import { useRef, useState } from 'react';
+import { useRedirect } from '@/hooks/useRedirect';
+import { type ActionReturn } from 'types';
+import { toErrorMessage } from '@/utils/errors';
 
-export default function CreateProjectForm() {
+export default function CreateProjectForm({ modal = false }: { modal?: boolean }) {
+  const redirect = useRedirect();
   const [file, setFile] = useState<File | null>(null);
   const setMessage = useSetAtom(messageAtom);
   const formRef = useRef<HTMLFormElement>(null);
@@ -27,18 +31,21 @@ export default function CreateProjectForm() {
             formData.set('picture', data[0]?.ufsUrl);
           }
 
-          const { msg } = await createProject(formData);
-
-          if (msg) {
-            setMessage(msg);
-            return;
-          }
+          const action: ActionReturn = await createProject(formData);
 
           formRef.current?.reset();
           setFile(null);
-          setMessage('Project created successfully.');
+          setMessage({
+            content: action.message,
+            error: action.error,
+          });
+
+          if (action.redirect) redirect(modal, action.redirect);
         } catch (error) {
-          setMessage(error instanceof Error ? error.message : 'An error occurred');
+          setMessage({
+            content: toErrorMessage(error, 'Failed to create project'),
+            error: true,
+          });
         }
       }}>
       <section className="flex w-full flex-col">
