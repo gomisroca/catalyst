@@ -3,6 +3,7 @@
 import { auth } from '@/server/auth';
 import { db } from '@/server/db';
 import { getProject } from '@/server/queries/projects';
+import { toErrorMessage } from '@/utils/errors';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { z } from 'zod';
@@ -18,11 +19,11 @@ const BranchSchema = z.object({
 
 export async function createBranch(formData: FormData, projectId: string) {
   const session = await auth();
-  if (!session?.user) return { msg: 'You must be signed in to create a branch' };
+  if (!session?.user) throw new Error('You must be signed in to create a branch');
 
   const project = await getProject(projectId);
   if (!project.permissions?.allowCollaborate && session.user.id !== project.authorId)
-    return { msg: 'You do not have permission to collaborate in this project' };
+    throw new Error('You do not have permission to collaborate in this project');
 
   // Extract and validate the data
   const privateFlag = formData.get('private') === 'on';
@@ -38,11 +39,7 @@ export async function createBranch(formData: FormData, projectId: string) {
     allowShare: allowShareFlag,
     allowBranch: allowBranchFlag,
   });
-  if (!validatedFields.success) {
-    return {
-      msg: validatedFields.error.toString(),
-    };
-  }
+  if (!validatedFields.success) throw new Error(validatedFields.error.toString());
 
   const { data } = validatedFields;
 
@@ -52,11 +49,10 @@ export async function createBranch(formData: FormData, projectId: string) {
       AND: [{ name: data.name }, { projectId: projectId }],
     },
   });
-  if (existingBranch) return { msg: 'A branch with this name already exists in this project' };
+  if (existingBranch) throw new Error('A branch with this name already exists in this project');
 
-  let newBranchId: string | undefined;
   try {
-    newBranchId = await db.$transaction(async (trx) => {
+    const newBranchId = await db.$transaction(async (trx) => {
       const newBranch = await trx.branch.create({
         data: {
           name: data.name,
@@ -85,10 +81,9 @@ export async function createBranch(formData: FormData, projectId: string) {
 
     console.log(`Branch ${newBranchId} created by user ${session.user.id}`);
     revalidatePath(`/projects/${projectId}`);
+    return { message: 'Branch created successfully.', redirect: `/projects/${projectId}/${newBranchId}` };
   } catch (error) {
     console.error('Failed to create branch:', error);
-    return { msg: 'An unexpected error occurred while creating the branch' };
+    throw new Error(toErrorMessage(error, 'Failed to create branch'));
   }
-
-  redirect(`/projects/${projectId}/${newBranchId}`);
 }

@@ -7,8 +7,12 @@ import { messageAtom } from '@/atoms/message';
 import { useRef } from 'react';
 import { useParams } from 'next/navigation';
 import { createBranch } from './actions';
+import { toErrorMessage } from '@/utils/errors';
+import { type ActionReturn } from 'types';
+import { useRedirect } from '@/hooks/useRedirect';
 
-export default function CreateBranchForm() {
+export default function CreateBranchForm({ modal = false }: { modal?: boolean }) {
+  const redirect = useRedirect();
   const setMessage = useSetAtom(messageAtom);
   const formRef = useRef<HTMLFormElement>(null);
   const params = useParams<{ projectId: string }>();
@@ -20,17 +24,20 @@ export default function CreateBranchForm() {
       ref={formRef}
       action={async (formData) => {
         try {
-          const { msg } = await createBranch(formData, params.projectId);
-
-          if (msg) {
-            setMessage(msg);
-            return;
-          }
+          const action: ActionReturn = await createBranch(formData, params.projectId);
 
           formRef.current?.reset();
-          setMessage('Branch created successfully.');
+          setMessage({
+            content: action.message,
+            error: action.error,
+          });
+
+          if (action.redirect) redirect(modal, action.redirect);
         } catch (error) {
-          setMessage(error instanceof Error ? error.message : 'An error occurred');
+          setMessage({
+            content: toErrorMessage(error, 'Failed to create branch'),
+            error: true,
+          });
         }
       }}>
       <section className="flex w-full flex-col">

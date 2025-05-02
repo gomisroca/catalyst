@@ -2,8 +2,8 @@
 
 import { auth } from '@/server/auth';
 import { db } from '@/server/db';
+import { toErrorMessage } from '@/utils/errors';
 import { revalidatePath } from 'next/cache';
-import { redirect } from 'next/navigation';
 import { z } from 'zod';
 
 const BranchSchema = z.object({
@@ -29,7 +29,7 @@ export async function updateBranch(params: UpdateBranchParams) {
   const formData = params.formData;
 
   const session = await auth();
-  if (!session?.user) return { msg: 'You must be signed in to update a branch' };
+  if (!session?.user) throw new Error('You must be signed in to update a branch');
 
   // Check if branch exists
   const existingBranch = await db.branch.findFirst({
@@ -39,10 +39,7 @@ export async function updateBranch(params: UpdateBranchParams) {
       projectId,
     },
   });
-  if (!existingBranch) {
-    console.log(`Branch ${branchId} not found for user ${session.user.id}`);
-    return { msg: 'Branch not found or you do not have permission to update it.' };
-  }
+  if (!existingBranch) throw new Error('Branch not found or you do not have permission to update it.');
 
   // Extract and validate the data
   const privateFlag = formData.get('private') === 'on';
@@ -60,11 +57,7 @@ export async function updateBranch(params: UpdateBranchParams) {
     allowBranch: allowBranchFlag,
   });
 
-  if (!validatedFields.success) {
-    return {
-      msg: validatedFields.error.toString(),
-    };
-  }
+  if (!validatedFields.success) throw new Error(validatedFields.error.toString());
 
   const { data } = validatedFields;
   try {
@@ -93,9 +86,9 @@ export async function updateBranch(params: UpdateBranchParams) {
 
     console.log(`Branch ${branchId} updated by user ${session.user.id}`);
     revalidatePath(`/projects/${projectId}`);
+    return { message: 'Branch updated successfully.', redirect: `/projects/${projectId}/${branchId}` };
   } catch (error) {
     console.error('Failed to update branch:', error);
-    return { msg: 'An unexpected error occurred while updating the branch' };
+    throw new Error(toErrorMessage(error, 'Failed to update branch'));
   }
-  redirect(`/projects/${projectId}/${branchId}`);
 }

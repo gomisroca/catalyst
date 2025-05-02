@@ -8,12 +8,22 @@ import { useRef } from 'react';
 import { useParams } from 'next/navigation';
 import { updateBranch } from './actions';
 import { type Prisma } from 'generated/prisma';
+import { useRedirect } from '@/hooks/useRedirect';
+import { type ActionReturn } from 'types';
+import { toErrorMessage } from '@/utils/errors';
 
 type BranchWithPermissions = Prisma.BranchGetPayload<{
   include: { permissions: true };
 }>;
 
-export default function UpdateBranchForm({ branch }: { branch: BranchWithPermissions }) {
+export default function UpdateBranchForm({
+  branch,
+  modal = false,
+}: {
+  branch: BranchWithPermissions;
+  modal?: boolean;
+}) {
+  const redirect = useRedirect();
   const setMessage = useSetAtom(messageAtom);
   const formRef = useRef<HTMLFormElement>(null);
   const params = useParams<{ projectId: string; branchId: string }>();
@@ -24,7 +34,7 @@ export default function UpdateBranchForm({ branch }: { branch: BranchWithPermiss
       ref={formRef}
       action={async (formData) => {
         try {
-          const { msg } = await updateBranch({
+          const action: ActionReturn = await updateBranch({
             formData,
             ids: {
               projectId: params.projectId,
@@ -32,20 +42,18 @@ export default function UpdateBranchForm({ branch }: { branch: BranchWithPermiss
             },
           });
 
-          if (msg) {
-            setMessage(msg);
-            return;
-          }
-
           formRef.current?.reset();
+          setMessage({
+            content: action.message,
+            error: action.error,
+          });
+
+          if (action.redirect) redirect(modal, action.redirect);
         } catch (error) {
-          setMessage(
-            error instanceof Error
-              ? error.message === 'NEXT_REDIRECT'
-                ? 'Branch updated successfully.'
-                : error.message
-              : 'An unexpected error occurred.'
-          );
+          setMessage({
+            content: toErrorMessage(error, 'Failed to update branch'),
+            error: true,
+          });
         }
       }}>
       <section className="flex w-full flex-col">
