@@ -11,7 +11,8 @@ import { type User } from 'next-auth';
 import { twMerge } from 'tailwind-merge';
 import { startTransition, useOptimistic } from 'react';
 import { type Prisma } from 'generated/prisma';
-import { type InteractionType } from 'types';
+import { type ActionReturn, type InteractionType } from 'types';
+import { toErrorMessage } from '@/utils/errors';
 
 const types = {
   LIKE: <FaStar size={12} />,
@@ -90,12 +91,18 @@ export default function BranchInteraction({
           });
         }
 
-        const { msg } = await interactionAction(type, params.projectId, params.branchId);
-        if (msg) setMessage(msg);
+        const action: ActionReturn = await interactionAction(type, params.projectId, params.branchId);
+
+        setMessage({
+          content: action.message,
+          error: action.error,
+        });
         return;
       } catch (error) {
-        console.log(error);
-        setMessage('Something went wrong with the interaction.');
+        setMessage({
+          content: toErrorMessage(error, 'Failed to interact'),
+          error: true,
+        });
       }
     });
   };
