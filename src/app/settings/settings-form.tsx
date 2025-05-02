@@ -8,9 +8,13 @@ import { useRef, useState } from 'react';
 import { updateUserSettings } from './actions';
 import { type User } from 'next-auth';
 import Image from 'next/image';
-import SubmitButton from '../_components/submit-button';
+import SubmitButton from '@/app/_components/submit-button';
+import { useRedirect } from '@/hooks/useRedirect';
+import { type ActionReturn } from 'types';
+import { toErrorMessage } from '@/utils/errors';
 
-export default function UserSettingsForm({ user }: { user: User }) {
+export default function UserSettingsForm({ user, modal = false }: { user: User; modal?: boolean }) {
+  const redirect = useRedirect();
   const [file, setFile] = useState<File | null>(null);
   const setMessage = useSetAtom(messageAtom);
   const formRef = useRef<HTMLFormElement>(null);
@@ -29,23 +33,21 @@ export default function UserSettingsForm({ user }: { user: User }) {
             formData.set('picture', data[0]?.ufsUrl);
           }
 
-          const { msg } = await updateUserSettings(formData);
-          if (msg) {
-            setMessage(msg);
-            return;
-          }
+          const action: ActionReturn = await updateUserSettings(formData);
 
           formRef.current?.reset();
           setFile(null);
-          setMessage('Settings updated successfully.');
+          setMessage({
+            content: action.message,
+            error: action.error,
+          });
+
+          if (action.redirect) redirect(modal, action.redirect);
         } catch (error) {
-          setMessage(
-            error instanceof Error
-              ? error.message === 'NEXT_REDIRECT'
-                ? 'Settings updated successfully.'
-                : error.message
-              : 'An unexpected error occurred.'
-          );
+          setMessage({
+            content: toErrorMessage(error, 'Failed to update user settings'),
+            error: true,
+          });
         }
       }}>
       <section className="flex w-full flex-col">
