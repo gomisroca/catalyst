@@ -1,87 +1,28 @@
-'use client';
+import { LoadingSpinner } from '@/app/_components/loading-spinner';
+import Link from '@/app/_components/ui/link';
+import { auth } from '@/server/auth';
+import { Suspense } from 'react';
+import CreateBranchForm from './create-branch-form';
 
-import Form from 'next/form';
-import SubmitButton from '@/app/_components/submit-button';
-import { useSetAtom } from 'jotai';
-import { messageAtom } from '@/atoms/message';
-import { useRef } from 'react';
-import { useParams } from 'next/navigation';
-import { createBranch } from './actions';
-import { toErrorMessage } from '@/utils/errors';
-import { type ActionReturn } from 'types';
-import { useRedirect } from '@/hooks/useRedirect';
+export default async function CreatePost() {
+  const session = await auth();
+  if (!session)
+    return (
+      <div className="flex flex-col gap-4">
+        <p>You need to be logged in to create a branch.</p>
 
-export default function CreateBranchForm({ modal = false }: { modal?: boolean }) {
-  const redirect = useRedirect();
-  const setMessage = useSetAtom(messageAtom);
-  const formRef = useRef<HTMLFormElement>(null);
-  const params = useParams<{ projectId: string }>();
-  if (!params.projectId) return null;
+        <Link href="/sign-in" className="mx-auto w-1/2 text-center">
+          Login
+        </Link>
+      </div>
+    );
 
   return (
-    <Form
-      className="flex flex-col items-center justify-center gap-4"
-      ref={formRef}
-      action={async (formData) => {
-        try {
-          const action: ActionReturn = await createBranch(formData, params.projectId);
-
-          formRef.current?.reset();
-          setMessage({
-            content: action.message,
-            error: action.error,
-          });
-
-          if (action.redirect) redirect(modal, action.redirect);
-        } catch (error) {
-          setMessage({
-            content: toErrorMessage(error, 'Failed to create branch'),
-            error: true,
-          });
-        }
-      }}>
-      <section className="flex w-full flex-col">
-        <label htmlFor="name">Name</label>
-        <input
-          className="rounded-lg border-2 border-zinc-300 bg-zinc-200 p-2 focus:ring-2 focus:ring-sky-300 focus:outline-none dark:border-zinc-700 dark:bg-zinc-800 dark:focus:ring-sky-700"
-          type="text"
-          name="name"
-          placeholder="My New Branch"
-          required
-        />
-      </section>
-
-      <section className="flex w-full flex-col">
-        <label htmlFor="description">Description</label>
-        <input
-          className="rounded-lg border-2 border-zinc-300 bg-zinc-200 p-2 focus:ring-2 focus:ring-sky-300 focus:outline-none dark:border-zinc-700 dark:bg-zinc-800 dark:focus:ring-sky-700"
-          type="textarea"
-          name="description"
-          placeholder="This is my new branch!"
-        />
-      </section>
-      <div className="flex w-full flex-col gap-2 rounded-lg border-2 border-zinc-300 bg-zinc-200 p-2 dark:border-zinc-700 dark:bg-zinc-800">
-        <section className="flex flex-row justify-between gap-2">
-          <label htmlFor="private">Private Branch</label>
-          <input type="checkbox" name="private" defaultChecked={false} className="h-5 w-5" />
-        </section>
-        <hr className="border-zinc-300 dark:border-zinc-700" />
-        <section className="flex flex-row justify-between gap-2">
-          <label htmlFor="allowCollaborate">Collaborations</label>
-          <input type="checkbox" name="allowCollaborate" defaultChecked className="h-5 w-5" />
-        </section>
-        <hr className="border-zinc-300 dark:border-zinc-700" />
-        <section className="flex flex-row justify-between gap-2">
-          <label htmlFor="allowBranch">Branching</label>
-          <input type="checkbox" name="allowBranch" defaultChecked className="h-5 w-5" />
-        </section>
-        <hr className="border-zinc-300 dark:border-zinc-700" />
-        <section className="flex flex-row justify-between gap-2">
-          <label htmlFor="allowShare">Sharing</label>
-          <input type="checkbox" name="allowShare" defaultChecked className="h-5 w-5" />
-        </section>
-      </div>
-      <SubmitButton baseText="Create" pendingText="Creating..." className="w-full" />
-    </Form>
+    <div>
+      <h1 className="mb-4 text-xl font-bold">Create Branch</h1>
+      <Suspense fallback={<LoadingSpinner />}>
+        <CreateBranchForm />
+      </Suspense>
+    </div>
   );
 }
