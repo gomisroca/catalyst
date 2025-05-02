@@ -27,3 +27,9 @@ type ExtendedFollow = Prisma.FollowGetPayload<{
 }>;
 
 type InteractionType = 'LIKE' | 'SHARE' | 'BOOKMARK' | 'REPORT' | 'HIDE';
+
+type ActionReturn = {
+  message: string;
+  error?: boolean;
+  redirect?: string;
+};
