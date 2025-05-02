@@ -2,6 +2,7 @@
 
 import { env } from '@/env';
 import { signIn } from '@/server/auth';
+import { toErrorMessage } from '@/utils/errors';
 import { z } from 'zod';
 
 const EmailSignInSchema = z.object({
@@ -16,22 +17,15 @@ export async function signInWithEmail(formData: FormData) {
     });
 
     // If validation fails, return the errors
-    if (!validatedFields.success) {
-      return {
-        msg: 'Invalid email.',
-      };
-    }
+    if (!validatedFields.success) throw new Error(validatedFields.error.toString());
 
     await signIn('nodemailer', {
       redirectTo: env.NEXT_PUBLIC_BASE_URL,
       email: validatedFields.data.email,
     });
-
-    return { errors: {} };
+    return { message: 'Check your email for a sign in link.' };
   } catch (error) {
     console.error('Failed to sign in:', error);
-    return {
-      error: 'An unexpected error occurred.',
-    };
+    throw new Error(toErrorMessage(error, 'Failed to sign in'));
   }
 }
