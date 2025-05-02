@@ -2,8 +2,8 @@
 
 import { auth } from '@/server/auth';
 import { db } from '@/server/db';
+import { toErrorMessage } from '@/utils/errors';
 import { revalidatePath } from 'next/cache';
-import { redirect } from 'next/navigation';
 import { z } from 'zod';
 
 const MediaUrlSchema = z
@@ -28,7 +28,7 @@ const ProjectSchema = z.object({
 
 export async function createProject(formData: FormData) {
   const session = await auth();
-  if (!session?.user) return { msg: 'You must be signed in to create a project' };
+  if (!session?.user) throw new Error('You must be signed in to create a project');
 
   // Extract and validate the data
   const privateFlag = formData.get('private') === 'on';
@@ -43,11 +43,7 @@ export async function createProject(formData: FormData) {
     allowCollaborate: allowCollaborateFlag,
     allowShare: allowShareFlag,
   });
-  if (!validatedFields.success) {
-    return {
-      msg: validatedFields.error.toString(),
-    };
-  }
+  if (!validatedFields.success) throw new Error(validatedFields.error.toString());
 
   const { data } = validatedFields;
 
@@ -57,11 +53,10 @@ export async function createProject(formData: FormData) {
       name: data.name,
     },
   });
-  if (existingProject) return { msg: 'A project with this name already exists' };
+  if (existingProject) throw new Error('A project with this name already exists');
 
-  let newProjectId: string | undefined;
   try {
-    newProjectId = await db.$transaction(async (trx) => {
+    const newProjectId = await db.$transaction(async (trx) => {
       const newProject = await trx.project.create({
         data: {
           name: data.name,
@@ -110,9 +105,9 @@ export async function createProject(formData: FormData) {
 
     console.log(`Project ${newProjectId} created by user ${session.user.id}`);
     revalidatePath('/projects');
+    return { message: 'Project created successfully.', redirect: `/projects/${newProjectId}` };
   } catch (error) {
     console.error('Failed to create project:', error);
-    return { msg: 'An unexpected error occurred while creating the project' };
+    throw new Error(toErrorMessage(error, 'Failed to create project'));
   }
-  redirect(`/projects/${newProjectId}`);
 }

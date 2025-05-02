@@ -23,7 +23,7 @@ export default async function UpdatePostModal({
 
   return (
     <Modal>
-      <UpdatePostForm post={post} />
+      <UpdatePostForm post={post} modal />
     </Modal>
   );
 }

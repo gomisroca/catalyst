@@ -2,8 +2,8 @@
 
 import { auth } from '@/server/auth';
 import { db } from '@/server/db';
+import { toErrorMessage } from '@/utils/errors';
 import { revalidatePath } from 'next/cache';
-import { redirect } from 'next/navigation';
 import { z } from 'zod';
 
 const UserSettingsSchema = z.object({
@@ -30,7 +30,7 @@ async function checkForConflicts(data: { name?: string; email?: string }, userId
 export async function updateUserSettings(formData: FormData) {
   // Get the user's session, if they're not signed in, return an error
   const session = await auth();
-  if (!session?.user) return { msg: 'You must be signed in to update user settings' };
+  if (!session?.user) throw new Error('You must be signed in to update user settings');
 
   // Extract form data with proper type handling
   const nameValue = formData.get('name');
@@ -43,26 +43,18 @@ export async function updateUserSettings(formData: FormData) {
     email: typeof emailValue === 'string' ? emailValue : session.user.email,
     picture: typeof pictureValue === 'string' ? pictureValue : session.user.image,
   });
-  if (!validatedFields.success) {
-    return {
-      msg: validatedFields.error.toString(),
-    };
-  }
+  if (!validatedFields.success) throw new Error(validatedFields.error.toString());
 
   const { data } = validatedFields;
   try {
     const existingUser = await db.user.findUnique({
       where: { id: session.user.id },
     });
-    if (!existingUser) {
-      return { msg: 'User not found in the database' };
-    }
+    if (!existingUser) throw new Error('User not found in the database');
 
     // Check for name or email conflicts
     const conflict = await checkForConflicts(data, session.user.id);
-    if (conflict) {
-      return { msg: `Name or Email is already in use` };
-    }
+    if (conflict) throw new Error(`Name or Email is already in use`);
 
     // Prepare the fields to update
     const updateFields: Record<string, string> = {};
@@ -71,9 +63,7 @@ export async function updateUserSettings(formData: FormData) {
     if (data.picture && data.picture !== existingUser.image) updateFields.image = data.picture;
 
     // If no changes after comparing with existing data, return early
-    if (Object.keys(updateFields).length === 0) {
-      return { msg: 'No changes detected' };
-    }
+    if (Object.keys(updateFields).length === 0) throw new Error('No changes detected');
 
     // Update user with only the changed fields using Prisma
     const updatedUser = await db.user.update({
@@ -83,10 +73,9 @@ export async function updateUserSettings(formData: FormData) {
 
     console.log(`User settings updated by user ${session.user.id}`);
     revalidatePath(`/profile/${updatedUser.id}`);
+    return { message: 'Settings updated successfully.', redirect: `/profile/${session.user.id}` };
   } catch (error) {
     console.error('Failed to update user settings:', error);
-    return { msg: 'An unexpected error occurred while updating user settings' };
+    throw new Error(toErrorMessage(error, 'Failed to update user settings'));
   }
-
-  redirect(`/profile/${session.user.id}`);
 }

@@ -23,7 +23,7 @@ export default async function UpdateBranchModal({
 
   return (
     <Modal>
-      <UpdateBranchForm branch={branch} />
+      <UpdateBranchForm branch={branch} modal />
     </Modal>
   );
 }

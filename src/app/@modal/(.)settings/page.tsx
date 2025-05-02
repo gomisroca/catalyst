@@ -17,7 +17,7 @@ export default async function UserSettingsModal() {
     );
   return (
     <Modal>
-      <UserSettingsForm user={session.user} />
+      <UserSettingsForm user={session.user} modal />
     </Modal>
   );
 }

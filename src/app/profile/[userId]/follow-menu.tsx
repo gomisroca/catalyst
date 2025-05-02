@@ -8,7 +8,8 @@ import { useParams, useRouter } from 'next/navigation';
 import { messageAtom } from '@/atoms/message';
 import { useSetAtom } from 'jotai';
 import { startTransition, useOptimistic } from 'react';
-import { type ExtendedFollow } from 'types';
+import { type ActionReturn, type ExtendedFollow } from 'types';
+import { toErrorMessage } from '@/utils/errors';
 
 export default function FollowMenu({ session, followers }: { session: Session | null; followers: ExtendedFollow[] }) {
   const navigate = useRouter();
@@ -88,11 +89,18 @@ export default function FollowMenu({ session, followers }: { session: Session | 
             },
           });
         }
-        const { msg } = await followUser({ followedId: params.userId });
-        setMessage(msg);
+        const action: ActionReturn = await followUser({ followedId: params.userId });
+
+        setMessage({
+          content: action.message,
+          error: action.error,
+        });
+        return;
       } catch (error) {
-        console.error(error);
-        setMessage('An unexpected error occurred');
+        setMessage({
+          content: toErrorMessage(error, 'Failed to follow or unfollow user'),
+          error: true,
+        });
       }
     });
   };

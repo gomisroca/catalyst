@@ -10,12 +10,22 @@ import { updateProject } from './actions';
 import { useParams } from 'next/navigation';
 import Image from 'next/image';
 import { type Prisma } from 'generated/prisma';
+import { type ActionReturn } from 'types';
+import { useRedirect } from '@/hooks/useRedirect';
+import { toErrorMessage } from '@/utils/errors';
 
 type ProjectWithPermissions = Prisma.ProjectGetPayload<{
   include: { permissions: true };
 }>;
 
-export default function UpdateProjectForm({ project }: { project: ProjectWithPermissions }) {
+export default function UpdateProjectForm({
+  project,
+  modal = false,
+}: {
+  project: ProjectWithPermissions;
+  modal?: boolean;
+}) {
+  const redirect = useRedirect();
   const params = useParams<{ projectId: string }>();
   const [file, setFile] = useState<File | null>(null);
   const setMessage = useSetAtom(messageAtom);
@@ -35,26 +45,24 @@ export default function UpdateProjectForm({ project }: { project: ProjectWithPer
             formData.set('picture', data[0]?.ufsUrl);
           }
 
-          const { msg } = await updateProject({
+          const action: ActionReturn = await updateProject({
             formData,
             projectId: params.projectId,
           });
 
-          if (msg) {
-            setMessage(msg);
-            return;
-          }
-
           formRef.current?.reset();
           setFile(null);
+          setMessage({
+            content: action.message,
+            error: action.error,
+          });
+
+          if (action.redirect) redirect(modal, action.redirect);
         } catch (error) {
-          setMessage(
-            error instanceof Error
-              ? error.message === 'NEXT_REDIRECT'
-                ? 'Branch updated successfully.'
-                : error.message
-              : 'An unexpected error occurred.'
-          );
+          setMessage({
+            content: toErrorMessage(error, 'Failed to update project'),
+            error: true,
+          });
         }
       }}>
       <section className="flex w-full flex-col">

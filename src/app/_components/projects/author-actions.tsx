@@ -6,6 +6,9 @@ import Link from '../ui/link';
 import { deleteBranch, deletePost, deleteProject } from './actions';
 import { useSetAtom } from 'jotai';
 import { messageAtom } from '@/atoms/message';
+import { type ActionReturn } from 'types';
+import { toErrorMessage } from '@/utils/errors';
+import { useRedirect } from '@/hooks/useRedirect';
 
 interface AuthorActionsProps {
   type: 'project' | 'branch' | 'post';
@@ -15,22 +18,47 @@ interface AuthorActionsProps {
 }
 
 export default function AuthorActions({ type, projectId, branchId, postId }: AuthorActionsProps) {
+  const redirect = useRedirect();
   const setMessage = useSetAtom(messageAtom);
 
   const deleteHandlers: Record<string, () => Promise<void>> = {
     project: async () => {
-      const { msg } = await deleteProject({ projectId });
-      if (msg) setMessage(msg);
+      try {
+        const action: ActionReturn = await deleteProject({ projectId });
+        setMessage({ content: action.message, error: action.error });
+        if (action.redirect) redirect(false, action.redirect);
+      } catch (error) {
+        setMessage({
+          content: toErrorMessage(error, 'Failed to delete project'),
+          error: true,
+        });
+      }
     },
     branch: async () => {
       if (!branchId) return;
-      const { msg } = await deleteBranch({ projectId, branchId });
-      if (msg) setMessage(msg);
+      try {
+        const action: ActionReturn = await deleteBranch({ projectId, branchId });
+        setMessage({ content: action.message, error: action.error });
+        if (action.redirect) redirect(false, action.redirect);
+      } catch (error) {
+        setMessage({
+          content: toErrorMessage(error, 'Failed to delete branch'),
+          error: true,
+        });
+      }
     },
     post: async () => {
       if (!branchId || !postId) return;
-      const { msg } = await deletePost({ projectId, branchId, postId });
-      if (msg) setMessage(msg);
+      try {
+        const action: ActionReturn = await deletePost({ projectId, branchId, postId });
+        setMessage({ content: action.message, error: action.error });
+        if (action.redirect) redirect(false, action.redirect);
+      } catch (error) {
+        setMessage({
+          content: toErrorMessage(error, 'Failed to delete post'),
+          error: true,
+        });
+      }
     },
   };
 

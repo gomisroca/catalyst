@@ -6,8 +6,12 @@ import SubmitButton from '@/app/_components/submit-button';
 import { signInWithEmail } from './actions';
 import { useSetAtom } from 'jotai';
 import { messageAtom } from '@/atoms/message';
+import { type ActionReturn } from 'types';
+import { toErrorMessage } from '@/utils/errors';
+import { useRedirect } from '@/hooks/useRedirect';
 
-export default function EmailForm() {
+export default function EmailForm({ modal = false }: { modal?: boolean }) {
+  const redirect = useRedirect();
   const setMessage = useSetAtom(messageAtom);
   const formRef = useRef<HTMLFormElement>(null);
 
@@ -16,12 +20,21 @@ export default function EmailForm() {
       className="flex flex-row gap-2"
       ref={formRef}
       action={async (formData) => {
-        formRef.current?.reset();
-        const { msg } = await signInWithEmail(formData);
-        if (msg) {
-          setMessage(msg);
-        } else {
-          setMessage('Check your email for a sign in link.');
+        try {
+          formRef.current?.reset();
+          const action: ActionReturn = await signInWithEmail(formData);
+
+          setMessage({
+            content: action.message,
+            error: action.error,
+          });
+
+          setTimeout(() => redirect(modal, '/'), 2000);
+        } catch (error) {
+          setMessage({
+            content: toErrorMessage(error, 'Failed to sign in'),
+            error: true,
+          });
         }
       }}>
       <input

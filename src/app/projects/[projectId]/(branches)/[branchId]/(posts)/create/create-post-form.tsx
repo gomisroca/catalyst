@@ -6,24 +6,18 @@ import { useSetAtom } from 'jotai';
 import { messageAtom } from '@/atoms/message';
 import { useRef, useState } from 'react';
 import { useParams } from 'next/navigation';
-import { updatePost } from './actions';
+import { createPost } from './actions';
 import { useUploadThing } from '@/utils/uploadthing';
-import Image from 'next/image';
-import { type Prisma } from 'generated/prisma';
-import { useRedirect } from '@/hooks/useRedirect';
 import { type ActionReturn } from 'types';
 import { toErrorMessage } from '@/utils/errors';
+import { useRedirect } from '@/hooks/useRedirect';
 
-type PostWithMedia = Prisma.PostGetPayload<{
-  include: { media: true };
-}>;
-
-export default function UpdatePostForm({ post, modal = false }: { post: PostWithMedia; modal?: boolean }) {
+export default function CreatePostForm({ modal = false }: { modal?: boolean }) {
   const redirect = useRedirect();
   const [files, setFiles] = useState<FileList | null>(null);
   const setMessage = useSetAtom(messageAtom);
   const formRef = useRef<HTMLFormElement>(null);
-  const params = useParams<{ projectId: string; branchId: string; postId: string }>();
+  const params = useParams<{ projectId: string; branchId: string }>();
   const { startUpload } = useUploadThing('postMedia');
 
   return (
@@ -41,14 +35,7 @@ export default function UpdatePostForm({ post, modal = false }: { post: PostWith
             }
           }
 
-          const action: ActionReturn = await updatePost({
-            formData,
-            ids: {
-              projectId: params.projectId,
-              branchId: params.branchId,
-              postId: params.postId,
-            },
-          });
+          const action: ActionReturn = await createPost(formData, params.branchId);
 
           formRef.current?.reset();
           setFiles(null);
@@ -60,7 +47,7 @@ export default function UpdatePostForm({ post, modal = false }: { post: PostWith
           if (action.redirect) redirect(modal, action.redirect);
         } catch (error) {
           setMessage({
-            content: toErrorMessage(error, 'Failed to update post'),
+            content: toErrorMessage(error, 'Failed to create post'),
             error: true,
           });
         }
@@ -71,8 +58,7 @@ export default function UpdatePostForm({ post, modal = false }: { post: PostWith
           className="rounded-lg border-2 border-zinc-300 bg-zinc-200 p-2 focus:ring-2 focus:ring-sky-300 focus:outline-none dark:border-zinc-700 dark:bg-zinc-800 dark:focus:ring-sky-700"
           type="text"
           name="title"
-          defaultValue={post.title ?? ''}
-          placeholder={post.title ?? 'My updated Post'}
+          placeholder="My New Post"
           required
         />
       </section>
@@ -83,28 +69,12 @@ export default function UpdatePostForm({ post, modal = false }: { post: PostWith
           className="rounded-lg border-2 border-zinc-300 bg-zinc-200 p-2 focus:ring-2 focus:ring-sky-300 focus:outline-none dark:border-zinc-700 dark:bg-zinc-800 dark:focus:ring-sky-700"
           type="textarea"
           name="content"
-          defaultValue={post.content ?? ''}
-          placeholder={post.content ?? 'This is my updated post!'}
+          placeholder="This is my new post!"
         />
       </section>
 
       <section className="flex w-full flex-col">
         <label htmlFor="imageFile">Media</label>
-        {post.media && (
-          <div className="mx-auto flex flex-col text-center">
-            <h4>Current Media</h4>
-            {post.media.map((media) => (
-              <Image
-                key={media.id}
-                className="rounded-lg border-2 border-zinc-300 bg-zinc-200 focus:ring-2 focus:ring-sky-300 focus:outline-none dark:border-zinc-700 dark:bg-zinc-800 dark:focus:ring-sky-700"
-                src={media.url}
-                height={200}
-                width={200}
-                alt={media.name ?? media.id}
-              />
-            ))}
-          </div>
-        )}
         <input
           className="rounded-lg border-2 border-zinc-300 bg-zinc-200 file:mr-4 file:bg-zinc-300 file:p-2 file:transition file:duration-200 file:hover:bg-zinc-400 focus:ring-2 focus:ring-sky-300 focus:outline-none dark:border-zinc-700 dark:bg-zinc-800 dark:file:bg-zinc-700 dark:file:hover:bg-zinc-600 dark:focus:ring-sky-700"
           type="file"
@@ -118,7 +88,7 @@ export default function UpdatePostForm({ post, modal = false }: { post: PostWith
         />
       </section>
 
-      <SubmitButton baseText="Update" pendingText="Updating..." className="w-full" />
+      <SubmitButton baseText="Create" pendingText="Creating..." className="w-full" />
     </Form>
   );
 }

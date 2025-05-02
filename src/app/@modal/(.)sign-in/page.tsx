@@ -6,7 +6,7 @@ export default function SignInModal() {
   return (
     <Modal>
       <div className="flex flex-col items-center justify-center gap-4">
-        <EmailForm />
+        <EmailForm modal />
         <div className="flex w-full items-center justify-evenly">
           <span className="h-[2px] w-1/3 bg-zinc-200 dark:bg-zinc-800" />
           <span>OR</span>

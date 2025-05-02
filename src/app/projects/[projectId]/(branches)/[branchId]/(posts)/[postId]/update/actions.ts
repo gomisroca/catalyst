@@ -2,8 +2,8 @@
 
 import { auth } from '@/server/auth';
 import { db } from '@/server/db';
+import { toErrorMessage } from '@/utils/errors';
 import { revalidatePath } from 'next/cache';
-import { redirect } from 'next/navigation';
 import { z } from 'zod';
 
 const MediaUrlSchema = z
@@ -36,7 +36,7 @@ export async function updatePost(params: UpdatePostParams) {
   const { projectId, branchId, postId } = params.ids;
 
   const session = await auth();
-  if (!session?.user) return { msg: 'You must be signed in to update a post' };
+  if (!session?.user) throw new Error('You must be signed in to update a post');
 
   // Check if post exists
   const existingPost = await db.post.findFirst({
@@ -46,10 +46,7 @@ export async function updatePost(params: UpdatePostParams) {
       branchId,
     },
   });
-  if (!existingPost) {
-    console.log(`Post ${postId} not found for user ${session.user.id}`);
-    return { msg: 'Post not found or you do not have permission to update it.' };
-  }
+  if (!existingPost) throw new Error('Post not found or you do not have permission to update it.');
 
   // Extract and validate the data
   const validatedFields = PostSchema.safeParse({
@@ -57,11 +54,7 @@ export async function updatePost(params: UpdatePostParams) {
     content: params.formData.get('content') ?? existingPost.content,
     media: params.formData.getAll('media'),
   });
-  if (!validatedFields.success) {
-    return {
-      msg: validatedFields.error.toString(),
-    };
-  }
+  if (!validatedFields.success) throw new Error(validatedFields.error.toString());
 
   const { data } = validatedFields;
   try {
@@ -92,9 +85,9 @@ export async function updatePost(params: UpdatePostParams) {
 
     console.log(`Post ${postId} updated by user ${session.user.id}`);
     revalidatePath(`/projects/${projectId}/${branchId}`);
+    return { message: 'Post updated successfully.', redirect: `/projects/${projectId}/${branchId}` };
   } catch (error) {
     console.error('Failed to update post:', error);
-    return { msg: 'An unexpected error occurred' };
+    throw new Error(toErrorMessage(error, 'Failed to update post'));
   }
-  redirect(`/projects/${projectId}/${branchId}`);
 }
