@@ -3,8 +3,8 @@
 import { auth } from '@/server/auth';
 import { db } from '@/server/db';
 import { getBranch } from '@/server/queries/branches';
+import { toErrorMessage } from '@/utils/errors';
 import { revalidatePath } from 'next/cache';
-import { redirect } from 'next/navigation';
 import { z } from 'zod';
 
 const PostSchema = z.object({
@@ -15,11 +15,11 @@ const PostSchema = z.object({
 
 export async function createPost(formData: FormData, branchId: string) {
   const session = await auth();
-  if (!session?.user) return { msg: 'You must be signed in to create a post' };
+  if (!session?.user) throw new Error('You must be signed in to create a post');
 
   const branch = await getBranch(branchId);
   if (!branch.permissions?.allowCollaborate && session.user.id !== branch.authorId)
-    return { msg: 'You do not have permission to collaborate in this branch' };
+    throw new Error('You do not have permission to collaborate in this branch');
 
   // Extract and validate the data
   const validatedFields = PostSchema.safeParse({
@@ -27,17 +27,11 @@ export async function createPost(formData: FormData, branchId: string) {
     content: formData.get('content'),
     media: formData.getAll('media'),
   });
-  if (!validatedFields.success) {
-    return {
-      error: validatedFields.error.toString(),
-    };
-  }
+  if (!validatedFields.success) throw new Error(validatedFields.error.toString());
 
   const { data } = validatedFields;
-
-  let newPostId: string | undefined;
   try {
-    newPostId = await db.$transaction(async (trx) => {
+    const newPostId = await db.$transaction(async (trx) => {
       const newPost = await trx.post.create({
         data: {
           title: data.title,
@@ -63,9 +57,9 @@ export async function createPost(formData: FormData, branchId: string) {
 
     console.log(`Post ${newPostId} created by user ${session.user.id}`);
     revalidatePath(`/projects/${branch.projectId}/${branchId}`);
+    return { message: 'Post created successfully.', redirect: `/projects/${branch.projectId}/${branchId}` };
   } catch (error) {
     console.error('Failed to create post:', error);
-    return { msg: 'An unexpected error occurred while creating the post' };
+    throw new Error(toErrorMessage(error, 'Failed to create post'));
   }
-  redirect(`/projects/${branch.projectId}/${branchId}`);
 }

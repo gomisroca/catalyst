@@ -4,7 +4,7 @@ import CreatePostForm from '@/app/projects/[projectId]/(branches)/[branchId]/(po
 export default function CreatePostModal() {
   return (
     <Modal>
-      <CreatePostForm />
+      <CreatePostForm modal />
     </Modal>
   );
 }

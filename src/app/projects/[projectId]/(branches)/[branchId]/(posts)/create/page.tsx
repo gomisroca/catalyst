@@ -8,15 +8,17 @@ import { useRef, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { createPost } from './actions';
 import { useUploadThing } from '@/utils/uploadthing';
+import { type ActionReturn } from 'types';
+import { toErrorMessage } from '@/utils/errors';
+import { useRedirect } from '@/hooks/useRedirect';
 
-export default function CreatePostForm() {
+export default function CreatePostForm({ modal = false }: { modal?: boolean }) {
+  const redirect = useRedirect();
   const [files, setFiles] = useState<FileList | null>(null);
   const setMessage = useSetAtom(messageAtom);
   const formRef = useRef<HTMLFormElement>(null);
   const params = useParams<{ projectId: string; branchId: string }>();
   const { startUpload } = useUploadThing('postMedia');
-
-  if (!params.branchId) return null;
 
   return (
     <Form
@@ -33,18 +35,21 @@ export default function CreatePostForm() {
             }
           }
 
-          const { msg } = await createPost(formData, params.branchId);
-
-          if (msg) {
-            setMessage(msg);
-            return;
-          }
+          const action: ActionReturn = await createPost(formData, params.branchId);
 
           formRef.current?.reset();
           setFiles(null);
-          setMessage('Post created successfully.');
+          setMessage({
+            content: action.message,
+            error: action.error,
+          });
+
+          if (action.redirect) redirect(modal, action.redirect);
         } catch (error) {
-          setMessage(error instanceof Error ? error.message : 'An error occurred');
+          setMessage({
+            content: toErrorMessage(error, 'Failed to create post'),
+            error: true,
+          });
         }
       }}>
       <section className="flex w-full flex-col">

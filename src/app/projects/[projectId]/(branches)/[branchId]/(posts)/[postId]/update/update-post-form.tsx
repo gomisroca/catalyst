@@ -10,12 +10,16 @@ import { updatePost } from './actions';
 import { useUploadThing } from '@/utils/uploadthing';
 import Image from 'next/image';
 import { type Prisma } from 'generated/prisma';
+import { useRedirect } from '@/hooks/useRedirect';
+import { type ActionReturn } from 'types';
+import { toErrorMessage } from '@/utils/errors';
 
 type PostWithMedia = Prisma.PostGetPayload<{
   include: { media: true };
 }>;
 
-export default function UpdatePostForm({ post }: { post: PostWithMedia }) {
+export default function UpdatePostForm({ post, modal = false }: { post: PostWithMedia; modal?: boolean }) {
+  const redirect = useRedirect();
   const [files, setFiles] = useState<FileList | null>(null);
   const setMessage = useSetAtom(messageAtom);
   const formRef = useRef<HTMLFormElement>(null);
@@ -37,7 +41,7 @@ export default function UpdatePostForm({ post }: { post: PostWithMedia }) {
             }
           }
 
-          const { msg } = await updatePost({
+          const action: ActionReturn = await updatePost({
             formData,
             ids: {
               projectId: params.projectId,
@@ -46,21 +50,19 @@ export default function UpdatePostForm({ post }: { post: PostWithMedia }) {
             },
           });
 
-          if (msg) {
-            setMessage(msg);
-            return;
-          }
-
           formRef.current?.reset();
           setFiles(null);
+          setMessage({
+            content: action.message,
+            error: action.error,
+          });
+
+          if (action.redirect) redirect(modal, action.redirect);
         } catch (error) {
-          setMessage(
-            error instanceof Error
-              ? error.message === 'NEXT_REDIRECT'
-                ? 'Post updated successfully.'
-                : error.message
-              : 'An unexpected error occurred.'
-          );
+          setMessage({
+            content: toErrorMessage(error, 'Failed to update post'),
+            error: true,
+          });
         }
       }}>
       <section className="flex w-full flex-col">
