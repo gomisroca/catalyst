@@ -112,12 +112,12 @@ export async function searchDatabase(query: string) {
       },
     });
 
-    return {
-      projects,
-      branches,
-      posts,
-      users,
-    };
+    return [
+      ...projects.map((project) => ({ type: 'project', content: project })),
+      ...branches.map((branch) => ({ type: 'branch', content: branch })),
+      ...posts.map((post) => ({ type: 'post', content: post })),
+      ...users.map((user) => ({ type: 'user', content: user })),
+    ];
   } catch (error) {
     console.error('Failed to search database:', error);
     throw new Error(toErrorMessage(error, 'Failed to search database'));

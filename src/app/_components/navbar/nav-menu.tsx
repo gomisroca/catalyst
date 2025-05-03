@@ -8,6 +8,7 @@ import Link from '@/app/_components/ui/link';
 import { type Session } from 'next-auth';
 import { signOut } from 'next-auth/react';
 import Image from 'next/image';
+import SearchBar from '../search/search-bar';
 
 function MenuToggle({
   open,
@@ -79,7 +80,8 @@ function NavMenu({ session }: { session: Session | null }) {
   }, [open]);
 
   return (
-    <div ref={menuRef}>
+    <div ref={menuRef} className="flex gap-2">
+      <SearchBar navbar />
       <MenuToggle open={open} setOpen={setOpen} session={session} />
       <div ref={parent} className="relative">
         {open && <Menu session={session} />}
