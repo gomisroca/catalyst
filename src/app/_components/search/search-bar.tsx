@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { twMerge } from 'tailwind-merge';
 import Button from '../ui/button';
 import { useFormStatus } from 'react-dom';
-import { BsSearch } from 'react-icons/bs';
+import { BsArrowRightCircle } from 'react-icons/bs';
 
 export default function SearchBar({ navbar = false }: { navbar?: boolean }) {
   const { pending } = useFormStatus();
@@ -24,7 +24,14 @@ export default function SearchBar({ navbar = false }: { navbar?: boolean }) {
   };
 
   return (
-    <form onSubmit={handleSearch} className="relative w-full max-w-md">
+    <form
+      onSubmit={handleSearch}
+      className={twMerge(
+        'w-full max-w-md',
+        navbar
+          ? 'absolute top-4 right-[-45] bottom-0 h-fit w-fit rounded-lg bg-zinc-100 p-2 dark:bg-zinc-950'
+          : 'relative'
+      )}>
       <div className="relative flex items-center justify-center gap-2">
         <input
           type="text"
@@ -34,7 +41,7 @@ export default function SearchBar({ navbar = false }: { navbar?: boolean }) {
           className={twMerge('rounded-lg ring-1', navbar ? 'w-32 p-1 pr-0' : 'p-2 pr-10')}
         />
         <Button type="submit" className="h-[30px] w-[30px] font-semibold whitespace-nowrap" disabled={pending}>
-          <BsSearch size={20} />
+          <BsArrowRightCircle size={20} />
         </Button>
       </div>
     </form>

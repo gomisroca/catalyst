@@ -48,7 +48,7 @@ async function SearchResults({ query }: { query: string }) {
   const results = await searchDatabase(query);
 
   return (
-    <div className="mt-6 w-full space-y-4">
+    <div className="mt-6 max-w-3xl min-w-72 space-y-4 md:min-w-md">
       {results.map((data) =>
         data.type === 'project' ? (
           <ProjectCard key={data.content.id} project={data.content as ExtendedProject} />
