@@ -40,7 +40,11 @@ export default function SearchBar({ navbar = false }: { navbar?: boolean }) {
           onChange={(e) => setQuery(e.target.value)}
           className={twMerge('rounded-lg ring-1', navbar ? 'w-32 p-1 pr-0' : 'p-2 pr-10')}
         />
-        <Button type="submit" className="h-[30px] w-[30px] font-semibold whitespace-nowrap" disabled={pending}>
+        <Button
+          type="submit"
+          name="Go to Search"
+          className="h-[30px] w-[30px] font-semibold whitespace-nowrap"
+          disabled={pending}>
           <BsArrowRightCircle size={20} />
         </Button>
       </div>

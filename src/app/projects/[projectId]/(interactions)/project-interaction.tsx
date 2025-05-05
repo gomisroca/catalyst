@@ -109,6 +109,7 @@ export default function ProjectInteraction({
 
   return (
     <Button
+      name={type}
       disabled={!user}
       onClick={() => handleInteraction(type)}
       className={twMerge(

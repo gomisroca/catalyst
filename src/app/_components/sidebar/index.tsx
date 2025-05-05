@@ -111,7 +111,10 @@ export default function Sidebar({ session, data }: { session: Session | null; da
 
   return (
     <aside ref={menuRef} className="absolute top-0 bottom-0 left-0 mt-10 flex h-fit w-50 flex-col gap-4 p-4">
-      <Button className="w-fit" onClick={() => setOpen(!open)}>
+      <Button
+        name="sidebar"
+        onClick={() => setOpen(!open)}
+        className="flex h-10 w-10 items-center justify-center rounded-full">
         {!open ? <FaCircleChevronDown size={20} /> : <FaCircleChevronUp size={20} />}
       </Button>
       <div ref={parent} className="relative z-[999]">

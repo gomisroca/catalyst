@@ -71,7 +71,7 @@ export default function TrendingTimeline({ initialData }: TrendingTimelineProps)
           <BranchCard key={data.content.id} branch={data.content as ExtendedBranch} />
         )
       )}
-      <Button onClick={handleLoadMore} className="mx-auto w-fit">
+      <Button onClick={handleLoadMore} name="Load More" className="mx-auto w-fit">
         Load More
       </Button>
     </div>

@@ -111,6 +111,7 @@ export default function PostInteraction({
 
   return (
     <Button
+      name={type}
       disabled={!user}
       onClick={() => handleInteraction(type)}
       className={twMerge(

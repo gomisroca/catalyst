@@ -8,6 +8,7 @@ import { env } from '@/env';
 export default function OAuthSignIn() {
   return (
     <Button
+      name="Google"
       onClick={() => signIn('google', { redirectTo: env.NEXT_PUBLIC_BASE_URL })}
       className="flex w-full items-center gap-2">
       <FaGoogle size={20} />

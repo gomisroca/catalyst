@@ -114,7 +114,8 @@ export default function BranchInteraction({
       className={twMerge(
         'flex h-6 items-center justify-center gap-2 px-2 text-sm font-semibold',
         hasInteracted && 'from-sky-300 dark:from-sky-700'
-      )}>
+      )}
+      name={type}>
       {types[type]} {optimisticInteractions?.length}
     </Button>
   );

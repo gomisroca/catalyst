@@ -99,7 +99,7 @@ export default function AuthorActions({ type, projectId, branchId, postId }: Aut
       <Link href={updateHref}>
         <FaPencil size={10} />
       </Link>
-      <Button onClick={handleDelete}>
+      <Button onClick={handleDelete} name="Delete" className="w-fit">
         <FaTrash size={10} />
       </Button>
     </div>

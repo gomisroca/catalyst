@@ -19,6 +19,7 @@ export default function ExpandedDescription({ description }: { description: stri
       </div>
       {description.length > 140 && (
         <Button
+          name="Expand"
           onClick={() => setExpanded(!expanded)}
           className="my-auto flex h-[25px] w-[25px] items-center justify-center rounded-full">
           {expanded ? <FaChevronUp size={12} /> : <FaChevronDown size={12} />}

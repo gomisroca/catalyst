@@ -111,7 +111,8 @@ export default function FollowMenu({ session, followers }: { session: Session | 
       disabled={!session?.user.id}
       onClick={() =>
         session?.user.id === params.userId ? navigate.push(`/profile/${params.userId}/followers`) : handleFollow()
-      }>
+      }
+      name="Follow">
       {isFollowing ? <BsHeartFill size={16} /> : <BsHeart size={16} />}
     </Button>
   );

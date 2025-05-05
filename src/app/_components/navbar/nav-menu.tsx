@@ -13,7 +13,7 @@ import SearchBar from '../search/search-bar';
 
 function SearchToggle({ open, setOpen }: { open: boolean; setOpen: React.Dispatch<React.SetStateAction<boolean>> }) {
   return (
-    <Button onClick={() => setOpen(!open)} className="p-1">
+    <Button onClick={() => setOpen(!open)} name="Search" className="p-1">
       {open ? <MdClear size={20} /> : <BsSearch size={20} />}
     </Button>
   );
@@ -29,7 +29,7 @@ function MenuToggle({
   session: Session | null;
 }) {
   return (
-    <Button onClick={() => setOpen(!open)} className="p-1">
+    <Button onClick={() => setOpen(!open)} name="User Menu" className="p-1">
       {open ? (
         <MdClear size={20} />
       ) : session ? (
@@ -52,7 +52,7 @@ function Menu({ session }: { session: Session | null }) {
     <div className="absolute top-[0.75rem] right-0 bottom-0 flex h-fit w-42 items-center justify-center gap-2 rounded-lg bg-zinc-100 p-2 dark:bg-zinc-950">
       {session ? (
         <div className="flex w-full flex-col items-center justify-center gap-2">
-          <Button onClick={() => signOut()} className="w-full text-center">
+          <Button onClick={() => signOut()} name="Sign Out" className="w-full text-center">
             Sign Out
           </Button>
           <Link href="/settings" className="w-full text-center">

@@ -125,7 +125,7 @@ export default function ForYouTimeline({ session, initialData }: ForYouTimelineP
           {data.type === 'project' && <ProjectCard project={data.content as ExtendedProject} />}
         </div>
       ))}
-      <Button onClick={handleLoadMore} className="mx-auto w-fit">
+      <Button onClick={handleLoadMore} name="Load More" className="mx-auto w-fit">
         Load More
       </Button>
     </div>

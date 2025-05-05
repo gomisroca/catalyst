@@ -15,7 +15,7 @@ function ThemeButton() {
   const { theme, setTheme } = useTheme();
 
   return (
-    <Button onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')} className="h-8 w-8">
+    <Button onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')} className="h-8 w-8" name="Theme Button">
       <FaMoon
         name="light"
         size={20}
