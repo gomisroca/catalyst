@@ -21,6 +21,7 @@ import {
   type ExtendedBranchInteraction,
   type ExtendedProjectInteraction,
 } from 'types';
+import NotAllowed from '../not-allowed';
 
 type ForYouTimelineData = {
   posts: ExtendedPost[];
@@ -99,14 +100,7 @@ export default function ForYouTimeline({ session, initialData }: ForYouTimelineP
     setPage((prevPage) => prevPage + 1);
   };
 
-  if (!session) {
-    return (
-      <div className="flex flex-col gap-4">
-        <p>You need to be logged in to see your personal timeline.</p>
-        <Link href="/sign-in">Login</Link>
-      </div>
-    );
-  }
+  if (!session) return <NotAllowed />;
   return (
     <div className="flex flex-col gap-4">
       {timelineData.map((data) => (
