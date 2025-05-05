@@ -3,11 +3,21 @@
 import { useEffect, useRef, useState } from 'react';
 import Button from '@/app/_components/ui/button';
 import { MdOutlineMenu, MdClear } from 'react-icons/md';
+import { BsSearch } from 'react-icons/bs';
 import { useAutoAnimate } from '@formkit/auto-animate/react';
 import Link from '@/app/_components/ui/link';
 import { type Session } from 'next-auth';
 import { signOut } from 'next-auth/react';
 import Image from 'next/image';
+import SearchBar from '../search/search-bar';
+
+function SearchToggle({ open, setOpen }: { open: boolean; setOpen: React.Dispatch<React.SetStateAction<boolean>> }) {
+  return (
+    <Button onClick={() => setOpen(!open)} className="p-1">
+      {open ? <MdClear size={20} /> : <BsSearch size={20} />}
+    </Button>
+  );
+}
 
 function MenuToggle({
   open,
@@ -21,7 +31,7 @@ function MenuToggle({
   return (
     <Button onClick={() => setOpen(!open)} className="p-1">
       {open ? (
-        <MdClear size={30} />
+        <MdClear size={20} />
       ) : session ? (
         <Image
           src={session.user?.image ?? '/user.jpg'}
@@ -31,7 +41,7 @@ function MenuToggle({
           className="aspect-square rounded-full"
         />
       ) : (
-        <MdOutlineMenu size={30} />
+        <MdOutlineMenu size={20} />
       )}
     </Button>
   );
@@ -39,7 +49,7 @@ function MenuToggle({
 
 function Menu({ session }: { session: Session | null }) {
   return (
-    <div className="absolute top-[0.75rem] right-0 bottom-0 flex h-fit w-42 items-center justify-center gap-2 rounded-lg bg-zinc-100 px-4 py-2 dark:bg-zinc-950">
+    <div className="absolute top-[0.75rem] right-0 bottom-0 flex h-fit w-42 items-center justify-center gap-2 rounded-lg bg-zinc-100 p-2 dark:bg-zinc-950">
       {session ? (
         <div className="flex w-full flex-col items-center justify-center gap-2">
           <Button onClick={() => signOut()} className="w-full text-center">
@@ -59,30 +69,36 @@ function Menu({ session }: { session: Session | null }) {
 }
 
 function NavMenu({ session }: { session: Session | null }) {
-  const [open, setOpen] = useState(false);
+  const [openMenu, setOpenMenu] = useState(false);
+  const [openSearch, setOpenSearch] = useState(false);
   const [parent] = useAutoAnimate();
   const menuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
-        setOpen(false);
+        setOpenMenu(false);
+        setOpenSearch(false);
       }
     }
-    if (open) {
+    if (openMenu || openSearch) {
       document.addEventListener('mousedown', handleClickOutside);
     }
 
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, [open]);
+  }, [openMenu, openSearch]);
 
   return (
-    <div ref={menuRef}>
-      <MenuToggle open={open} setOpen={setOpen} session={session} />
+    <div ref={menuRef} className="flex items-center gap-2">
       <div ref={parent} className="relative">
-        {open && <Menu session={session} />}
+        {openSearch && <SearchBar navbar />}
+      </div>
+      <SearchToggle open={openSearch} setOpen={setOpenSearch} />
+      <MenuToggle open={openMenu} setOpen={setOpenMenu} session={session} />
+      <div ref={parent} className="relative">
+        {openMenu && <Menu session={session} />}
       </div>
     </div>
   );
