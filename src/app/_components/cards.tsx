@@ -27,7 +27,7 @@ export function ProjectCard({ project }: { project: ExtendedProject }) {
         />
       )}
       <section className="flex h-full w-full flex-col">
-        <header className="flex flex-col items-start justify-between rounded-tr-lg bg-white px-2 py-2 transition duration-200 ease-in-out md:flex-row md:items-center md:px-4 dark:bg-black">
+        <header className="flex flex-col items-start justify-between gap-1 rounded-tr-lg bg-white px-2 py-2 transition duration-200 ease-in-out md:flex-row md:items-center md:px-4 dark:bg-black">
           <Link
             href={`/projects/${project.id}/`}
             className="w-full leading-3 font-bold transition duration-200 ease-in-out hover:scale-105 hover:text-rose-500 md:w-auto md:text-lg dark:hover:text-rose-700">
@@ -57,8 +57,8 @@ export function BranchCard({ branch }: { branch: ExtendedBranch }) {
         />
       )}
       <section className="flex h-full w-full flex-col">
-        <header className="flex flex-col items-center justify-between rounded-tr-lg bg-white px-2 py-2 transition duration-200 ease-in-out md:flex-row md:px-4 dark:bg-black">
-          <div className="flex w-full flex-col items-start md:w-auto md:flex-row md:items-center md:gap-2">
+        <header className="flex flex-col items-center justify-between gap-1 rounded-tr-lg bg-white px-2 py-2 transition duration-200 ease-in-out md:flex-row md:px-4 dark:bg-black">
+          <div className="flex w-full flex-col items-start gap-1 md:w-auto md:flex-row md:items-center md:gap-2">
             <Link
               href={`/projects/${branch.projectId}/`}
               className="text-sm leading-3 font-bold transition duration-200 ease-in-out hover:scale-105 hover:text-rose-500 md:text-base dark:hover:text-rose-700">

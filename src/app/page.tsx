@@ -10,7 +10,7 @@ export default async function Home({
   const timeline = (await searchParams).tl;
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-start">
+    <main className="flex min-h-screen flex-col items-center justify-start lg:w-2/3 xl:w-1/3">
       <HomeTabs tab={(timeline as string) ?? 'trending'} />
       {timeline === 'for-you' ? <ForYouWrapper /> : <TrendingWrapper />}
     </main>
