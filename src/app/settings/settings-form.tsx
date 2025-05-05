@@ -5,7 +5,7 @@ import { useUploadThing } from '@/utils/uploadthing';
 import { useSetAtom } from 'jotai';
 import Form from 'next/form';
 import { useRef, useState } from 'react';
-import { updateUserSettings } from './actions';
+import { updateUserSettings } from '@/actions/users';
 import { type User } from 'next-auth';
 import Image from 'next/image';
 import SubmitButton from '@/app/_components/submit-button';

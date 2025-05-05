@@ -3,7 +3,7 @@
 import { type FormEvent, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { twMerge } from 'tailwind-merge';
-import Button from '../ui/button';
+import Button from '@/app/_components/ui/button';
 import { useFormStatus } from 'react-dom';
 import { BsArrowRightCircle } from 'react-icons/bs';
 

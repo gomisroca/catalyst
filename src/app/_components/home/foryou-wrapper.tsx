@@ -1,5 +1,5 @@
 import { auth } from '@/server/auth';
-import { fetchForYouTimeline } from './actions';
+import { fetchForYouTimeline } from '@/actions/timelines';
 import ForYouTimeline from './foryou-timeline';
 import Link from '@/app/_components/ui/link';
 

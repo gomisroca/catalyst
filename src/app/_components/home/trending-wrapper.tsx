@@ -1,4 +1,4 @@
-import { fetchTrendingTimeline } from './actions';
+import { fetchTrendingTimeline } from '@/actions/timelines';
 import TrendingTimeline from './trending-timeline';
 
 export default async function TrendingWrapper() {

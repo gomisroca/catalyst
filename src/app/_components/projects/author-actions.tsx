@@ -1,14 +1,17 @@
 'use client';
 
 import { FaPencil, FaTrash } from 'react-icons/fa6';
-import Button from '../ui/button';
-import Link from '../ui/link';
-import { deleteBranch, deletePost, deleteProject } from './actions';
+import Button from '@/app/_components/ui/button';
+import Link from '@/app/_components/ui/link';
+
 import { useSetAtom } from 'jotai';
 import { messageAtom } from '@/atoms/message';
 import { type ActionReturn } from 'types';
 import { toErrorMessage } from '@/utils/errors';
 import { useRedirect } from '@/hooks/useRedirect';
+import { deleteProject } from '@/actions/projects';
+import { deleteBranch } from '@/actions/branches';
+import { deletePost } from '@/actions/posts';
 
 interface AuthorActionsProps {
   type: 'project' | 'branch' | 'post';

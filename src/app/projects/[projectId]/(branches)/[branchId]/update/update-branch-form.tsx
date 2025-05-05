@@ -6,7 +6,7 @@ import { useSetAtom } from 'jotai';
 import { messageAtom } from '@/atoms/message';
 import { useRef } from 'react';
 import { useParams } from 'next/navigation';
-import { updateBranch } from './actions';
+import { updateBranch } from '@/actions/branches';
 import { type Prisma } from 'generated/prisma';
 import { useRedirect } from '@/hooks/useRedirect';
 import { type ActionReturn } from 'types';

@@ -1,7 +1,7 @@
 'use client';
 
 import { type Branch } from 'generated/prisma';
-import { goToBranch } from './actions';
+import { goToBranch } from '@/actions/branches';
 import { useParams } from 'next/navigation';
 import { type ActionReturn } from 'types';
 import { useRedirect } from '@/hooks/useRedirect';

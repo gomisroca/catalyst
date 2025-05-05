@@ -6,7 +6,7 @@ import { useSetAtom } from 'jotai';
 import { messageAtom } from '@/atoms/message';
 import { useRef } from 'react';
 import { useParams } from 'next/navigation';
-import { createBranch } from './actions';
+import { createBranch } from '@/actions/branches';
 import { toErrorMessage } from '@/utils/errors';
 import { type ActionReturn } from 'types';
 import { useRedirect } from '@/hooks/useRedirect';

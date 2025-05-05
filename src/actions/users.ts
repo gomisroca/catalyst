@@ -5,6 +5,12 @@ import { db } from '@/server/db';
 import { toErrorMessage } from '@/utils/errors';
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
+import { env } from '@/env';
+import { signIn } from '@/server/auth';
+
+const EmailSignInSchema = z.object({
+  email: z.string().email('Invalid email').min(1, 'Email is required'),
+});
 
 const UserSettingsSchema = z.object({
   name: z.string().min(3, 'User name must be at least 3 characters long').max(100, 'User name is too long').optional(),
@@ -25,6 +31,27 @@ async function checkForConflicts(data: { name?: string; email?: string }, userId
   );
 
   return conflictFound;
+}
+
+export async function signInWithEmail(formData: FormData) {
+  try {
+    // Extract and validate the data
+    const validatedFields = EmailSignInSchema.safeParse({
+      email: formData.get('email'),
+    });
+
+    // If validation fails, return the errors
+    if (!validatedFields.success) throw new Error(validatedFields.error.toString());
+
+    await signIn('nodemailer', {
+      redirectTo: env.NEXT_PUBLIC_BASE_URL,
+      email: validatedFields.data.email,
+    });
+    return { message: 'Check your email for a sign in link.' };
+  } catch (error) {
+    console.error('Failed to sign in:', error);
+    throw new Error(toErrorMessage(error, 'Failed to sign in'));
+  }
 }
 
 export async function updateUserSettings(formData: FormData) {
@@ -77,5 +104,38 @@ export async function updateUserSettings(formData: FormData) {
   } catch (error) {
     console.error('Failed to update user settings:', error);
     throw new Error(toErrorMessage(error, 'Failed to update user settings'));
+  }
+}
+
+export async function followUser({ followedId }: { followedId: string }) {
+  try {
+    const session = await auth();
+    if (!session?.user) throw new Error('You must be signed in to follow or unfollow a user');
+
+    const where = {
+      followerId: session.user.id,
+      followedId,
+    };
+
+    const follow = await db.follow.findUnique({
+      where: {
+        followerId_followedId: where,
+      },
+    });
+    if (follow) {
+      await db.follow.delete({
+        where: { followerId_followedId: where },
+      });
+      revalidatePath(`/profile/${followedId}`);
+      return { message: 'User unfollowed successfully' };
+    }
+
+    await db.follow.create({ data: where });
+
+    revalidatePath(`/profile/${followedId}`);
+    return { message: 'User followed successfully' };
+  } catch (error) {
+    console.error('Failed to follow or unfollow user:', error);
+    throw new Error(toErrorMessage(error, 'Failed to follow or unfollow user'));
   }
 }

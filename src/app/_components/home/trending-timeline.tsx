@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { fetchTrendingTimeline } from './actions';
+import { fetchTrendingTimeline } from '@/actions/timelines';
 import { BranchCard, ProjectCard } from '@/app/_components/cards';
 import Button from '@/app/_components/ui/button';
 import { type ExtendedBranch, type ExtendedProject } from 'types';

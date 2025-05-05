@@ -3,7 +3,7 @@
 import Button from '@/app/_components/ui/button';
 import { type Session } from 'next-auth';
 import { BsHeart, BsHeartFill } from 'react-icons/bs';
-import { followUser } from './actions';
+import { followUser } from '@/actions/users';
 import { useParams, useRouter } from 'next/navigation';
 import { messageAtom } from '@/atoms/message';
 import { useSetAtom } from 'jotai';

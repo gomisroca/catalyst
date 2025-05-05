@@ -12,7 +12,7 @@ import {
   ProjectInteractionCard,
 } from '@/app/_components/cards';
 import { useEffect, useState } from 'react';
-import { fetchForYouTimeline } from './actions';
+import { fetchForYouTimeline } from '@/actions/timelines';
 import {
   type ExtendedBranch,
   type ExtendedPost,

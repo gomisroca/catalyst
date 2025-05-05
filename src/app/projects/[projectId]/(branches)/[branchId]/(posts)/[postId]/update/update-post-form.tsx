@@ -6,7 +6,7 @@ import { useSetAtom } from 'jotai';
 import { messageAtom } from '@/atoms/message';
 import { useRef, useState } from 'react';
 import { useParams } from 'next/navigation';
-import { updatePost } from './actions';
+import { updatePost } from '@/actions/posts';
 import { useUploadThing } from '@/utils/uploadthing';
 import Image from 'next/image';
 import { type Prisma } from 'generated/prisma';
