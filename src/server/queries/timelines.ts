@@ -3,6 +3,7 @@ import { db } from '../db';
 import { auth } from '../auth';
 import { getUserFollows } from './users';
 import { type Session } from 'next-auth';
+import { type TrendingTimelineItem, type ForYouTimelineItem } from 'types';
 
 async function getTrendingProjects({
   session,
@@ -151,7 +152,30 @@ export async function getTrendingTimeline({ page = 1, pageSize = 10 }: { page?: 
     getTrendingBranches({ session, page, pageSize }),
   ]);
 
-  return { projects, branches };
+  const timeline: TrendingTimelineItem[] = [
+    ...branches.map(
+      (branch) =>
+        ({
+          type: 'branch',
+          content: branch,
+        }) as const satisfies TrendingTimelineItem
+    ),
+    ...projects.map(
+      (project) =>
+        ({
+          type: 'project',
+          content: project,
+        }) as const satisfies TrendingTimelineItem
+    ),
+  ];
+
+  timeline.sort(
+    (a, b) =>
+      new Date(b.content.updatedAt ?? b.content.createdAt).getTime() -
+      new Date(a.content.updatedAt ?? a.content.createdAt).getTime()
+  );
+
+  return timeline;
 }
 
 async function getPostInteractions({
@@ -453,12 +477,56 @@ export async function getForYouTimeline({ page = 1, pageSize = 10 }: { page?: nu
     getUserProjects({ followsIds, page, pageSize }),
   ]);
 
-  return {
-    posts,
-    branches,
-    projects,
-    postInteractions,
-    branchInteractions,
-    projectInteractions,
-  };
+  const timeline: ForYouTimelineItem[] = [
+    ...postInteractions.map(
+      (interaction) =>
+        ({
+          type: 'post-interaction',
+          content: { ...interaction, updatedAt: interaction.createdAt },
+        }) as const satisfies ForYouTimelineItem
+    ),
+    ...branchInteractions.map(
+      (interaction) =>
+        ({
+          type: 'branch-interaction',
+          content: { ...interaction, updatedAt: interaction.createdAt },
+        }) as const satisfies ForYouTimelineItem
+    ),
+    ...projectInteractions.map(
+      (interaction) =>
+        ({
+          type: 'project-interaction',
+          content: { ...interaction, updatedAt: interaction.createdAt },
+        }) as const satisfies ForYouTimelineItem
+    ),
+    ...posts.map(
+      (post) =>
+        ({
+          type: 'post',
+          content: post,
+        }) as const satisfies ForYouTimelineItem
+    ),
+    ...branches.map(
+      (branch) =>
+        ({
+          type: 'branch',
+          content: branch,
+        }) as const satisfies ForYouTimelineItem
+    ),
+    ...projects.map(
+      (project) =>
+        ({
+          type: 'project',
+          content: project,
+        }) as const satisfies ForYouTimelineItem
+    ),
+  ];
+
+  timeline.sort(
+    (a, b) =>
+      new Date(b.content.updatedAt ?? b.content.createdAt).getTime() -
+      new Date(a.content.updatedAt ?? a.content.createdAt).getTime()
+  );
+
+  return timeline;
 }
