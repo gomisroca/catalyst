@@ -8,6 +8,7 @@ export default async function UserSettingsModal() {
   if (!session)
     return (
       <Modal>
+        {/* If user is not logged in, show restricted access component */}
         <NotAllowed />;
       </Modal>
     );

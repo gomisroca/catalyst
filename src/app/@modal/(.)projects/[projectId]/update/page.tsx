@@ -7,6 +7,7 @@ import { getProject } from '@/server/queries/projects';
 export default async function UpdateProjectModal({ searchParams }: { searchParams: Promise<{ projectId: string }> }) {
   const session = await auth();
   const project = await getProject((await searchParams).projectId);
+  // If user is not logged in, show restricted access component
   if (!session) return <NotAllowed />;
 
   return (

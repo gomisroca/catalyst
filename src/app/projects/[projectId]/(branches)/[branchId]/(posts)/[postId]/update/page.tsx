@@ -12,6 +12,7 @@ export default async function PostUpdate({
 }) {
   const session = await auth();
   const post = await getPost((await searchParams).postId);
+  // If user is not logged in, show restricted access component
   if (!session) return <NotAllowed />;
 
   return (

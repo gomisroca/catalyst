@@ -6,6 +6,7 @@ import NotAllowed from '../_components/not-allowed';
 
 export default async function UserSettings() {
   const session = await auth();
+  // If user is not logged in, show restricted access component
   if (!session) return <NotAllowed />;
 
   return (

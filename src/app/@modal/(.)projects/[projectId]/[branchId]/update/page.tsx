@@ -11,6 +11,7 @@ export default async function UpdateBranchModal({
 }) {
   const session = await auth();
   const branch = await getBranch((await searchParams).branchId);
+  // If user is not logged in, show restricted access component
   if (!session) return <NotAllowed />;
 
   return (
