@@ -1,7 +1,7 @@
 import { Suspense } from 'react';
 import { searchDatabase } from '@/actions/search';
 import SearchBar from '@/app/_components/search/search-bar';
-import { type ExtendedBranch, type ExtendedPost, type ExtendedProject } from 'types';
+import { type SearchItem } from 'types';
 import { BranchCard, PostCard, ProjectCard } from '@/app/_components/cards';
 import { type User } from 'generated/prisma';
 import Image from 'next/image';
@@ -18,6 +18,7 @@ function SearchResultsSkeleton() {
   );
 }
 
+// Card component for users, uniquely used here
 function UserCard({ user }: { user: User }) {
   return (
     <li
@@ -45,19 +46,19 @@ function UserCard({ user }: { user: User }) {
 
 // Component to display search results
 async function SearchResults({ query }: { query: string }) {
-  const results = await searchDatabase(query);
+  const results: SearchItem[] = await searchDatabase(query); // Execute the server action with the given query
 
   return (
     <div className="mt-6 max-w-3xl min-w-72 space-y-4 md:min-w-md">
       {results.map((data) =>
         data.type === 'project' ? (
-          <ProjectCard key={data.content.id} project={data.content as ExtendedProject} />
+          <ProjectCard key={data.content.id} project={data.content} />
         ) : data.type === 'branch' ? (
-          <BranchCard key={data.content.id} branch={data.content as ExtendedBranch} />
+          <BranchCard key={data.content.id} branch={data.content} />
         ) : data.type === 'post' ? (
-          <PostCard key={data.content.id} post={data.content as ExtendedPost} />
+          <PostCard key={data.content.id} post={data.content} />
         ) : data.type === 'user' ? (
-          <UserCard key={data.content.id} user={data.content as User} />
+          <UserCard key={data.content.id} user={data.content} />
         ) : null
       )}
     </div>

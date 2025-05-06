@@ -3,6 +3,7 @@
 import { auth } from '@/server/auth';
 import { db } from '@/server/db';
 import { toErrorMessage } from '@/utils/errors';
+import { type SearchItem } from 'types';
 
 export async function searchDatabase(query: string) {
   const session = await auth();
@@ -39,6 +40,10 @@ export async function searchDatabase(query: string) {
           },
         ],
       },
+      include: {
+        author: true,
+        permissions: true,
+      },
     });
 
     // Search for branches
@@ -67,6 +72,11 @@ export async function searchDatabase(query: string) {
             ],
           },
         ],
+      },
+      include: {
+        author: true,
+        project: true,
+        permissions: true,
       },
     });
 
@@ -103,6 +113,16 @@ export async function searchDatabase(query: string) {
           },
         ],
       },
+      include: {
+        author: true,
+        media: true,
+        branch: {
+          include: {
+            permissions: true,
+            project: true,
+          },
+        },
+      },
     });
 
     // Search for users
@@ -113,10 +133,10 @@ export async function searchDatabase(query: string) {
     });
 
     return [
-      ...projects.map((project) => ({ type: 'project', content: project })),
-      ...branches.map((branch) => ({ type: 'branch', content: branch })),
-      ...posts.map((post) => ({ type: 'post', content: post })),
-      ...users.map((user) => ({ type: 'user', content: user })),
+      ...projects.map((project) => ({ type: 'project', content: project }) as const satisfies SearchItem),
+      ...branches.map((branch) => ({ type: 'branch', content: branch }) as const satisfies SearchItem),
+      ...posts.map((post) => ({ type: 'post', content: post }) as const satisfies SearchItem),
+      ...users.map((user) => ({ type: 'user', content: user }) as const satisfies SearchItem),
     ];
   } catch (error) {
     console.error('Failed to search database:', error);

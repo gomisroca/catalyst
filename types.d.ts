@@ -1,4 +1,4 @@
-import { type Prisma } from 'generated/prisma';
+import { type User, type Prisma } from 'generated/prisma';
 
 interface Provider {
   name: string;
@@ -43,3 +43,9 @@ type ForYouTimelineItem =
   | { type: 'project-interaction'; content: ExtendedProjectInteraction & { updatedAt: Date } };
 
 type TrendingTimelineItem = { type: 'branch'; content: ExtendedBranch } | { type: 'project'; content: ExtendedProject };
+
+type SearchItem =
+  | { type: 'post'; content: ExtendedPost }
+  | { type: 'branch'; content: ExtendedBranch }
+  | { type: 'project'; content: ExtendedProject }
+  | { type: 'user'; content: User };

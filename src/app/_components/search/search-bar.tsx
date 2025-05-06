@@ -1,25 +1,36 @@
 'use client';
 
+// Libraries
 import { type FormEvent, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { twMerge } from 'tailwind-merge';
-import Button from '@/app/_components/ui/button';
 import { useFormStatus } from 'react-dom';
+import { useSetAtom } from 'jotai';
+import { messageAtom } from '@/atoms/message';
+import { toErrorMessage } from '@/utils/errors';
+// Components
+import Button from '@/app/_components/ui/button';
 import { BsArrowRightCircle } from 'react-icons/bs';
 
 export default function SearchBar({ navbar = false }: { navbar?: boolean }) {
+  const setMessage = useSetAtom(messageAtom);
   const { pending } = useFormStatus();
   const [query, setQuery] = useState('');
   const router = useRouter();
 
   const handleSearch = async (e: FormEvent) => {
     e.preventDefault();
+    // If the query is empty, return
     if (!query.trim()) return;
 
+    // Navigate to the search page with the query as a query parameter
     try {
       router.push(`/search?q=${encodeURIComponent(query)}`);
     } catch (error) {
-      console.error('Error navigating to search page:', error);
+      setMessage({
+        content: toErrorMessage(error, 'Failed to navigate to search page'),
+        error: true,
+      });
     }
   };
 
