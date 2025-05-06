@@ -25,10 +25,11 @@ interface SidebarData {
   bookmarks: Bookmark[];
 }
 
+// Define a function to render the sidebar content
 function SidebarContent({ session, data }: { session: Session | null; data: SidebarData }) {
-  if (!session) {
-    return null;
-  }
+  if (!session) return null; // If the user is not logged in, we have nothing to render
+
+  // Render the user's contributions to projects and branches as well as their bookmarks
   return (
     <nav className="flex min-h-16 w-42 flex-col items-center justify-center gap-2 rounded-lg bg-zinc-100 px-4 py-2 dark:bg-zinc-950">
       <div className="flex w-full flex-col items-center gap-2">
@@ -94,6 +95,7 @@ export default function Sidebar({ session, data }: { session: Session | null; da
   const [parent] = useAutoAnimate();
   const menuRef = useRef<HTMLDivElement>(null);
 
+  // Define a function to handle clicks outside the menu so it closes
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
