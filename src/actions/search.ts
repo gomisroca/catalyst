@@ -1,13 +1,16 @@
 'use server';
 
+// Libraries
 import { auth } from '@/server/auth';
 import { db } from '@/server/db';
 import { toErrorMessage } from '@/utils/errors';
+// Types
 import { type SearchItem } from 'types';
 
 export async function searchDatabase(query: string) {
   const session = await auth();
 
+  // If the query is empty, return an empty array
   if (!query || query.trim() === '') {
     return [];
   }
@@ -132,6 +135,7 @@ export async function searchDatabase(query: string) {
       },
     });
 
+    // Return an array of search items, with each item containing its type and content
     return [
       ...projects.map((project) => ({ type: 'project', content: project }) as const satisfies SearchItem),
       ...branches.map((branch) => ({ type: 'branch', content: branch }) as const satisfies SearchItem),

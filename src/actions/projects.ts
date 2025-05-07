@@ -1,12 +1,15 @@
 'use server';
 
+// Libraries
+import { revalidatePath } from 'next/cache';
+import { z } from 'zod';
 import { db } from '@/server/db';
 import { auth } from '@/server/auth';
-import { revalidatePath } from 'next/cache';
-import { type InteractionType } from 'types';
 import { toErrorMessage } from '@/utils/errors';
-import { z } from 'zod';
+// Types
+import { type InteractionType } from 'types';
 
+// Define the schema for the media data
 const MediaUrlSchema = z
   .string()
   .url('Media URL must be a valid URL')
@@ -18,6 +21,7 @@ const MediaUrlSchema = z
     { message: 'Media URL must point to a supported file type' }
   );
 
+// Define the schema for the project data
 const ProjectSchema = z.object({
   name: z.string().min(3, 'Project name must be at least 3 characters long').max(100, 'Project name is too long'),
   description: z.string().optional(),
@@ -29,6 +33,7 @@ const ProjectSchema = z.object({
 });
 
 export async function createProject(formData: FormData) {
+  // Check if user is signed in, and if they are authorized to create a project
   const session = await auth();
   if (!session?.user) throw new Error('You must be signed in to create a project');
 
@@ -37,6 +42,7 @@ export async function createProject(formData: FormData) {
   const allowCollaborateFlag = formData.get('allowCollaborate') === 'on';
   const allowShareFlag = formData.get('allowShare') === 'on';
 
+  // Validate the data
   const validatedFields = ProjectSchema.safeParse({
     name: formData.get('name'),
     description: formData.get('description'),
@@ -58,6 +64,7 @@ export async function createProject(formData: FormData) {
   if (existingProject) throw new Error('A project with this name already exists');
 
   try {
+    // DB transaction to create the project and its permissions
     const newProjectId = await db.$transaction(async (trx) => {
       const newProject = await trx.project.create({
         data: {
@@ -106,6 +113,8 @@ export async function createProject(formData: FormData) {
     });
 
     console.log(`Project ${newProjectId} created by user ${session.user.id}`);
+
+    // Revalidate the projects page and pass the redirect path to the client
     revalidatePath('/projects');
     return { message: 'Project created successfully.', redirect: `/projects/${newProjectId}` };
   } catch (error) {
@@ -115,6 +124,7 @@ export async function createProject(formData: FormData) {
 }
 
 export async function updateProject({ formData, projectId }: { formData: FormData; projectId: string }) {
+  // Check if user is signed in, and if they are authorized to update the project
   const session = await auth();
   if (!session?.user) throw new Error('You must be signed in to update a project');
 
@@ -132,6 +142,7 @@ export async function updateProject({ formData, projectId }: { formData: FormDat
   const allowCollaborateFlag = formData.get('allowCollaborate') === 'on';
   const allowShareFlag = formData.get('allowShare') === 'on';
 
+  // Validate the data
   const validatedFields = ProjectSchema.safeParse({
     name: formData.get('name') ?? existingProject.name,
     description: formData.get('description') ?? existingProject.description,
@@ -145,6 +156,7 @@ export async function updateProject({ formData, projectId }: { formData: FormDat
 
   const { data } = validatedFields;
   try {
+    // DB transaction to update the project and its permissions
     await db.$transaction(async (trx) => {
       await trx.project.update({
         where: { id: projectId },
@@ -168,6 +180,7 @@ export async function updateProject({ formData, projectId }: { formData: FormDat
       });
     });
     console.log(`Project ${projectId} updated by user ${session.user.id}`);
+    // Revalidate the project page and pass the redirect path to the client
     revalidatePath(`/projects/${projectId}`);
     return { message: 'Project updated successfully.', redirect: `/projects/${projectId}` };
   } catch (error) {
@@ -178,11 +191,26 @@ export async function updateProject({ formData, projectId }: { formData: FormDat
 
 export async function deleteProject({ projectId }: { projectId: string }) {
   try {
+    const session = await auth();
+    if (!session?.user) throw new Error('You must be signed in to delete a project');
+
+    // Check if user is authorized to delete the project
+    const existingProject = await db.project.findFirst({
+      where: {
+        id: projectId,
+        authorId: session.user.id,
+      },
+    });
+    if (!existingProject) throw new Error('You do not have permission to delete this project');
+
+    // Delete the project
     await db.project.delete({
       where: {
         id: projectId,
       },
     });
+
+    // Revalidate the projects page and pass the redirect path to the client
     return { message: 'Project deleted successfully', redirect: '/' };
   } catch (error) {
     console.log('Failed to delete project:', error);
@@ -192,25 +220,28 @@ export async function deleteProject({ projectId }: { projectId: string }) {
 
 export async function interactionAction(type: InteractionType, projectId: string) {
   try {
+    // Check if user is signed in
     const session = await auth();
     if (!session?.user) throw new Error('You must be signed in to interact');
 
+    // Check if user has already interacted with the project
     const where = {
       projectId,
       userId: session.user.id,
       type,
     };
-
     const existing = await db.projectInteraction.findUnique({
       where: { projectId_userId_type: where },
     });
 
+    // If the user has already interacted, delete the interaction and revalidate the project page
     if (existing) {
       await db.projectInteraction.delete({ where: { projectId_userId_type: where } });
       revalidatePath(`/projects/${projectId}`);
       return { message: 'Interaction removed successfully' };
     }
 
+    // Otherwise, create a new interaction and revalidate the project page
     await db.projectInteraction.create({ data: where });
     revalidatePath(`/projects/${projectId}`);
     return { message: 'Interaction added successfully' };

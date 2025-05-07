@@ -1,23 +1,25 @@
 'use server';
 
-import { auth } from '@/server/auth';
-import { db } from '@/server/db';
-import { toErrorMessage } from '@/utils/errors';
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
+import { auth, signIn } from '@/server/auth';
+import { db } from '@/server/db';
 import { env } from '@/env';
-import { signIn } from '@/server/auth';
+import { toErrorMessage } from '@/utils/errors';
 
+// Define the schema for the email sign in data
 const EmailSignInSchema = z.object({
   email: z.string().email('Invalid email').min(1, 'Email is required'),
 });
 
+// Define the schema for the user settings data
 const UserSettingsSchema = z.object({
   name: z.string().min(3, 'User name must be at least 3 characters long').max(100, 'User name is too long').optional(),
   email: z.string().email('Invalid email').optional(),
   picture: z.string().optional(),
 });
 
+// Helper function to check for conflicts with existing users
 async function checkForConflicts(data: { name?: string; email?: string }, userId: string) {
   const conflicts = await db.user.findMany({
     where: {
@@ -43,10 +45,12 @@ export async function signInWithEmail(formData: FormData) {
     // If validation fails, return the errors
     if (!validatedFields.success) throw new Error(validatedFields.error.toString());
 
+    // Sign in the user with the provided email
     await signIn('nodemailer', {
       redirectTo: env.NEXT_PUBLIC_BASE_URL,
       email: validatedFields.data.email,
     });
+
     return { message: 'Check your email for a sign in link.' };
   } catch (error) {
     console.error('Failed to sign in:', error);
@@ -74,6 +78,7 @@ export async function updateUserSettings(formData: FormData) {
 
   const { data } = validatedFields;
   try {
+    // Get the existing user
     const existingUser = await db.user.findUnique({
       where: { id: session.user.id },
     });
@@ -99,6 +104,8 @@ export async function updateUserSettings(formData: FormData) {
     });
 
     console.log(`User settings updated by user ${session.user.id}`);
+
+    // Revalidate the profile page and pass the redirect path to the client
     revalidatePath(`/profile/${updatedUser.id}`);
     return { message: 'Settings updated successfully.', redirect: `/profile/${session.user.id}` };
   } catch (error) {
@@ -109,19 +116,21 @@ export async function updateUserSettings(formData: FormData) {
 
 export async function followUser({ followedId }: { followedId: string }) {
   try {
+    // Get the user's session, if they're not signed in, return an error
     const session = await auth();
     if (!session?.user) throw new Error('You must be signed in to follow or unfollow a user');
 
+    // Check if the user is already following the target user
     const where = {
       followerId: session.user.id,
       followedId,
     };
-
     const follow = await db.follow.findUnique({
       where: {
         followerId_followedId: where,
       },
     });
+    // If the user is already following the target user, delete the follow relationship and revalidate the profile page
     if (follow) {
       await db.follow.delete({
         where: { followerId_followedId: where },
@@ -130,8 +139,8 @@ export async function followUser({ followedId }: { followedId: string }) {
       return { message: 'User unfollowed successfully' };
     }
 
+    // Otherwise, create a new follow relationship and revalidate the profile page
     await db.follow.create({ data: where });
-
     revalidatePath(`/profile/${followedId}`);
     return { message: 'User followed successfully' };
   } catch (error) {

@@ -1,13 +1,17 @@
 'use server';
 
-import { db } from '@/server/db';
-import { auth } from '@/server/auth';
-import { type InteractionType } from 'types';
-import { toErrorMessage } from '@/utils/errors';
+// Libraries
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
+import { db } from '@/server/db';
+import { auth } from '@/server/auth';
+import { toErrorMessage } from '@/utils/errors';
+// Queries
 import { getProject } from '@/server/queries/projects';
+// Types
+import { type InteractionType } from 'types';
 
+// Define the schema for the branch data
 const BranchSchema = z.object({
   name: z.string().min(3, 'Branch name must be at least 3 characters long').max(100, 'Branch name is too long'),
   description: z.string().optional(),
@@ -18,15 +22,8 @@ const BranchSchema = z.object({
   allowBranch: z.boolean(),
 });
 
-type UpdateBranchParams = {
-  formData: FormData;
-  ids: {
-    projectId: string;
-    branchId: string;
-  };
-};
-
 export async function createBranch(formData: FormData, projectId: string) {
+  // Check if user is signed in, and if they are authorized to create a branch
   const session = await auth();
   if (!session?.user) throw new Error('You must be signed in to create a branch');
 
@@ -40,6 +37,7 @@ export async function createBranch(formData: FormData, projectId: string) {
   const allowShareFlag = formData.get('allowShare') === 'on';
   const allowBranchFlag = formData.get('allowBranch') === 'on';
 
+  // Validate the data
   const validatedFields = BranchSchema.safeParse({
     name: formData.get('name'),
     description: formData.get('description'),
@@ -61,6 +59,7 @@ export async function createBranch(formData: FormData, projectId: string) {
   if (existingBranch) throw new Error('A branch with this name already exists in this project');
 
   try {
+    // DB transaction to create the branch and its permissions
     const newBranchId = await db.$transaction(async (trx) => {
       const newBranch = await trx.branch.create({
         data: {
@@ -89,6 +88,8 @@ export async function createBranch(formData: FormData, projectId: string) {
     });
 
     console.log(`Branch ${newBranchId} created by user ${session.user.id}`);
+
+    // Revalidate the project page and pass the redirect path to the client
     revalidatePath(`/projects/${projectId}`);
     return { message: 'Branch created successfully.', redirect: `/projects/${projectId}/${newBranchId}` };
   } catch (error) {
@@ -97,10 +98,20 @@ export async function createBranch(formData: FormData, projectId: string) {
   }
 }
 
+// Define the structure of the data expected by the server action
+type UpdateBranchParams = {
+  formData: FormData;
+  ids: {
+    projectId: string;
+    branchId: string;
+  };
+};
+
 export async function updateBranch(params: UpdateBranchParams) {
   const { projectId, branchId } = params.ids;
   const formData = params.formData;
 
+  // Check if user is signed in, and if they are authorized to update the branch
   const session = await auth();
   if (!session?.user) throw new Error('You must be signed in to update a branch');
 
@@ -120,6 +131,7 @@ export async function updateBranch(params: UpdateBranchParams) {
   const allowShareFlag = formData.get('allowShare') === 'on';
   const allowBranchFlag = formData.get('allowBranch') === 'on';
 
+  // Validate the data
   const validatedFields = BranchSchema.safeParse({
     name: formData.get('name') ?? existingBranch.name,
     description: formData.get('description') ?? existingBranch.description,
@@ -134,6 +146,7 @@ export async function updateBranch(params: UpdateBranchParams) {
 
   const { data } = validatedFields;
   try {
+    // DB transaction to update the branch and its permissions
     await db.$transaction(async (trx) => {
       await trx.branch.update({
         where: { id: branchId },
@@ -158,6 +171,8 @@ export async function updateBranch(params: UpdateBranchParams) {
     });
 
     console.log(`Branch ${branchId} updated by user ${session.user.id}`);
+
+    // Revalidate the project page and pass the redirect path to the client
     revalidatePath(`/projects/${projectId}`);
     return { message: 'Branch updated successfully.', redirect: `/projects/${projectId}/${branchId}` };
   } catch (error) {
@@ -168,11 +183,27 @@ export async function updateBranch(params: UpdateBranchParams) {
 
 export async function deleteBranch({ projectId, branchId }: { projectId: string; branchId: string }) {
   try {
+    const session = await auth();
+    if (!session?.user) throw new Error('You must be signed in to delete a branch');
+
+    // Check if user is authorized to delete the branch
+    const existingBranch = await db.branch.findFirst({
+      where: {
+        id: branchId,
+        authorId: session.user.id,
+        projectId,
+      },
+    });
+    if (!existingBranch) throw new Error('You do not have permission to delete this branch');
+
+    // Delete the branch
     await db.branch.delete({
       where: {
         id: branchId,
       },
     });
+
+    // Revalidate the project page and pass the redirect path to the client
     revalidatePath(`/projects/${projectId}}`);
     return { message: 'Branch deleted successfully', redirect: `/projects/${projectId}` };
   } catch (error) {
@@ -183,25 +214,28 @@ export async function deleteBranch({ projectId, branchId }: { projectId: string;
 
 export async function interactionAction(type: InteractionType, projectId: string, branchId: string) {
   try {
+    // Check if user is signed in
     const session = await auth();
     if (!session?.user) throw new Error('You must be signed in to interact with a branch');
 
+    // Check if user has already interacted with the branch
     const where = {
       branchId,
       userId: session.user.id,
       type,
     };
-
     const existing = await db.branchInteraction.findUnique({
       where: { branchId_userId_type: where },
     });
 
+    // If the user has already interacted, delete the interaction and revalidate the branch page
     if (existing) {
       await db.branchInteraction.delete({ where: { branchId_userId_type: where } });
       revalidatePath(`/projects/${projectId}/${branchId}`);
       return { message: 'Interaction removed successfully' };
     }
 
+    // Otherwise, create a new interaction and revalidate the branch page
     await db.branchInteraction.create({ data: where });
     revalidatePath(`/projects/${projectId}/${branchId}`);
     return { message: 'Interaction added successfully' };
@@ -214,6 +248,8 @@ export async function interactionAction(type: InteractionType, projectId: string
 export async function goToBranch(formData: FormData) {
   const projectId = formData.get('projectId');
   const branchId = formData.get('branchId');
+
+  // Revalidate the branch page and pass the redirect path to the client
   return {
     message: 'Redirecting...',
     redirect: `/projects/${projectId as string}/${branchId as string}`,
