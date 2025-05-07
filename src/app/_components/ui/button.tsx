@@ -1,5 +1,12 @@
 'use client';
 
+/**
+ * Button component with established styling and functionality.
+ *
+ * @example
+ * <Button type="submit" name="Submit" onClick={() => console.log('Button clicked!')}>Submit</Button>
+ */
+
 import { twMerge } from 'tailwind-merge';
 
 interface Props {

@@ -1,5 +1,12 @@
 'use client';
 
+/**
+ * Display a message to the user, with an optional error state. Uses jotai's atoms to store the message.
+ *
+ * @example
+ * setMessage({ content: 'Hello, world!', error: false })
+ */
+
 import { messageAtom } from '@/atoms/message';
 import { useAtom } from 'jotai';
 import { usePathname } from 'next/navigation';
@@ -7,7 +14,7 @@ import { useEffect } from 'react';
 import { twMerge } from 'tailwind-merge';
 
 const Message = () => {
-  const [message, setMessage] = useAtom(messageAtom);
+  const [message, setMessage] = useAtom(messageAtom); // Hook to get and set the message atom
 
   const pathname = usePathname(); // Get the current path
 

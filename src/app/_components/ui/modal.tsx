@@ -1,5 +1,12 @@
 'use client';
 
+/**
+ * Modal component that displays a dialog box with a backdrop. Uses react-dom's createPortal to render the modal in the background.
+ *
+ * @example
+ * <Modal><h1>Hello, world!</h1></Modal>
+ */
+
 import { type ElementRef, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { createPortal } from 'react-dom';
@@ -12,6 +19,7 @@ export default function Modal({ children }: { children: React.ReactNode }) {
   const dialogRef = useRef<ElementRef<'dialog'>>(null);
   const [parent] = useAutoAnimate();
 
+  // Add overflow hidden to body when modal is open
   useEffect(() => {
     const body = document.body;
     if (dialogRef.current?.open) {
@@ -23,12 +31,14 @@ export default function Modal({ children }: { children: React.ReactNode }) {
     };
   }, []);
 
+  // Show the modal when the component is mounted
   useEffect(() => {
     if (!dialogRef.current?.open) {
       dialogRef.current?.showModal();
     }
   }, []);
 
+  // On dismiss, go back to the previous page, which will be the background page
   function onDismiss() {
     router.back();
   }
