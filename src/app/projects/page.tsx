@@ -1,6 +1,6 @@
 import { Suspense } from 'react';
 import ProjectList from './project-list';
-import { LoadingSpinner } from '../_components/loading-spinner';
+import { LoadingSpinner } from '../_components/ui/loading-spinner';
 
 export default async function ProjectsPage() {
   return (

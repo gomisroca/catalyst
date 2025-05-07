@@ -1,4 +1,4 @@
-import { LoadingSpinner } from '@/app/_components/loading-spinner';
+import { LoadingSpinner } from '@/app/_components/ui/loading-spinner';
 import Image from 'next/image';
 import { Suspense } from 'react';
 import { auth } from '@/server/auth';

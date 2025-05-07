@@ -13,7 +13,7 @@ import { toErrorMessage } from '@/utils/errors';
 import { fetchTrendingTimeline } from '@/actions/timelines';
 // Components
 import { BranchCard, ProjectCard } from '@/app/_components/cards';
-import { LoadingSpinner } from '@/app/_components/loading-spinner';
+import { LoadingSpinner } from '@/app/_components/ui/loading-spinner';
 // Types
 import { type TrendingTimelineItem } from 'types';
 

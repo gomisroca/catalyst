@@ -13,7 +13,7 @@ import { toErrorMessage } from '@/utils/errors';
 // Actions
 import { fetchForYouTimeline } from '@/actions/timelines';
 // Components
-import { LoadingSpinner } from '@/app/_components/loading-spinner';
+import { LoadingSpinner } from '@/app/_components/ui/loading-spinner';
 import {
   BranchCard,
   BranchInteractionCard,

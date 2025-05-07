@@ -1,3 +1,11 @@
+/**
+ * Loading spinner component with customizable size and color.
+ * 
+ * @example
+ * <LoadingSpinner size="small" />
+ */
+
+// Options for size and color
 interface LoadingSpinnerProps {
   size?: 'small' | 'medium' | 'large';
   color?: string;

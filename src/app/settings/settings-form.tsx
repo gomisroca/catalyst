@@ -8,7 +8,7 @@ import { useRef, useState } from 'react';
 import { updateUserSettings } from '@/actions/users';
 import { type User } from 'next-auth';
 import Image from 'next/image';
-import SubmitButton from '@/app/_components/submit-button';
+import SubmitButton from '@/app/_components/ui/submit-button';
 import { useRedirect } from '@/hooks/useRedirect';
 import { type ActionReturn } from 'types';
 import { toErrorMessage } from '@/utils/errors';

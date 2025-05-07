@@ -2,7 +2,7 @@
 
 import { useRef } from 'react';
 import Form from 'next/form';
-import SubmitButton from '@/app/_components/submit-button';
+import SubmitButton from '@/app/_components/ui/submit-button';
 import { signInWithEmail } from '@/actions/users';
 import { useSetAtom } from 'jotai';
 import { messageAtom } from '@/atoms/message';

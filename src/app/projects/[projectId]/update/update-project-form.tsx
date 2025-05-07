@@ -1,7 +1,7 @@
 'use client';
 
 import Form from 'next/form';
-import SubmitButton from '@/app/_components/submit-button';
+import SubmitButton from '@/app/_components/ui/submit-button';
 import { useUploadThing } from '@/utils/uploadthing';
 import { useSetAtom } from 'jotai';
 import { messageAtom } from '@/atoms/message';

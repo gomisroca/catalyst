@@ -1,8 +1,17 @@
 'use client';
 
-import Button from '@/app/_components/ui/button';
+/**
+ * Button to submit a form. Uses `useFormStatus` hook to determine if the form is pending or not.
+ * 
+ * @example
+ * <SubmitButton baseText="Submit" pendingText="Submitting..." />
+ */
+
+// Libraries
 import { useFormStatus } from 'react-dom';
 import { twMerge } from 'tailwind-merge';
+// Components
+import Button from '@/app/_components/ui/button';
 
 export default function SubmitButton({
   baseText,
