@@ -1,7 +1,17 @@
+/**
+ * Card components for displaying projects, branches, posts, and interactions.
+ *
+ * @example
+ * <ProjectCard project={project} />
+ */
+
+// Libraries
+import { format } from 'date-fns';
+// Components
 import Image from 'next/image';
 import Link from 'next/link';
 import { FaBookmark, FaCodeBranch, FaShare, FaStar } from 'react-icons/fa6';
-import { format } from 'date-fns';
+// Types
 import {
   type ExtendedBranch,
   type ExtendedPost,
@@ -11,8 +21,12 @@ import {
   type ExtendedProjectInteraction,
 } from 'types';
 
+// Helper function to format date
+function formatDate(date: Date) {
+  return format(date, 'dd/MM/yyyy');
+}
+
 export function ProjectCard({ project }: { project: ExtendedProject }) {
-  const formattedDate = format(new Date(project.updatedAt!), 'dd/MM/yyyy');
   return (
     <li
       key={project.id}
@@ -20,7 +34,7 @@ export function ProjectCard({ project }: { project: ExtendedProject }) {
       {project.picture && (
         <Image
           src={project.picture}
-          alt="Project Picture"
+          alt={project.name + ' Picture'}
           width={150}
           height={150}
           className="rounded-l-lg transition duration-200 ease-in-out group-hover:contrast-125"
@@ -33,7 +47,9 @@ export function ProjectCard({ project }: { project: ExtendedProject }) {
             className="w-full leading-3 font-bold transition duration-200 ease-in-out hover:scale-105 hover:text-rose-500 md:w-auto md:text-lg dark:hover:text-rose-700">
             {project.name}
           </Link>
-          <p className="w-full text-sm leading-3 text-zinc-400 md:w-auto md:text-base">{formattedDate}</p>
+          <p className="w-full text-sm leading-3 text-zinc-400 md:w-auto md:text-base">
+            {formatDate(project.updatedAt!)}
+          </p>
         </header>
         <div className="my-2 line-clamp-5 px-2 md:px-4">{project.description}</div>
       </section>
@@ -42,7 +58,6 @@ export function ProjectCard({ project }: { project: ExtendedProject }) {
 }
 
 export function BranchCard({ branch }: { branch: ExtendedBranch }) {
-  const formattedDate = format(new Date(branch.updatedAt!), 'dd/MM/yyyy');
   return (
     <li
       key={branch.id}
@@ -50,7 +65,7 @@ export function BranchCard({ branch }: { branch: ExtendedBranch }) {
       {branch.project.picture && (
         <Image
           src={branch.project.picture}
-          alt="Project Picture"
+          alt={branch.project.name + ' Picture'}
           width={150}
           height={150}
           className="rounded-l-lg transition duration-200 ease-in-out group-hover:contrast-125"
@@ -71,7 +86,9 @@ export function BranchCard({ branch }: { branch: ExtendedBranch }) {
               <FaCodeBranch size={14} /> {branch.name}
             </Link>
           </div>
-          <p className="w-full text-sm leading-3 text-zinc-400 md:w-auto md:text-base">{formattedDate}</p>
+          <p className="w-full text-sm leading-3 text-zinc-400 md:w-auto md:text-base">
+            {formatDate(branch.updatedAt!)}
+          </p>
         </header>
         <div className="my-2 line-clamp-5 px-2 md:px-4">{branch.description}</div>
       </section>
@@ -122,6 +139,7 @@ export function PostCard({ post }: { post: ExtendedPost }) {
   );
 }
 
+// Icons for interactions
 const interactionIcons = {
   LIKE: {
     text: 'Liked',
