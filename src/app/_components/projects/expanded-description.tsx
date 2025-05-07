@@ -1,5 +1,9 @@
 'use client';
 
+/**
+ * Expandable description component for projects.
+ */
+
 // Libraries
 import { useState } from 'react';
 import { useAutoAnimate } from '@formkit/auto-animate/react';

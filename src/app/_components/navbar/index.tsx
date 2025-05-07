@@ -1,3 +1,7 @@
+/**
+ * Navbar component with links to the home page. Passes the session to the NavMenu component server-side.
+ */
+
 // Libraries
 import { type Session } from 'next-auth';
 // Components

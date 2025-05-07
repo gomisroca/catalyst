@@ -1,5 +1,9 @@
 'use client';
 
+/**
+ * Renders two tabs for the timelines: Trending and For You.
+ */
+
 // Libraries
 import { usePathname } from 'next/navigation';
 import { twMerge } from 'tailwind-merge';

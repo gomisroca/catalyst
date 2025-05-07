@@ -1,5 +1,9 @@
 'use client';
 
+/**
+ * Expandable user menu and search bar.
+ */
+
 // Libraries
 import { useEffect, useRef, useState } from 'react';
 import { useAutoAnimate } from '@formkit/auto-animate/react';

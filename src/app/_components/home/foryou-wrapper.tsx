@@ -1,3 +1,7 @@
+/**
+ * Server-side wrapper for the ForYouTimeline component. Fetches initial data for the timeline from the server and passes it to the client component.
+ */
+
 // Libraries
 import { auth } from '@/server/auth';
 // Actions

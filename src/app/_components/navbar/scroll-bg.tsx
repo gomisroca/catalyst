@@ -1,5 +1,9 @@
 'use client';
 
+/**
+ * Component to add a background color to the navbar when the user scrolls.
+ */
+
 // Libraries
 import { useState, useEffect } from 'react';
 import { twMerge } from 'tailwind-merge';

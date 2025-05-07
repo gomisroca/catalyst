@@ -1,5 +1,9 @@
 'use client';
 
+/**
+ * Renders a timeline of projects, branches, posts, and interactions for the user.
+ */
+
 // Libraries
 import { Fragment, useEffect, useRef, useState } from 'react';
 import { type Session } from 'next-auth';

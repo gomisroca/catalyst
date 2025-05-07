@@ -1,5 +1,9 @@
 'use client';
 
+/**
+ * Component for the author actions of a project, branch, or post, such as deleting or updating.
+ */
+
 // Libraries
 import { useSetAtom } from 'jotai';
 import { messageAtom } from '@/atoms/message';

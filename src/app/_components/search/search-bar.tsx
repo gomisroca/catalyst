@@ -1,5 +1,9 @@
 'use client';
 
+/**
+ * Search bar component with a search button.
+ */
+
 // Libraries
 import { type FormEvent, useState } from 'react';
 import { useRouter } from 'next/navigation';

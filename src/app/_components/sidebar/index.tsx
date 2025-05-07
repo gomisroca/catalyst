@@ -1,5 +1,9 @@
 'use client';
 
+/**
+ * Client-side component for the sidebar. Renders the user's contributions to projects and branches as well as their bookmarks.
+ */
+
 // Libraries
 import { useEffect, useRef, useState } from 'react';
 import { type Session } from 'next-auth';

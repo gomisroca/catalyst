@@ -1,5 +1,9 @@
 'use client';
 
+/**
+ * Renders a timeline of trending projects and branches.
+ */
+
 // Libraries
 import { useState, useEffect, useRef, Fragment } from 'react';
 import { messageAtom } from '@/atoms/message';
