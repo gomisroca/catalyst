@@ -27,8 +27,14 @@ interface Bookmark {
 }
 interface SidebarData {
   contributions: {
-    projects: ExtendedProject[];
-    branches: ExtendedBranch[];
+    projects: {
+      type: 'project';
+      content: ExtendedProject;
+    }[];
+    branches: {
+      type: 'branch';
+      content: ExtendedBranch;
+    }[];
   };
   bookmarks: Bookmark[];
 }
@@ -107,9 +113,9 @@ function SidebarContent({ session, data }: { session: Session | null; data: Side
   // Render the user's contributions to projects and branches as well as their bookmarks
   return (
     <nav className="flex min-h-16 w-42 flex-col items-center justify-center gap-2 rounded-lg bg-zinc-100 px-4 py-2 dark:bg-zinc-950">
-      <SidebarProjects projects={data.contributions.projects} />
+      <SidebarProjects projects={data.contributions.projects.map((project) => project.content)} />
       <hr className="w-full border border-zinc-300 dark:border-zinc-700" />
-      <SidebarBranches branches={data.contributions.branches} />
+      <SidebarBranches branches={data.contributions.branches.map((branch) => branch.content)} />
       <hr className="w-full border border-zinc-300 dark:border-zinc-700" />
       <SidebarBookmarks bookmarks={data.bookmarks} />
     </nav>
