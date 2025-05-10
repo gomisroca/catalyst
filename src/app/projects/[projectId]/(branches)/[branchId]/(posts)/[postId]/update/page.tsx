@@ -1,4 +1,4 @@
-import { LoadingSpinner } from '@/app/_components/ui/loading-spinner';
+import LoadingSpinner from '@/app/_components/ui/loading-spinner';
 import { auth } from '@/server/auth';
 import { Suspense } from 'react';
 import UpdatePostForm from './update-post-form';

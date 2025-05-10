@@ -4,7 +4,7 @@ import { auth } from '@/server/auth';
 // Queries
 import { getUserFollowers, getUserProfile } from '@/server/queries/users';
 // Components
-import { LoadingSpinner } from '@/app/_components/ui/loading-spinner';
+import LoadingSpinner from '@/app/_components/ui/loading-spinner';
 import Image from 'next/image';
 import FollowMenu from '@/app/profile/[userId]/follow-menu';
 import { FaStar } from 'react-icons/fa6';

@@ -1,4 +1,4 @@
-import { LoadingSpinner } from '@/app/_components/ui/loading-spinner';
+import LoadingSpinner from '@/app/_components/ui/loading-spinner';
 import { getProject } from '@/server/queries/projects';
 import Image from 'next/image';
 import { Suspense } from 'react';
