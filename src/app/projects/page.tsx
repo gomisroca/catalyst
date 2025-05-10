@@ -1,14 +1,16 @@
-import { Suspense } from 'react';
-import ProjectList from './project-list';
-import { LoadingSpinner } from '../_components/ui/loading-spinner';
+// Queries
+import { getProjects } from '@/server/queries/projects';
+// Components
+import { ProjectCard } from '@/app/_components/cards';
 
-export default async function ProjectsPage() {
+export default async function ProjectList() {
+  const data = await getProjects();
+
   return (
-    <div>
-      <h1 className="mb-4 text-xl font-bold">Projects</h1>
-      <Suspense fallback={<LoadingSpinner />}>
-        <ProjectList />
-      </Suspense>
+    <div className="flex flex-col gap-2">
+      {data.map((project) => (
+        <ProjectCard key={project.id} project={project} />
+      ))}
     </div>
   );
 }
