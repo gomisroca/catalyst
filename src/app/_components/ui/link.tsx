@@ -1,3 +1,10 @@
+/**
+ * Wrapper of Next's Link component with established styling and functionality.
+ *
+ * @example
+ * <Link href="/about" className="w-full">About</Link>
+ */
+
 import NextLink from 'next/link';
 import { twMerge } from 'tailwind-merge';
 

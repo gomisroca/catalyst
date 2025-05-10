@@ -2,7 +2,7 @@
 
 import Button from '@/app/_components/ui/button';
 import { useParams } from 'next/navigation';
-import { interactionAction } from './actions';
+import { interactionAction } from '@/actions/posts';
 import { useSetAtom } from 'jotai';
 import { messageAtom } from '@/atoms/message';
 import { FaBookmark, FaEye, FaShare, FaStar } from 'react-icons/fa6';
@@ -111,6 +111,7 @@ export default function PostInteraction({
 
   return (
     <Button
+      name={type}
       disabled={!user}
       onClick={() => handleInteraction(type)}
       className={twMerge(

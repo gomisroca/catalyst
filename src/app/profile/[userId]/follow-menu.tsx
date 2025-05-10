@@ -1,21 +1,25 @@
 'use client';
 
-import Button from '@/app/_components/ui/button';
+// Libraries
 import { type Session } from 'next-auth';
-import { BsHeart, BsHeartFill } from 'react-icons/bs';
-import { followUser } from './actions';
+import { followUser } from '@/actions/users';
 import { useParams, useRouter } from 'next/navigation';
 import { messageAtom } from '@/atoms/message';
 import { useSetAtom } from 'jotai';
 import { startTransition, useOptimistic } from 'react';
-import { type ActionReturn, type ExtendedFollow } from 'types';
 import { toErrorMessage } from '@/utils/errors';
+// Components
+import { BsHeart, BsHeartFill } from 'react-icons/bs';
+import Button from '@/app/_components/ui/button';
+// Types
+import { type ActionReturn, type ExtendedFollow } from 'types';
 
 export default function FollowMenu({ session, followers }: { session: Session | null; followers: ExtendedFollow[] }) {
   const navigate = useRouter();
   const params = useParams<{ userId: string }>();
   const setMessage = useSetAtom(messageAtom);
 
+  // Optimistic followers state
   const [optimisticFollowers, setOptimisticFollowers] = useOptimistic(
     followers,
     (
@@ -54,6 +58,7 @@ export default function FollowMenu({ session, followers }: { session: Session | 
     startTransition(async () => {
       try {
         if (!session?.user.id) return;
+        // Update the optimistic followers state depending on the action
         if (isFollowing) {
           setOptimisticFollowers({
             action: 'remove',
@@ -111,7 +116,8 @@ export default function FollowMenu({ session, followers }: { session: Session | 
       disabled={!session?.user.id}
       onClick={() =>
         session?.user.id === params.userId ? navigate.push(`/profile/${params.userId}/followers`) : handleFollow()
-      }>
+      }
+      name="Follow">
       {isFollowing ? <BsHeartFill size={16} /> : <BsHeart size={16} />}
     </Button>
   );

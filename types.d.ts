@@ -1,4 +1,4 @@
-import { type Prisma } from 'generated/prisma';
+import { type User, type Prisma } from 'generated/prisma';
 
 interface Provider {
   name: string;
@@ -33,3 +33,19 @@ type ActionReturn = {
   error?: boolean;
   redirect?: string;
 };
+
+type ForYouTimelineItem =
+  | { type: 'post'; content: ExtendedPost }
+  | { type: 'branch'; content: ExtendedBranch }
+  | { type: 'project'; content: ExtendedProject }
+  | { type: 'post-interaction'; content: ExtendedPostInteraction & { updatedAt: Date } }
+  | { type: 'branch-interaction'; content: ExtendedBranchInteraction & { updatedAt: Date } }
+  | { type: 'project-interaction'; content: ExtendedProjectInteraction & { updatedAt: Date } };
+
+type TrendingTimelineItem = { type: 'branch'; content: ExtendedBranch } | { type: 'project'; content: ExtendedProject };
+
+type SearchItem =
+  | { type: 'post'; content: ExtendedPost }
+  | { type: 'branch'; content: ExtendedBranch }
+  | { type: 'project'; content: ExtendedProject }
+  | { type: 'user'; content: User };

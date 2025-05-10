@@ -28,11 +28,13 @@ type Story = StoryObj<typeof meta>;
 export const Primary: Story = {
   args: {
     children: 'Button',
+    name: 'primary',
   },
 };
 
 export const Disabled: Story = {
   args: {
+    name: 'disabled',
     children: 'Button',
     disabled: true,
   },
@@ -40,6 +42,7 @@ export const Disabled: Story = {
 
 export const CustomClassName: Story = {
   args: {
+    name: 'custom-class-name',
     children: 'Button',
     className: 'bg-rose-500 text-white',
   },

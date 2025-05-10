@@ -20,9 +20,6 @@ const meta = {
     // More on how to position stories at: https://storybook.js.org/docs/configure/story-layout
     layout: 'fullscreen',
   },
-  args: {
-    session: mockSesion,
-  },
 } satisfies Meta<typeof Navbar>;
 
 export default meta;
@@ -34,4 +31,8 @@ export const LoggedIn: Story = {
   },
 };
 
-export const LoggedOut: Story = {};
+export const LoggedOut: Story = {
+  args: {
+    session: null,
+  },
+};

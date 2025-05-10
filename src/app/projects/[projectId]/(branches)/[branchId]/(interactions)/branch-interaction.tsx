@@ -2,7 +2,7 @@
 
 import Button from '@/app/_components/ui/button';
 import { useParams } from 'next/navigation';
-import { interactionAction } from './actions';
+import { interactionAction } from '@/actions/branches';
 import { useSetAtom } from 'jotai';
 import { messageAtom } from '@/atoms/message';
 import { FaBookmark, FaEye, FaShare, FaStar } from 'react-icons/fa6';
@@ -114,7 +114,8 @@ export default function BranchInteraction({
       className={twMerge(
         'flex h-6 items-center justify-center gap-2 px-2 text-sm font-semibold',
         hasInteracted && 'from-sky-300 dark:from-sky-700'
-      )}>
+      )}
+      name={type}>
       {types[type]} {optimisticInteractions?.length}
     </Button>
   );

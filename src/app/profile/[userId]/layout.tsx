@@ -1,12 +1,15 @@
-import { LoadingSpinner } from '@/app/_components/loading-spinner';
-import Image from 'next/image';
+// Libraries
 import { Suspense } from 'react';
 import { auth } from '@/server/auth';
+// Queries
 import { getUserFollowers, getUserProfile } from '@/server/queries/users';
-import FollowMenu from './follow-menu';
+// Components
+import LoadingSpinner from '@/app/_components/ui/loading-spinner';
+import Image from 'next/image';
+import FollowMenu from '@/app/profile/[userId]/follow-menu';
 import { FaStar } from 'react-icons/fa6';
-import Link from '@/app/_components/ui/link';
 import { BsPersonFill } from 'react-icons/bs';
+import Link from '@/app/_components/ui/link';
 
 export default async function ProfileLayout({
   params,

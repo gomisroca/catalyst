@@ -1,12 +1,12 @@
 'use client';
 
 import Form from 'next/form';
-import SubmitButton from '@/app/_components/submit-button';
+import SubmitButton from '@/app/_components/ui/submit-button';
 import { useUploadThing } from '@/utils/uploadthing';
 import { useSetAtom } from 'jotai';
 import { messageAtom } from '@/atoms/message';
 import { useRef, useState } from 'react';
-import { updateProject } from './actions';
+import { updateProject } from '@/actions/projects';
 import { useParams } from 'next/navigation';
 import Image from 'next/image';
 import { type Prisma } from 'generated/prisma';

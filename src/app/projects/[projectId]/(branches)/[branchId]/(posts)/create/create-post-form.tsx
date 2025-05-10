@@ -1,12 +1,12 @@
 'use client';
 
 import Form from 'next/form';
-import SubmitButton from '@/app/_components/submit-button';
+import SubmitButton from '@/app/_components/ui/submit-button';
 import { useSetAtom } from 'jotai';
 import { messageAtom } from '@/atoms/message';
 import { useRef, useState } from 'react';
 import { useParams } from 'next/navigation';
-import { createPost } from './actions';
+import { createPost } from '@/actions/posts';
 import { useUploadThing } from '@/utils/uploadthing';
 import { type ActionReturn } from 'types';
 import { toErrorMessage } from '@/utils/errors';

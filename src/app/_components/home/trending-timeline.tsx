@@ -1,79 +1,103 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { fetchTrendingTimeline } from './actions';
+/**
+ * Renders a timeline of trending projects and branches.
+ */
+
+// Libraries
+import { useState, useEffect, useRef, Fragment } from 'react';
+import { messageAtom } from '@/atoms/message';
+import { useSetAtom } from 'jotai';
+import { toErrorMessage } from '@/utils/errors';
+// Actions
+import { fetchTrendingTimeline } from '@/actions/timelines';
+// Components
 import { BranchCard, ProjectCard } from '@/app/_components/cards';
-import Button from '@/app/_components/ui/button';
-import { type ExtendedBranch, type ExtendedProject } from 'types';
+import LoadingSpinner from '@/app/_components/ui/loading-spinner';
+// Types
+import { type TrendingTimelineItem } from 'types';
 
-type TrendingTimelineData = {
-  projects: ExtendedProject[];
-  branches: ExtendedBranch[];
-};
+// Define the structure of the data expected from the server action
 type TrendingTimelineProps = {
-  initialData: TrendingTimelineData;
+  initialData: TrendingTimelineItem[];
 };
-
-function sortTimelineData(data: TrendingTimelineData) {
-  const combinedData = [
-    ...data.projects.map((project) => ({ type: 'project', content: project })),
-    ...data.branches.map((branch) => ({ type: 'branch', content: branch })),
-  ];
-  return combinedData.sort(
-    (a, b) =>
-      new Date(b.content.updatedAt ?? b.content.createdAt).getTime() -
-      new Date(a.content.updatedAt ?? a.content.createdAt).getTime()
-  );
-}
 
 export default function TrendingTimeline({ initialData }: TrendingTimelineProps) {
-  const [page, setPage] = useState(2);
+  const [isLoading, setIsLoading] = useState(false); // Track loading state
+  const [page, setPage] = useState(2); // Track pagination state
+  const setMessage = useSetAtom(messageAtom); // Hook to set the message atom
+  const observerRef = useRef<HTMLDivElement | null>(null); // Ref to the div element
 
-  const [timelineData, setTimelineData] = useState<
-    {
-      type: string;
-      content: ExtendedProject | ExtendedBranch;
-    }[]
-  >([]);
+  // Initialize timeline data state (merged and sorted)
+  const [timelineData, setTimelineData] = useState<TrendingTimelineItem[]>(initialData);
 
+  // Load more data when page changes (except for initial page 1)
   useEffect(() => {
-    const sortedData = sortTimelineData(initialData);
-    setTimelineData(sortedData);
-  }, [initialData]);
+    let isMounted = true;
 
-  useEffect(() => {
     const loadData = async () => {
-      const data: TrendingTimelineData | null = await fetchTrendingTimeline({
-        page,
-        pageSize: 3,
-      });
-      if (data) {
-        const sortedData = sortTimelineData(data);
-        setTimelineData((prevData) => [...prevData, ...sortedData]);
+      setIsLoading(true);
+      try {
+        const data = await fetchTrendingTimeline({
+          page,
+          pageSize: 3,
+        });
+        if (data && isMounted) {
+          // Append new data to existing timeline
+          setTimelineData((prevData) => [...prevData, ...data]);
+        }
+      } catch (err) {
+        setMessage({
+          content: toErrorMessage(err, 'Failed to load timeline data'),
+          error: true,
+        });
+      } finally {
+        setIsLoading(false);
       }
     };
 
     if (page > 1) {
       void loadData();
     }
+
+    return () => {
+      isMounted = false;
+    };
   }, [page]);
 
-  const handleLoadMore = () => {
-    setPage((prevPage) => prevPage + 1);
-  };
+  // Handle loading more data via intersection observer
+  useEffect(() => {
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry?.isIntersecting) {
+        setPage((prevPage) => prevPage + 1);
+      }
+    });
 
+    if (observerRef.current) {
+      observer.observe(observerRef.current);
+    }
+    const current = observerRef.current;
+    return () => {
+      if (current) {
+        observer.disconnect();
+      }
+    };
+  }, []);
+
+  // Render timeline data
   return (
     <div className="flex flex-col gap-4">
-      {timelineData.map((data) =>
-        data.type === 'project' ? (
-          <ProjectCard key={data.content.id} project={data.content as ExtendedProject} />
-        ) : (
-          <BranchCard key={data.content.id} branch={data.content as ExtendedBranch} />
-        )
-      )}
-      <Button onClick={handleLoadMore} className="mx-auto w-fit">
-        Load More
-      </Button>
+      {/* Render different types of cards based on the type attribute */}
+      {timelineData.map((data) => (
+        <Fragment key={data.content.id}>
+          {/* Render different types of cards based on the type attribute */}
+          {data.type === 'branch' && <BranchCard branch={data.content} />}
+          {data.type === 'project' && <ProjectCard project={data.content} />}
+        </Fragment>
+      ))}
+      {isLoading && <LoadingSpinner />}
+      {/* Load more timeline data as the user scrolls down */}
+      <div ref={observerRef} />
     </div>
   );
 }

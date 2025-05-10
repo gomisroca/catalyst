@@ -1,12 +1,18 @@
 'use client';
 
+/**
+ * Expandable description component for projects.
+ */
+
+// Libraries
 import { useState } from 'react';
+import { useAutoAnimate } from '@formkit/auto-animate/react';
+// Components
 import { FaChevronDown, FaChevronUp } from 'react-icons/fa6';
 import Button from '@/app/_components/ui/button';
-import { useAutoAnimate } from '@formkit/auto-animate/react';
 
 export default function ExpandedDescription({ description }: { description: string }) {
-  const [expanded, setExpanded] = useState(false);
+  const [expanded, setExpanded] = useState(false); // State to track if the description is expanded
   const [parent] = useAutoAnimate();
 
   return (
@@ -17,8 +23,10 @@ export default function ExpandedDescription({ description }: { description: stri
         style={{ maxHeight: expanded ? '500px' : '45px' }}>
         <span className="block">{description}</span>
       </div>
+      {/* If the description is longer than 140 characters, render the expand button */}
       {description.length > 140 && (
         <Button
+          name="Expand"
           onClick={() => setExpanded(!expanded)}
           className="my-auto flex h-[25px] w-[25px] items-center justify-center rounded-full">
           {expanded ? <FaChevronUp size={12} /> : <FaChevronDown size={12} />}

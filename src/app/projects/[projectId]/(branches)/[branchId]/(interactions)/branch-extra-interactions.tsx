@@ -30,7 +30,10 @@ export default function BranchExtraInteractions({ user, data }: BranchExtraInter
   const [parent] = useAutoAnimate();
   return (
     <div ref={parent} className="flex gap-2">
-      <Button onClick={() => setOpen(!open)} className="my-auto flex h-5 w-5 items-center justify-center rounded-full">
+      <Button
+        onClick={() => setOpen(!open)}
+        className="my-auto flex h-5 w-5 items-center justify-center rounded-full"
+        name="More">
         <span className="text-sm font-semibold">
           <BsThreeDotsVertical
             size={12}
