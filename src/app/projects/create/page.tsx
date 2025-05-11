@@ -1,7 +1,9 @@
-import LoadingSpinner from '@/app/_components/ui/loading-spinner';
+// Libraries
 import { auth } from '@/server/auth';
+// Components
 import { Suspense } from 'react';
-import CreateProjectForm from './create-project-form';
+import LoadingSpinner from '@/app/_components/ui/loading-spinner';
+import CreateProjectForm from '@/app/projects/create/create-project-form';
 import NotAllowed from '@/app/_components/not-allowed';
 
 export default async function CreatePost() {

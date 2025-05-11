@@ -32,24 +32,28 @@ const ProjectSchema = z.object({
   allowShare: z.boolean(),
 });
 
-export async function createProject(formData: FormData) {
+type CreateProjectData = {
+  name: string;
+  description?: string;
+  picture?: string;
+  private: boolean;
+  allowCollaborate: boolean;
+  allowShare: boolean;
+};
+
+export async function createProject(create: CreateProjectData) {
   // Check if user is signed in, and if they are authorized to create a project
   const session = await auth();
   if (!session?.user) throw new Error('You must be signed in to create a project');
 
-  // Extract and validate the data
-  const privateFlag = formData.get('private') === 'on';
-  const allowCollaborateFlag = formData.get('allowCollaborate') === 'on';
-  const allowShareFlag = formData.get('allowShare') === 'on';
-
   // Validate the data
   const validatedFields = ProjectSchema.safeParse({
-    name: formData.get('name'),
-    description: formData.get('description'),
-    picture: formData.get('picture') ?? undefined,
-    private: privateFlag,
-    allowCollaborate: allowCollaborateFlag,
-    allowShare: allowShareFlag,
+    name: create.name,
+    description: create.description,
+    picture: create.picture,
+    private: create.private,
+    allowCollaborate: create.allowCollaborate,
+    allowShare: create.allowShare,
   });
   if (!validatedFields.success) throw new Error(validatedFields.error.toString());
 
@@ -123,7 +127,17 @@ export async function createProject(formData: FormData) {
   }
 }
 
-export async function updateProject({ formData, projectId }: { formData: FormData; projectId: string }) {
+type UpdateProjectData = {
+  name: string;
+  description?: string;
+  picture?: string;
+  private: boolean;
+  allowedUsers?: string[];
+  allowCollaborate: boolean;
+  allowShare: boolean;
+};
+
+export async function updateProject({ update, projectId }: { update: UpdateProjectData; projectId: string }) {
   // Check if user is signed in, and if they are authorized to update the project
   const session = await auth();
   if (!session?.user) throw new Error('You must be signed in to update a project');
@@ -137,20 +151,15 @@ export async function updateProject({ formData, projectId }: { formData: FormDat
   });
   if (!existingProject) throw new Error('Project not found or you do not have permission to update it.');
 
-  // Extract and validate the data
-  const privateFlag = formData.get('private') === 'on';
-  const allowCollaborateFlag = formData.get('allowCollaborate') === 'on';
-  const allowShareFlag = formData.get('allowShare') === 'on';
-
   // Validate the data
   const validatedFields = ProjectSchema.safeParse({
-    name: formData.get('name') ?? existingProject.name,
-    description: formData.get('description') ?? existingProject.description,
-    picture: formData.get('picture') ?? undefined,
-    private: privateFlag,
-    allowedUsers: formData.getAll('allowedUsers'),
-    allowCollaborate: allowCollaborateFlag,
-    allowShare: allowShareFlag,
+    name: update.name ?? existingProject.name,
+    description: update.description ?? existingProject.description,
+    picture: update.picture ?? undefined,
+    private: update.private,
+    allowedUsers: update.allowedUsers ?? [],
+    allowCollaborate: update.allowCollaborate,
+    allowShare: update.allowShare,
   });
   if (!validatedFields.success) throw new Error(validatedFields.error.toString());
 
