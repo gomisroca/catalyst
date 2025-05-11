@@ -1,70 +1,98 @@
 'use client';
 
-import Form from 'next/form';
-import SubmitButton from '@/app/_components/ui/submit-button';
+// Libraries
 import { useUploadThing } from '@/utils/uploadthing';
 import { useSetAtom } from 'jotai';
 import { messageAtom } from '@/atoms/message';
 import { useRef, useState } from 'react';
-import { updateProject } from '@/actions/projects';
 import { useParams } from 'next/navigation';
-import Image from 'next/image';
-import { type Prisma } from 'generated/prisma';
-import { type ActionReturn } from 'types';
 import { useRedirect } from '@/hooks/useRedirect';
 import { toErrorMessage } from '@/utils/errors';
+// Actions
+import { updateProject } from '@/actions/projects';
+// Components
+import Form from 'next/form';
+import SubmitButton from '@/app/_components/ui/submit-button';
+import Image from 'next/image';
+// Types
+import { type Prisma } from 'generated/prisma';
+import { type ActionReturn } from 'types';
 
 type ProjectWithPermissions = Prisma.ProjectGetPayload<{
-  include: { permissions: true };
+  include: {
+    permissions: {
+      include: { allowedUsers: true };
+    };
+  };
 }>;
 
 export default function UpdateProjectForm({
   project,
+  follows,
   modal = false,
 }: {
   project: ProjectWithPermissions;
+  follows: Prisma.FollowGetPayload<{ include: { followed: true } }>[];
   modal?: boolean;
 }) {
-  const redirect = useRedirect();
+  const redirect = useRedirect(); // Redirect hook
   const params = useParams<{ projectId: string }>();
+  const setMessage = useSetAtom(messageAtom); // Message atom setter/getter
+
+  // Form-related state and hooks
   const [file, setFile] = useState<File | null>(null);
-  const setMessage = useSetAtom(messageAtom);
+  const [privateProject, setPrivateProject] = useState(project.permissions?.private ?? false);
   const formRef = useRef<HTMLFormElement>(null);
-  const { startUpload } = useUploadThing('projectPicture');
+  const { startUpload } = useUploadThing('projectPicture'); // Upload thing hook
+
+  // Action wrapper
+  const formAction = async (formData: FormData) => {
+    try {
+      // Upload the file to the server, setting the picture key to the uploaded file's URL
+      if (file) {
+        const data = await startUpload([file]);
+        if (!data?.[0]) return;
+        formData.set('picture', data[0]?.ufsUrl);
+      }
+
+      // Call the updateProject action with the form data
+      const action: ActionReturn = await updateProject({
+        update: {
+          name: formData.get('name') as string,
+          description: formData.get('description') as string,
+          picture: formData.get('picture') as string,
+          private: formData.get('private') === 'on',
+          allowedUsers: formData.getAll('allowedUsers') as string[],
+          allowCollaborate: formData.get('allowCollaborate') === 'on',
+          allowShare: formData.get('allowShare') === 'on',
+        },
+        projectId: params.projectId,
+      });
+
+      // Reset the form and set the message
+      formRef.current?.reset();
+      setFile(null);
+      setMessage({
+        content: action.message,
+        error: action.error,
+      });
+
+      // If the action returns a redirect, redirect to the specified page
+      if (action.redirect) redirect(modal, action.redirect);
+    } catch (error) {
+      // Set the message to the error message
+      setMessage({
+        content: toErrorMessage(error, 'Failed to update project'),
+        error: true,
+      });
+    }
+  };
 
   return (
     <Form
       className="flex flex-col items-center justify-center gap-4"
       ref={formRef}
-      action={async (formData) => {
-        try {
-          formData.delete('imageFile');
-          if (file) {
-            const data = await startUpload([file]);
-            if (!data?.[0]) return;
-            formData.set('picture', data[0]?.ufsUrl);
-          }
-
-          const action: ActionReturn = await updateProject({
-            formData,
-            projectId: params.projectId,
-          });
-
-          formRef.current?.reset();
-          setFile(null);
-          setMessage({
-            content: action.message,
-            error: action.error,
-          });
-
-          if (action.redirect) redirect(modal, action.redirect);
-        } catch (error) {
-          setMessage({
-            content: toErrorMessage(error, 'Failed to update project'),
-            error: true,
-          });
-        }
-      }}>
+      action={async (formData) => formAction(formData)}>
       <section className="flex w-full flex-col">
         <label htmlFor="name">Name</label>
         <input
@@ -118,12 +146,29 @@ export default function UpdateProjectForm({
         <section className="flex flex-row justify-between gap-2">
           <label htmlFor="private">Private Project</label>
           <input
+            onChange={(e) => setPrivateProject(e.target.checked)}
             type="checkbox"
             name="private"
             defaultChecked={project.permissions?.private ?? false}
             className="h-5 w-5"
           />
         </section>
+        {privateProject && (
+          <section className="flex flex-row justify-between gap-2">
+            <label htmlFor="private">Allowed Users</label>
+            <select
+              className="rounded-lg border-2 border-zinc-300 bg-zinc-200 p-2 focus:ring-2 focus:ring-sky-300 focus:outline-none dark:border-zinc-700 dark:bg-zinc-800 dark:focus:ring-sky-700"
+              name="allowedUsers"
+              multiple
+              defaultValue={project.permissions?.allowedUsers.map((user) => user.id)}>
+              {follows.map((follow) => (
+                <option key={follow.followerId} value={follow.followerId}>
+                  {follow.followed.name}
+                </option>
+              ))}
+            </select>
+          </section>
+        )}
         <hr className="border-zinc-300 dark:border-zinc-700" />
         <section className="flex flex-row justify-between gap-2">
           <label htmlFor="allowCollaborate">Collaborations</label>

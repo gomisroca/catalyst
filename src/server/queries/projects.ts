@@ -41,7 +41,11 @@ export async function getProject(id: string) {
             ],
           },
         },
-        permissions: true,
+        permissions: {
+          include: {
+            allowedUsers: true,
+          },
+        },
         author: true,
       },
     })
