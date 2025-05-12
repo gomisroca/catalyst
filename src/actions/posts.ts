@@ -30,30 +30,28 @@ const PostSchema = z.object({
   media: z.array(MediaUrlSchema).max(5).optional(),
 });
 
-// Define the structure of the data expected by the server action
-type UpdatePostParams = {
-  formData: FormData;
-  ids: {
-    projectId: string;
-    branchId: string;
-    postId: string;
-  };
+type CreatePostData = {
+  projectId: string;
+  branchId: string;
+  title: string;
+  content: string;
+  media: string[];
 };
 
-export async function createPost(formData: FormData, branchId: string) {
+export async function createPost(createData: CreatePostData) {
   // Check if user is signed in, and if they are authorized to create a post
   const session = await auth();
   if (!session?.user) throw new Error('You must be signed in to create a post');
 
-  const branch = await getBranch(branchId);
+  const branch = await getBranch(createData.branchId);
   if (!branch.permissions?.allowCollaborate && session.user.id !== branch.authorId)
     throw new Error('You do not have permission to collaborate in this branch');
 
   // Extract and validate the data
   const validatedFields = PostSchema.safeParse({
-    title: formData.get('title'),
-    content: formData.get('content'),
-    media: formData.getAll('media'),
+    title: createData.title,
+    content: createData.content,
+    media: createData.media,
   });
   if (!validatedFields.success) throw new Error(validatedFields.error.toString());
 
@@ -87,17 +85,24 @@ export async function createPost(formData: FormData, branchId: string) {
     console.log(`Post ${newPostId} created by user ${session.user.id}`);
 
     // Revalidate the branch page and pass the redirect path to the client
-    revalidatePath(`/projects/${branch.projectId}/${branchId}`);
-    return { message: 'Post created successfully.', redirect: `/projects/${branch.projectId}/${branchId}` };
+    revalidatePath(`/projects/${branch.projectId}/${createData.branchId}`);
+    return { message: 'Post created successfully.', redirect: `/projects/${branch.projectId}/${createData.branchId}` };
   } catch (error) {
     console.error('Failed to create post:', error);
     throw new Error(toErrorMessage(error, 'Failed to create post'));
   }
 }
 
-export async function updatePost(params: UpdatePostParams) {
-  const { projectId, branchId, postId } = params.ids;
+type UpdatePostData = {
+  projectId: string;
+  branchId: string;
+  postId: string;
+  title: string;
+  content: string;
+  media: string[];
+};
 
+export async function updatePost(updateData: UpdatePostData) {
   // Check if user is signed in, and if they are authorized to update the post
   const session = await auth();
   if (!session?.user) throw new Error('You must be signed in to update a post');
@@ -105,18 +110,18 @@ export async function updatePost(params: UpdatePostParams) {
   // Check if post exists
   const existingPost = await db.post.findFirst({
     where: {
-      id: postId,
+      id: updateData.postId,
       authorId: session.user.id,
-      branchId,
+      branchId: updateData.branchId,
     },
   });
   if (!existingPost) throw new Error('Post not found or you do not have permission to update it.');
 
   // Extract and validate the data
   const validatedFields = PostSchema.safeParse({
-    title: params.formData.get('title') ?? existingPost.title,
-    content: params.formData.get('content') ?? existingPost.content,
-    media: params.formData.getAll('media'),
+    title: updateData.title ?? existingPost.title,
+    content: updateData.content ?? existingPost.content,
+    media: updateData.media,
   });
   if (!validatedFields.success) throw new Error(validatedFields.error.toString());
 
@@ -125,7 +130,7 @@ export async function updatePost(params: UpdatePostParams) {
     // DB transaction to update the post and its media
     await db.$transaction(async (trx) => {
       await trx.post.update({
-        where: { id: postId },
+        where: { id: updateData.postId },
         data: {
           title: data.title,
           content: data.content,
@@ -135,24 +140,27 @@ export async function updatePost(params: UpdatePostParams) {
 
       if (data.media && data.media.length > 0) {
         await trx.postMedia.deleteMany({
-          where: { postId },
+          where: { postId: updateData.postId },
         });
 
         await trx.postMedia.createMany({
           data: data.media.map((url) => ({
             name: url.split('/').pop() ?? '',
             url,
-            postId,
+            postId: updateData.postId,
           })),
         });
       }
     });
 
-    console.log(`Post ${postId} updated by user ${session.user.id}`);
+    console.log(`Post ${updateData.postId} updated by user ${session.user.id}`);
 
     // Revalidate the branch page and pass the redirect path to the client
-    revalidatePath(`/projects/${projectId}/${branchId}`);
-    return { message: 'Post updated successfully.', redirect: `/projects/${projectId}/${branchId}` };
+    revalidatePath(`/projects/${updateData.projectId}/${updateData.branchId}`);
+    return {
+      message: 'Post updated successfully.',
+      redirect: `/projects/${updateData.projectId}/${updateData.branchId}`,
+    };
   } catch (error) {
     console.error('Failed to update post:', error);
     throw new Error(toErrorMessage(error, 'Failed to update post'));

@@ -1,9 +1,12 @@
-import LoadingSpinner from '@/app/_components/ui/loading-spinner';
+// Libraries
 import { auth } from '@/server/auth';
+// Components
 import { Suspense } from 'react';
-import UpdatePostForm from './update-post-form';
-import { getPost } from '@/server/queries/posts';
 import NotAllowed from '@/app/_components/not-allowed';
+import LoadingSpinner from '@/app/_components/ui/loading-spinner';
+import UpdatePostForm from '@/app/projects/[projectId]/(branches)/[branchId]/(posts)/[postId]/update/update-post-form';
+// Queries
+import { getPost } from '@/server/queries/posts';
 
 export default async function PostUpdate({
   searchParams,
