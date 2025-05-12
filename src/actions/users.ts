@@ -35,11 +35,11 @@ async function checkForConflicts(data: { name?: string; email?: string }, userId
   return conflictFound;
 }
 
-export async function signInWithEmail(formData: FormData) {
+export async function signInWithEmail({ email }: { email: string }) {
   try {
     // Extract and validate the data
     const validatedFields = EmailSignInSchema.safeParse({
-      email: formData.get('email'),
+      email: email,
     });
 
     // If validation fails, return the errors

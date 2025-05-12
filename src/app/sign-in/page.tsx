@@ -1,5 +1,5 @@
-import EmailForm from './email-form';
-import OAuthSignIn from './oauth-signin';
+import EmailForm from '@/app/sign-in/email-form';
+import OAuthSignIn from '@/app/sign-in/oauth-signin';
 
 export default async function SignIn() {
   return (

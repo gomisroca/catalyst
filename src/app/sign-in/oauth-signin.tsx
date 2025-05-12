@@ -1,9 +1,11 @@
 'use client';
 
+// Libraries
 import { signIn } from 'next-auth/react';
-import Button from '../_components/ui/button';
-import { FaGoogle } from 'react-icons/fa6';
 import { env } from '@/env';
+// Components
+import Button from '@/app/_components/ui/button';
+import { FaGoogle } from 'react-icons/fa6';
 
 export default function OAuthSignIn() {
   return (
