@@ -1,12 +1,16 @@
-import LoadingSpinner from '@/app/_components/ui/loading-spinner';
-import { getProject } from '@/server/queries/projects';
-import Image from 'next/image';
-import { Suspense } from 'react';
-import BranchSelection from './branch-selection';
+// Libraries
 import { auth } from '@/server/auth';
-import Link from '@/app/_components/ui/link';
+// Queries
+import { getProject } from '@/server/queries/projects';
+// Components
+import { Suspense } from 'react';
 import * as NextLink from 'next/link';
+import Image from 'next/image';
+import LoadingSpinner from '@/app/_components/ui/loading-spinner';
+import Link from '@/app/_components/ui/link';
 import AuthorActions from '@/app/_components/projects/author-actions';
+import BranchSelection from '@/app/projects/[projectId]/branch-selection';
+import { notFound } from 'next/navigation';
 
 export default async function ProjectLayout({
   params,
@@ -15,10 +19,12 @@ export default async function ProjectLayout({
   params: Promise<{ projectId: string }>;
   children: React.ReactNode;
 }) {
-  const session = await auth();
+  // Get the project from the database
   const project = await getProject((await params).projectId);
-  if (!project) return null;
+  if (!project) notFound(); // If the project is not found, redirect to the 404 page
 
+  // Check if the user is logged in and if they are allowed to collaborate on the project
+  const session = await auth();
   const allowCollaborate =
     (session && session.user.id === project.author.id) ?? (session && project.permissions?.allowCollaborate);
 

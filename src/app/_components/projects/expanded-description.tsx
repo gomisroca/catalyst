@@ -11,10 +11,11 @@ import { useAutoAnimate } from '@formkit/auto-animate/react';
 import { FaChevronDown, FaChevronUp } from 'react-icons/fa6';
 import Button from '@/app/_components/ui/button';
 
-export default function ExpandedDescription({ description }: { description: string }) {
+export default function ExpandedDescription({ description }: { description: string | null }) {
   const [expanded, setExpanded] = useState(false); // State to track if the description is expanded
   const [parent] = useAutoAnimate();
 
+  if (!description) return null;
   return (
     <div className="flex flex-row gap-2">
       <div
