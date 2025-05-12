@@ -6,6 +6,7 @@ export function useRedirect() {
   const router = useRouter();
 
   return (modal = false, to: string, delay = 200) => {
+    // Handle modal redirects differently
     if (modal) {
       router.back();
       setTimeout(() => {
