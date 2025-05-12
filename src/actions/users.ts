@@ -58,21 +58,22 @@ export async function signInWithEmail(formData: FormData) {
   }
 }
 
-export async function updateUserSettings(formData: FormData) {
+type UpdateUserSettingsData = {
+  name: string;
+  email: string;
+  picture: string;
+};
+
+export async function updateUserSettings(updateData: UpdateUserSettingsData) {
   // Get the user's session, if they're not signed in, return an error
   const session = await auth();
   if (!session?.user) throw new Error('You must be signed in to update user settings');
 
-  // Extract form data with proper type handling
-  const nameValue = formData.get('name');
-  const emailValue = formData.get('email');
-  const pictureValue = formData.get('picture');
-
   // Extract and validate the data
   const validatedFields = UserSettingsSchema.safeParse({
-    name: typeof nameValue === 'string' ? nameValue : session.user.name,
-    email: typeof emailValue === 'string' ? emailValue : session.user.email,
-    picture: typeof pictureValue === 'string' ? pictureValue : session.user.image,
+    name: updateData.name ?? session.user.name,
+    email: updateData.email ?? session.user.email,
+    picture: updateData.picture ?? session.user.image,
   });
   if (!validatedFields.success) throw new Error(validatedFields.error.toString());
 
