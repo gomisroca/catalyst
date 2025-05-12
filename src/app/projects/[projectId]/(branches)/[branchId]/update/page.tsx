@@ -1,9 +1,13 @@
-import LoadingSpinner from '@/app/_components/ui/loading-spinner';
+// Libraries
 import { auth } from '@/server/auth';
+// Components
 import { Suspense } from 'react';
-import UpdateBranchForm from './update-branch-form';
-import { getBranch } from '@/server/queries/branches';
 import NotAllowed from '@/app/_components/not-allowed';
+import LoadingSpinner from '@/app/_components/ui/loading-spinner';
+import UpdateBranchForm from '@/app/projects/[projectId]/(branches)/[branchId]/update/update-branch-form';
+// Queries
+import { getBranch } from '@/server/queries/branches';
+import { getUserFollows } from '@/server/queries/users';
 
 export default async function BranchUpdate({
   searchParams,
@@ -11,15 +15,17 @@ export default async function BranchUpdate({
   searchParams: Promise<{ projectId: string; branchId: string }>;
 }) {
   const session = await auth();
-  const branch = await getBranch((await searchParams).branchId);
   // If user is not logged in, show restricted access component
   if (!session) return <NotAllowed />;
+
+  const follows = await getUserFollows(session.user.id);
+  const branch = await getBranch((await searchParams).branchId);
 
   return (
     <div>
       <h1 className="mb-4 text-xl font-bold">Update Branch</h1>
       <Suspense fallback={<LoadingSpinner />}>
-        <UpdateBranchForm branch={branch} />
+        <UpdateBranchForm branch={branch} follows={follows} />
       </Suspense>
     </div>
   );
