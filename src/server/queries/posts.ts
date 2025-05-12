@@ -5,6 +5,9 @@ import { db } from '@/server/db';
 export async function getPost(id: string) {
   try {
     const session = await auth();
+
+    // Get post
+    // Include media and author
     const post = await db.post
       .findFirstOrThrow({
         where: {
@@ -44,6 +47,7 @@ export async function getPostInteractions(postId: string) {
   const reports = interactions.filter((data) => data.type === 'REPORT');
   const hides = interactions.filter((data) => data.type === 'HIDE');
 
+  // Return a pre-formatted object with interactions and extra interactions
   return {
     interactions: {
       likes,

@@ -1,16 +1,24 @@
 'use client';
 
+/**
+ * Button component with established styling and functionality.
+ *
+ * @example
+ * <Button type="submit" name="Submit" onClick={() => console.log('Button clicked!')}>Submit</Button>
+ */
+
 import { twMerge } from 'tailwind-merge';
 
 interface Props {
   onClick?: () => void;
   type?: 'submit' | 'button';
+  name: string;
   disabled?: boolean;
   children: React.ReactNode;
   className?: string;
 }
 
-function Button({ onClick, type = 'button', disabled = false, children, className }: Props) {
+function Button({ onClick, type = 'button', name, disabled = false, children, className }: Props) {
   return (
     <button
       onClick={onClick}
@@ -21,7 +29,9 @@ function Button({ onClick, type = 'button', disabled = false, children, classNam
         className,
         disabled &&
           'cursor-not-allowed bg-transparent opacity-50 hover:bg-transparent active:bg-transparent dark:bg-transparent dark:hover:bg-transparent dark:active:bg-transparent'
-      )}>
+      )}
+      >
+      <span className="sr-only">{name}</span>
       {children}
     </button>
   );

@@ -1,24 +1,32 @@
 'use client';
 
+/**
+ * Expandable user menu and search bar.
+ */
+
+// Libraries
 import { useEffect, useRef, useState } from 'react';
-import Button from '@/app/_components/ui/button';
-import { MdOutlineMenu, MdClear } from 'react-icons/md';
-import { BsSearch } from 'react-icons/bs';
 import { useAutoAnimate } from '@formkit/auto-animate/react';
-import Link from '@/app/_components/ui/link';
 import { type Session } from 'next-auth';
 import { signOut } from 'next-auth/react';
+// Components
 import Image from 'next/image';
-import SearchBar from '../search/search-bar';
+import { MdOutlineMenu, MdClear } from 'react-icons/md';
+import { BsSearch } from 'react-icons/bs';
+import Button from '@/app/_components/ui/button';
+import Link from '@/app/_components/ui/link';
+import SearchBar from '@/app/_components/search/search-bar';
 
+// Define a function to toggle the search bar
 function SearchToggle({ open, setOpen }: { open: boolean; setOpen: React.Dispatch<React.SetStateAction<boolean>> }) {
   return (
-    <Button onClick={() => setOpen(!open)} className="p-1">
+    <Button onClick={() => setOpen(!open)} name="Search" className="p-1">
       {open ? <MdClear size={20} /> : <BsSearch size={20} />}
     </Button>
   );
 }
 
+// Define a function to toggle the user menu
 function MenuToggle({
   open,
   setOpen,
@@ -29,7 +37,7 @@ function MenuToggle({
   session: Session | null;
 }) {
   return (
-    <Button onClick={() => setOpen(!open)} className="p-1">
+    <Button onClick={() => setOpen(!open)} name="User Menu" className="p-1">
       {open ? (
         <MdClear size={20} />
       ) : session ? (
@@ -47,12 +55,14 @@ function MenuToggle({
   );
 }
 
+// Define a function to render the user menu
 function Menu({ session }: { session: Session | null }) {
   return (
     <div className="absolute top-[0.75rem] right-0 bottom-0 flex h-fit w-42 items-center justify-center gap-2 rounded-lg bg-zinc-100 p-2 dark:bg-zinc-950">
+      {/* If the user is signed in, render the sign out and settings links */}
       {session ? (
         <div className="flex w-full flex-col items-center justify-center gap-2">
-          <Button onClick={() => signOut()} className="w-full text-center">
+          <Button onClick={() => signOut()} name="Sign Out" className="w-full text-center">
             Sign Out
           </Button>
           <Link href="/settings" className="w-full text-center">
@@ -60,6 +70,7 @@ function Menu({ session }: { session: Session | null }) {
           </Link>
         </div>
       ) : (
+        // If the user is not signed in, render the sign in link
         <Link href="/sign-in" className="w-full text-center">
           Sign In
         </Link>
@@ -69,11 +80,12 @@ function Menu({ session }: { session: Session | null }) {
 }
 
 function NavMenu({ session }: { session: Session | null }) {
-  const [openMenu, setOpenMenu] = useState(false);
-  const [openSearch, setOpenSearch] = useState(false);
+  const [openMenu, setOpenMenu] = useState(false); // Track if the user menu is open
+  const [openSearch, setOpenSearch] = useState(false); // Track if the search bar is open
   const [parent] = useAutoAnimate();
-  const menuRef = useRef<HTMLDivElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null); // Reference to the menu element
 
+  // Define a function to handle clicks outside the menu so they close
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (menuRef.current && !menuRef.current.contains(event.target as Node)) {

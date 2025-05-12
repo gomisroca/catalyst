@@ -1,42 +1,50 @@
 'use client';
 
+// Libraries
 import { useRef } from 'react';
-import Form from 'next/form';
-import SubmitButton from '@/app/_components/submit-button';
-import { signInWithEmail } from './actions';
 import { useSetAtom } from 'jotai';
 import { messageAtom } from '@/atoms/message';
-import { type ActionReturn } from 'types';
 import { toErrorMessage } from '@/utils/errors';
 import { useRedirect } from '@/hooks/useRedirect';
+// Actions
+import { signInWithEmail } from '@/actions/users';
+// Components
+import Form from 'next/form';
+import SubmitButton from '@/app/_components/ui/submit-button';
+// Types
+import { type ActionReturn } from 'types';
 
 export default function EmailForm({ modal = false }: { modal?: boolean }) {
-  const redirect = useRedirect();
-  const setMessage = useSetAtom(messageAtom);
+  const redirect = useRedirect(); // Redirect hook
+  const setMessage = useSetAtom(messageAtom); // Message atom setter/getter
+
+  // Form-related state and hooks
   const formRef = useRef<HTMLFormElement>(null);
 
+  // Action wrapper
+  const formAction = async (formData: FormData) => {
+    try {
+      const action: ActionReturn = await signInWithEmail({ email: formData.get('email') as string });
+
+      // Reset the form and set the message
+      formRef.current?.reset();
+      setMessage({
+        content: action.message,
+        error: action.error,
+      });
+
+      // Redirect to the home page after 2 seconds
+      setTimeout(() => redirect(modal, '/'), 2000);
+    } catch (error) {
+      setMessage({
+        content: toErrorMessage(error, 'Failed to sign in'),
+        error: true,
+      });
+    }
+  };
+
   return (
-    <Form
-      className="flex flex-row gap-2"
-      ref={formRef}
-      action={async (formData) => {
-        try {
-          formRef.current?.reset();
-          const action: ActionReturn = await signInWithEmail(formData);
-
-          setMessage({
-            content: action.message,
-            error: action.error,
-          });
-
-          setTimeout(() => redirect(modal, '/'), 2000);
-        } catch (error) {
-          setMessage({
-            content: toErrorMessage(error, 'Failed to sign in'),
-            error: true,
-          });
-        }
-      }}>
+    <Form className="flex flex-row gap-2" ref={formRef} action={async (formData) => formAction(formData)}>
       <input
         type="email"
         name="email"

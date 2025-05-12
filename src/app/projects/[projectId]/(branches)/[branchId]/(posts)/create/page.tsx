@@ -1,21 +1,28 @@
-import { LoadingSpinner } from '@/app/_components/loading-spinner';
-import Link from '@/app/_components/ui/link';
+// Libraries
 import { auth } from '@/server/auth';
+// Queries
+import { getBranch } from '@/server/queries/branches';
+// Components
 import { Suspense } from 'react';
-import CreatePostForm from './create-post-form';
+import { notFound } from 'next/navigation';
+import LoadingSpinner from '@/app/_components/ui/loading-spinner';
+import NotAllowed from '@/app/_components/not-allowed';
+import CreatePostForm from '@/app/projects/[projectId]/(branches)/[branchId]/(posts)/create/create-post-form';
 
-export default async function CreatePost() {
+export default async function CreatePost({
+  searchParams,
+}: {
+  searchParams: Promise<{ projectId: string; branchId: string }>;
+}) {
+  // Get the branch from the database
+  const branch = await getBranch((await searchParams).branchId);
+  if (!branch) notFound(); // If the branch is not found, redirect to the 404 page
+
   const session = await auth();
-  if (!session)
-    return (
-      <div className="flex flex-col gap-4">
-        <p>You need to be logged in to create a post.</p>
-
-        <Link href="/sign-in" className="mx-auto w-1/2 text-center">
-          Login
-        </Link>
-      </div>
-    );
+  const allowCollaborate =
+    (session && session.user.id === branch.author.id) ?? (session && branch.permissions?.allowCollaborate);
+  // If user is not logged in or not allowed to collaborate, show restricted access component
+  if (!session || !allowCollaborate) return <NotAllowed />;
 
   return (
     <div>

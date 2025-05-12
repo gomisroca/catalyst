@@ -7,15 +7,17 @@
  * <ThemeButton />
  */
 
+// Libraries
 import { useTheme } from 'next-themes';
+// Components
 import { FaSun, FaMoon } from 'react-icons/fa6';
 import Button from '@/app/_components/ui/button';
 
 function ThemeButton() {
-  const { theme, setTheme } = useTheme();
+  const { theme, setTheme } = useTheme(); // Hook to get and set the theme using next-themes
 
   return (
-    <Button onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')} className="h-8 w-8">
+    <Button onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')} className="h-8 w-8" name="Theme Button">
       <FaMoon
         name="light"
         size={20}

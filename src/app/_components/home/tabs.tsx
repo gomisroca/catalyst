@@ -1,12 +1,20 @@
 'use client';
 
-import Link from 'next/link';
+/**
+ * Renders two tabs for the timelines: Trending and For You.
+ */
+
+// Libraries
 import { usePathname } from 'next/navigation';
 import { twMerge } from 'tailwind-merge';
+// Components
+import Link from 'next/link';
 
 function TabButton({ tab, text, currentTab, index }: { tab: string; text: string; currentTab: string; index: number }) {
+  // Get the current pathname
   const pathname = usePathname();
 
+  // Create a button with unique styling based on index and currentTab
   return (
     <Link
       href={tab === 'trending' ? pathname : pathname + '?tl=' + tab}
@@ -26,6 +34,7 @@ function TabButton({ tab, text, currentTab, index }: { tab: string; text: string
 export default function HomeTabs({ tab }: { tab: string }) {
   return (
     <div className="mb-4 flex items-center rounded-lg bg-zinc-300 dark:bg-zinc-800">
+      {/* Render the "Trending" and "For You" tabs */}
       <TabButton tab="trending" currentTab={tab} index={0} text="Trending" />
       <TabButton tab="for-you" currentTab={tab} index={1} text="For You" />
     </div>

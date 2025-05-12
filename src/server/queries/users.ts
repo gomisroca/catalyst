@@ -1,8 +1,11 @@
 import 'server-only';
-import { db } from '../db';
-import { auth } from '../auth';
+import { db } from '@/server/db';
+import { auth } from '@/server/auth';
+import { type ForYouTimelineItem } from 'types';
 
 export async function getUserProfile(userId: string) {
+  // Get user
+  // Include posts, branches and projects
   const user = await db.user
     .findUniqueOrThrow({
       where: {
@@ -87,17 +90,19 @@ export async function getUserContributions(userId: string) {
         },
       },
     });
-    return {
-      projects,
-      branches,
-      posts,
-    };
+    const typedContributions: ForYouTimelineItem[] = [
+      ...projects.map((project) => ({ type: 'project', content: project }) as const satisfies ForYouTimelineItem),
+      ...branches.map((branch) => ({ type: 'branch', content: branch }) as const satisfies ForYouTimelineItem),
+      ...posts.map((post) => ({ type: 'post', content: post }) as const satisfies ForYouTimelineItem),
+    ];
+
+    return typedContributions;
   });
 
   return contributions;
 }
 
-export async function getUserInteractions(userId: string) {
+async function getUserInteractions(userId: string) {
   const interactions = await db.$transaction(async (trx) => {
     const projectInteractions = await trx.projectInteraction.findMany({
       where: {
@@ -133,21 +138,60 @@ export async function getUserInteractions(userId: string) {
       },
     });
 
-    return {
-      projectInteractions,
-      branchInteractions,
-      postInteractions,
-    };
+    const typedInteractions: ForYouTimelineItem[] = [
+      ...projectInteractions.map(
+        (int) =>
+          ({
+            type: 'project-interaction',
+            content: { ...int, updatedAt: int.createdAt },
+          }) as const satisfies ForYouTimelineItem
+      ),
+      ...branchInteractions.map(
+        (int) =>
+          ({
+            type: 'branch-interaction',
+            content: { ...int, updatedAt: int.createdAt },
+          }) as const satisfies ForYouTimelineItem
+      ),
+      ...postInteractions.map(
+        (int) =>
+          ({
+            type: 'post-interaction',
+            content: { ...int, updatedAt: int.createdAt },
+          }) as const satisfies ForYouTimelineItem
+      ),
+    ];
+
+    return typedInteractions;
   });
 
   return interactions;
 }
 
+export async function getUserProfileTimeline(userId: string) {
+  // Get contributions and interactions for the user
+  const contributions = await getUserContributions(userId);
+  const interactions = await getUserInteractions(userId);
+
+  // Combine the contributions and interactions into a single array
+  const timeline: ForYouTimelineItem[] = [...contributions, ...interactions];
+
+  timeline.sort(
+    (a, b) =>
+      new Date(b.content.updatedAt ?? b.content.createdAt).getTime() -
+      new Date(a.content.updatedAt ?? a.content.createdAt).getTime()
+  );
+
+  return timeline;
+}
+
 export async function getUserSidebar(userId: string) {
   const session = await auth();
 
+  // Get contributions for the user
   const contributions = await getUserContributions(userId);
 
+  // Get bookmarks for the user
   const dbBookmarks = await db.$transaction(async (trx) => {
     const postBookmarks = await trx.postInteraction.findMany({
       where: {
@@ -220,6 +264,7 @@ export async function getUserSidebar(userId: string) {
     };
   });
 
+  // Map the bookmarks to a pre-formatted object
   const bookmarks = [
     ...dbBookmarks.postBookmarks.map((bookmark) => ({
       createdAt: bookmark.createdAt,
@@ -247,6 +292,7 @@ export async function getUserSidebar(userId: string) {
     })),
   ];
 
+  // Filter and sort the bookmarks by permissions and createdAt
   bookmarks
     .filter((bookmark) => {
       if (!bookmark.permissions?.private) return true;
@@ -254,10 +300,11 @@ export async function getUserSidebar(userId: string) {
     })
     .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
+  // Return the contributions and bookmarks
   return {
     contributions: {
-      projects: contributions.projects,
-      branches: contributions.branches,
+      projects: contributions.filter((item) => item.type === 'project'),
+      branches: contributions.filter((item) => item.type === 'branch'),
     },
     bookmarks,
   };

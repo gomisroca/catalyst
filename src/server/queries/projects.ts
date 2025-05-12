@@ -5,6 +5,8 @@ import { db } from '@/server/db';
 export async function getProject(id: string) {
   const session = await auth();
 
+  // Get project, ensuring the user has access to it
+  // Include permissions, author and branches the user has access to
   const project = await db.project
     .findFirstOrThrow({
       where: {
@@ -41,7 +43,11 @@ export async function getProject(id: string) {
             ],
           },
         },
-        permissions: true,
+        permissions: {
+          include: {
+            allowedUsers: true,
+          },
+        },
         author: true,
       },
     })
@@ -55,6 +61,8 @@ export async function getProject(id: string) {
 export async function getProjects() {
   const session = await auth();
 
+  // Get projects, ensuring the user has access to them
+  // Include permissions and author
   const projects = await db.project.findMany({
     where: {
       OR: [
@@ -97,6 +105,7 @@ export async function getProjectInteractions(projectId: string) {
   const reports = interactions.filter((data) => data.type === 'REPORT');
   const hides = interactions.filter((data) => data.type === 'HIDE');
 
+  // Return a pre-formatted object with interactions and extra interactions
   return {
     interactions: {
       likes,

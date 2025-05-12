@@ -1,21 +1,15 @@
-import { LoadingSpinner } from '@/app/_components/loading-spinner';
-import Link from '@/app/_components/ui/link';
+// Libraries
 import { auth } from '@/server/auth';
+// Components
 import { Suspense } from 'react';
-import CreateProjectForm from './create-project-form';
+import LoadingSpinner from '@/app/_components/ui/loading-spinner';
+import CreateProjectForm from '@/app/projects/create/create-project-form';
+import NotAllowed from '@/app/_components/not-allowed';
 
 export default async function CreatePost() {
   const session = await auth();
-  if (!session)
-    return (
-      <div className="flex flex-col gap-4">
-        <p>You need to be logged in to create a branch.</p>
-
-        <Link href="/sign-in" className="mx-auto w-1/2 text-center">
-          Login
-        </Link>
-      </div>
-    );
+  // If user is not logged in, show restricted access component
+  if (!session) return <NotAllowed />;
 
   return (
     <div>

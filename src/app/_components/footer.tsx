@@ -1,6 +1,7 @@
 import dynamic from 'next/dynamic';
 import ThemeButton from '@/app/_components/ui/theme-button';
 
+// Dynamically import the Message component for SSG and SSR
 const Message = dynamic(() => import('@/app/_components/ui/message'));
 
 function Footer() {

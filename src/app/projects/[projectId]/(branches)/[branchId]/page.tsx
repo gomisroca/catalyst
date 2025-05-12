@@ -1,11 +1,14 @@
-import { getBranch } from '@/server/queries/branches';
+// Libraries
 import { auth } from '@/server/auth';
-import Link from '@/app/_components/ui/link';
+//Queries
+import { getBranch } from '@/server/queries/branches';
+// Components
 import { FaCodeBranch, FaPen } from 'react-icons/fa6';
+import Link from '@/app/_components/ui/link';
 import ExpandedDescription from '@/app/_components/projects/expanded-description';
-import BranchInteractionsMenu from './(interactions)/branch-interactions-menu';
-import PostList from './post-list';
 import AuthorActions from '@/app/_components/projects/author-actions';
+import BranchInteractionsMenu from '@/app/projects/[projectId]/(branches)/[branchId]/(interactions)/branch-interactions-menu';
+import PostList from '@/app/projects/[projectId]/(branches)/[branchId]/post-list';
 
 export default async function BranchPage({ params }: { params: Promise<{ projectId: string; branchId: string }> }) {
   const session = await auth();
@@ -45,7 +48,7 @@ export default async function BranchPage({ params }: { params: Promise<{ project
           <BranchInteractionsMenu branchId={branch.id} />
         </section>
       </header>
-      <PostList projectId={(await params).projectId} branchId={branch.id} session={session} posts={branch.posts} />
+      <PostList posts={branch.posts} session={session} />
 
       {allowCollaborate && (
         <Link

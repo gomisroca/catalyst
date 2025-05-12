@@ -1,14 +1,18 @@
 'use client';
 
-import Button from '@/app/_components/ui/button';
+// Libraries
 import { useState } from 'react';
-import { BsThreeDotsVertical } from 'react-icons/bs';
-import BranchInteraction from './branch-interaction';
 import { twMerge } from 'tailwind-merge';
 import { useAutoAnimate } from '@formkit/auto-animate/react';
+// Components
+import Button from '@/app/_components/ui/button';
+import { BsThreeDotsVertical } from 'react-icons/bs';
+import BranchInteraction from '@/app/projects/[projectId]/(branches)/[branchId]/(interactions)/branch-interaction';
+// Types
 import { type User } from 'next-auth';
 import { type Prisma } from 'generated/prisma';
 
+// Expected props
 type BranchInteractionWithUser = Prisma.BranchInteractionGetPayload<{
   include: { user: true };
 }>;
@@ -19,18 +23,24 @@ type BranchExtraInteractionsProps = {
     hides: BranchInteractionWithUser[];
   };
 };
+// Interaction types the component can handle
 type InteractionType = 'HIDE' | 'REPORT';
 export default function BranchExtraInteractions({ user, data }: BranchExtraInteractionsProps) {
+  // Map the interaction type to the corresponding icon
   const typeMap: Record<keyof typeof data, InteractionType> = {
     hides: 'HIDE',
     reports: 'REPORT',
   };
 
+  // By default, the menu is closed
   const [open, setOpen] = useState(false);
   const [parent] = useAutoAnimate();
   return (
     <div ref={parent} className="flex gap-2">
-      <Button onClick={() => setOpen(!open)} className="my-auto flex h-5 w-5 items-center justify-center rounded-full">
+      <Button
+        onClick={() => setOpen(!open)}
+        className="my-auto flex h-5 w-5 items-center justify-center rounded-full"
+        name="More">
         <span className="text-sm font-semibold">
           <BsThreeDotsVertical
             size={12}

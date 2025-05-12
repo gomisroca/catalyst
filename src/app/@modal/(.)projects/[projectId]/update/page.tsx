@@ -1,25 +1,21 @@
+import NotAllowed from '@/app/_components/not-allowed';
 import Modal from '@/app/_components/ui/modal';
 import UpdateProjectForm from '@/app/projects/[projectId]/update/update-project-form';
 import { auth } from '@/server/auth';
 import { getProject } from '@/server/queries/projects';
-import Link from 'next/link';
+import { getUserFollows } from '@/server/queries/users';
 
 export default async function UpdateProjectModal({ searchParams }: { searchParams: Promise<{ projectId: string }> }) {
   const session = await auth();
+  // If user is not logged in, show restricted access component
+  if (!session) return <NotAllowed />;
+
+  const follows = await getUserFollows(session.user.id);
   const project = await getProject((await searchParams).projectId);
-  if (!session)
-    return (
-      <div className="flex flex-col gap-4">
-        <p>You need to be logged in to update your project.</p>
-        <Link href="/sign-in" className="mx-auto w-1/2 text-center">
-          Login
-        </Link>
-      </div>
-    );
 
   return (
     <Modal>
-      <UpdateProjectForm project={project} />
+      <UpdateProjectForm project={project} follows={follows} />
     </Modal>
   );
 }

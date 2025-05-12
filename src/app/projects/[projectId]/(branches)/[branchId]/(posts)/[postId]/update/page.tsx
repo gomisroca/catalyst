@@ -1,8 +1,11 @@
-import { LoadingSpinner } from '@/app/_components/loading-spinner';
+// Libraries
 import { auth } from '@/server/auth';
-import Link from 'next/link';
+// Components
 import { Suspense } from 'react';
-import UpdatePostForm from './update-post-form';
+import NotAllowed from '@/app/_components/not-allowed';
+import LoadingSpinner from '@/app/_components/ui/loading-spinner';
+import UpdatePostForm from '@/app/projects/[projectId]/(branches)/[branchId]/(posts)/[postId]/update/update-post-form';
+// Queries
 import { getPost } from '@/server/queries/posts';
 
 export default async function PostUpdate({
@@ -12,16 +15,8 @@ export default async function PostUpdate({
 }) {
   const session = await auth();
   const post = await getPost((await searchParams).postId);
-  if (!session)
-    return (
-      <div className="flex flex-col gap-4">
-        <p>You need to be logged in to update your post.</p>
-
-        <Link href="/sign-in" className="mx-auto w-1/2 text-center">
-          Login
-        </Link>
-      </div>
-    );
+  // If user is not logged in, show restricted access component
+  if (!session) return <NotAllowed />;
 
   return (
     <div>

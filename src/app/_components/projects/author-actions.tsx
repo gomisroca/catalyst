@@ -1,15 +1,26 @@
 'use client';
 
-import { FaPencil, FaTrash } from 'react-icons/fa6';
-import Button from '../ui/button';
-import Link from '../ui/link';
-import { deleteBranch, deletePost, deleteProject } from './actions';
+/**
+ * Component for the author actions of a project, branch, or post, such as deleting or updating.
+ */
+
+// Libraries
 import { useSetAtom } from 'jotai';
 import { messageAtom } from '@/atoms/message';
-import { type ActionReturn } from 'types';
 import { toErrorMessage } from '@/utils/errors';
 import { useRedirect } from '@/hooks/useRedirect';
+// Actions
+import { deleteProject } from '@/actions/projects';
+import { deleteBranch } from '@/actions/branches';
+import { deletePost } from '@/actions/posts';
+// Components
+import { FaPencil, FaTrash } from 'react-icons/fa6';
+import Button from '@/app/_components/ui/button';
+import Link from '@/app/_components/ui/link';
+// Types
+import { type ActionReturn } from 'types';
 
+// Define the interface for the AuthorActions component
 interface AuthorActionsProps {
   type: 'project' | 'branch' | 'post';
   projectId: string;
@@ -18,9 +29,12 @@ interface AuthorActionsProps {
 }
 
 export default function AuthorActions({ type, projectId, branchId, postId }: AuthorActionsProps) {
-  const redirect = useRedirect();
-  const setMessage = useSetAtom(messageAtom);
+  const redirect = useRedirect(); // Hook to redirect the user
+  const setMessage = useSetAtom(messageAtom); // Hook to set the message atom
 
+  // Define a record of delete handlers for each type
+  // Each handler returns a Promise that resolves when the delete action is complete
+  // The Promise returns an object with a message and an optional redirect
   const deleteHandlers: Record<string, () => Promise<void>> = {
     project: async () => {
       try {
@@ -62,6 +76,7 @@ export default function AuthorActions({ type, projectId, branchId, postId }: Aut
     },
   };
 
+  // Define a function to get the update href for the current type
   const getUpdateHref = () => {
     switch (type) {
       case 'project':
@@ -79,16 +94,22 @@ export default function AuthorActions({ type, projectId, branchId, postId }: Aut
 
   const updateHref = getUpdateHref();
 
+  // Define a function to handle the delete action
+  // If the user confirms the delete, call the delete handler
   const handleDelete = async () => {
     const confirmed = window.confirm(`Are you sure you want to delete this ${type}?`);
     if (!confirmed) return;
     try {
       await deleteHandlers[type]?.();
     } catch (error) {
-      console.error(error);
+      setMessage({
+        content: toErrorMessage(error, `Failed to delete ${type}`),
+        error: true,
+      });
     }
   };
 
+  // If a wrong type is passed, return null
   if (!updateHref) return null;
 
   return (
@@ -96,7 +117,7 @@ export default function AuthorActions({ type, projectId, branchId, postId }: Aut
       <Link href={updateHref}>
         <FaPencil size={10} />
       </Link>
-      <Button onClick={handleDelete}>
+      <Button onClick={handleDelete} name="Delete" className="w-fit">
         <FaTrash size={10} />
       </Button>
     </div>

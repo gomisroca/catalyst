@@ -1,53 +1,73 @@
 'use client';
 
-import Form from 'next/form';
-import { createProject } from '@/app/projects/create/actions';
-import SubmitButton from '@/app/_components/submit-button';
+// Libraries
 import { useUploadThing } from '@/utils/uploadthing';
 import { useSetAtom } from 'jotai';
 import { messageAtom } from '@/atoms/message';
 import { useRef, useState } from 'react';
 import { useRedirect } from '@/hooks/useRedirect';
-import { type ActionReturn } from 'types';
 import { toErrorMessage } from '@/utils/errors';
+// Actions
+import { createProject } from '@/actions/projects';
+// Components
+import Form from 'next/form';
+import SubmitButton from '@/app/_components/ui/submit-button';
+// Types
+import { type ActionReturn } from 'types';
 
 export default function CreateProjectForm({ modal = false }: { modal?: boolean }) {
-  const redirect = useRedirect();
-  const [file, setFile] = useState<File | null>(null);
-  const setMessage = useSetAtom(messageAtom);
+  const redirect = useRedirect(); // Redirect hook
+  const setMessage = useSetAtom(messageAtom); // Message atom setter/getter
+
+  // Form-related state and hooks
   const formRef = useRef<HTMLFormElement>(null);
-  const { startUpload } = useUploadThing('projectPicture');
+  const [file, setFile] = useState<File | null>(null);
+  const { startUpload } = useUploadThing('projectPicture'); // Upload thing hook
+
+  // Action wrapper
+  const formAction = async (formData: FormData) => {
+    try {
+      // Upload the file to the server, setting the picture key to the uploaded file's URL
+      if (file) {
+        const data = await startUpload([file]);
+        if (!data?.[0]) return;
+        formData.set('picture', data[0]?.ufsUrl);
+      }
+
+      // Call the createProject action with the form data
+      const action: ActionReturn = await createProject({
+        name: formData.get('name') as string,
+        description: formData.get('description') as string,
+        picture: formData.get('picture') as string,
+        private: formData.get('private') === 'on',
+        allowCollaborate: formData.get('allowCollaborate') === 'on',
+        allowShare: formData.get('allowShare') === 'on',
+      });
+
+      // Reset the form and set the message
+      formRef.current?.reset();
+      setFile(null);
+      setMessage({
+        content: action.message,
+        error: action.error,
+      });
+
+      // If the action returns a redirect, redirect to the specified page
+      if (action.redirect) redirect(modal, action.redirect);
+    } catch (error) {
+      // Set the message to the error message
+      setMessage({
+        content: toErrorMessage(error, 'Failed to create project'),
+        error: true,
+      });
+    }
+  };
 
   return (
     <Form
       className="flex flex-col items-center justify-center gap-4"
       ref={formRef}
-      action={async (formData) => {
-        try {
-          formData.delete('imageFile');
-          if (file) {
-            const data = await startUpload([file]);
-            if (!data?.[0]) return;
-            formData.set('picture', data[0]?.ufsUrl);
-          }
-
-          const action: ActionReturn = await createProject(formData);
-
-          formRef.current?.reset();
-          setFile(null);
-          setMessage({
-            content: action.message,
-            error: action.error,
-          });
-
-          if (action.redirect) redirect(modal, action.redirect);
-        } catch (error) {
-          setMessage({
-            content: toErrorMessage(error, 'Failed to create project'),
-            error: true,
-          });
-        }
-      }}>
+      action={async (formData) => formAction(formData)}>
       <section className="flex w-full flex-col">
         <label htmlFor="name">Name</label>
         <input

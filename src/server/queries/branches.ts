@@ -5,6 +5,8 @@ import { db } from '@/server/db';
 export async function getBranch(id: string) {
   try {
     const session = await auth();
+    // Get branch, ensuring the user has access to it
+    // Include permissions, author and posts
     const branch = await db.branch
       .findFirstOrThrow({
         where: {
@@ -71,6 +73,7 @@ export async function getBranchInteractions(branchId: string) {
   const reports = interactions.filter((data) => data.type === 'REPORT');
   const hides = interactions.filter((data) => data.type === 'HIDE');
 
+  // Return a pre-formatted object with interactions and extra interactions
   return {
     interactions: {
       likes,

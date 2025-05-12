@@ -1,19 +1,22 @@
 import '@/styles/globals.css';
 
+// Libraries
 import { type Metadata } from 'next';
 import { Work_Sans } from 'next/font/google';
-
 import { ThemeProvider } from 'next-themes';
 import { Provider as JotaiProvider } from 'jotai';
 import { NextSSRPlugin as UploadThingSSRPlugin } from '@uploadthing/react/next-ssr-plugin';
 import { extractRouterConfig } from 'uploadthing/server';
 import { UploadThingRouter } from '@/app/api/uploadthing/core';
 import { auth } from '@/server/auth';
+// Components
 import Navbar from '@/app/_components/navbar';
 import Footer from '@/app/_components/footer';
+import SidebarWrapper from '@/app/_components/sidebar/wrapper';
+// Types
 import { type Session } from 'next-auth';
-import SidebarWrapper from './_components/sidebar/wrapper';
 
+// Establish the metadata for the page
 export const metadata: Metadata = {
   title: 'Catalyst',
   description: 'Ideas, together.',
