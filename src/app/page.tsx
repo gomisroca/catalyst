@@ -1,6 +1,6 @@
-import HomeTabs from './_components/home/tabs';
-import ForYouWrapper from './_components/home/foryou-wrapper';
-import TrendingWrapper from './_components/home/trending-wrapper';
+import HomeTabs from '@/app/_components/home/tabs';
+import ForYouWrapper from '@/app/_components/home/foryou-wrapper';
+import TrendingWrapper from '@/app/_components/home/trending-wrapper';
 
 export default async function Home({
   searchParams,
