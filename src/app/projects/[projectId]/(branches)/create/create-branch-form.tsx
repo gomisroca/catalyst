@@ -1,45 +1,66 @@
 'use client';
 
-import Form from 'next/form';
-import SubmitButton from '@/app/_components/ui/submit-button';
+// Libraries
 import { useSetAtom } from 'jotai';
 import { messageAtom } from '@/atoms/message';
 import { useRef } from 'react';
 import { useParams } from 'next/navigation';
-import { createBranch } from '@/actions/branches';
-import { toErrorMessage } from '@/utils/errors';
-import { type ActionReturn } from 'types';
 import { useRedirect } from '@/hooks/useRedirect';
+import { toErrorMessage } from '@/utils/errors';
+// Actions
+import { createBranch } from '@/actions/branches';
+// Components
+import Form from 'next/form';
+import SubmitButton from '@/app/_components/ui/submit-button';
+// Types
+import { type ActionReturn } from 'types';
 
 export default function CreateBranchForm({ modal = false }: { modal?: boolean }) {
-  const redirect = useRedirect();
-  const setMessage = useSetAtom(messageAtom);
+  const redirect = useRedirect(); // Redirect hook
+  const setMessage = useSetAtom(messageAtom); // Message atom setter/getter
+
+  // Form-related state and hooks
   const formRef = useRef<HTMLFormElement>(null);
   const params = useParams<{ projectId: string }>();
   if (!params.projectId) return null;
+
+  // Action wrapper
+  const formAction = async (formData: FormData) => {
+    try {
+      // Call the branch creation action
+      const action: ActionReturn = await createBranch({
+        projectId: params.projectId,
+        name: formData.get('name') as string,
+        description: formData.get('description') as string,
+        private: formData.get('private') === 'on',
+        allowCollaborate: formData.get('allowCollaborate') === 'on',
+        allowShare: formData.get('allowShare') === 'on',
+        allowBranch: formData.get('allowBranch') === 'on',
+      });
+
+      // Reset the form and set the message
+      formRef.current?.reset();
+      setMessage({
+        content: action.message,
+        error: action.error,
+      });
+
+      // If the action returns a redirect, redirect to the specified page
+      if (action.redirect) redirect(modal, action.redirect);
+    } catch (error) {
+      // Set the message to the error message
+      setMessage({
+        content: toErrorMessage(error, 'Failed to create branch'),
+        error: true,
+      });
+    }
+  };
 
   return (
     <Form
       className="flex flex-col items-center justify-center gap-4"
       ref={formRef}
-      action={async (formData) => {
-        try {
-          const action: ActionReturn = await createBranch(formData, params.projectId);
-
-          formRef.current?.reset();
-          setMessage({
-            content: action.message,
-            error: action.error,
-          });
-
-          if (action.redirect) redirect(modal, action.redirect);
-        } catch (error) {
-          setMessage({
-            content: toErrorMessage(error, 'Failed to create branch'),
-            error: true,
-          });
-        }
-      }}>
+      action={async (formData) => formAction(formData)}>
       <section className="flex w-full flex-col">
         <label htmlFor="name">Name</label>
         <input

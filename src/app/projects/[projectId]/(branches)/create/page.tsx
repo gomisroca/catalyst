@@ -1,13 +1,24 @@
-import LoadingSpinner from '@/app/_components/ui/loading-spinner';
+// Libraries
 import { auth } from '@/server/auth';
+// Queries
+import { getProject } from '@/server/queries/projects';
+// Components
 import { Suspense } from 'react';
-import CreateBranchForm from './create-branch-form';
+import { notFound } from 'next/navigation';
+import LoadingSpinner from '@/app/_components/ui/loading-spinner';
 import NotAllowed from '@/app/_components/not-allowed';
+import CreateBranchForm from '@/app/projects/[projectId]/(branches)/create/create-branch-form';
 
-export default async function CreatePost() {
+export default async function CreateBranch({ searchParams }: { searchParams: Promise<{ projectId: string }> }) {
+  // Get the project from the database
+  const project = await getProject((await searchParams).projectId);
+  if (!project) notFound(); // If the project is not found, redirect to the 404 page
+
   const session = await auth();
-  // If user is not logged in, show restricted access component
-  if (!session) return <NotAllowed />;
+  const allowCollaborate =
+    (session && session.user.id === project.author.id) ?? (session && project.permissions?.allowCollaborate);
+  // If user is not logged in or not allowed to collaborate, show restricted access component
+  if (!session || !allowCollaborate) return <NotAllowed />;
 
   return (
     <div>
