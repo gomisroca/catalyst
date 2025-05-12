@@ -57,16 +57,14 @@ export default function UpdateProjectForm({
 
       // Call the updateProject action with the form data
       const action: ActionReturn = await updateProject({
-        update: {
-          name: formData.get('name') as string,
-          description: formData.get('description') as string,
-          picture: formData.get('picture') as string,
-          private: formData.get('private') === 'on',
-          allowedUsers: formData.getAll('allowedUsers') as string[],
-          allowCollaborate: formData.get('allowCollaborate') === 'on',
-          allowShare: formData.get('allowShare') === 'on',
-        },
-        projectId: params.projectId,
+        name: formData.get('name') as string,
+        description: formData.get('description') as string,
+        picture: formData.get('picture') as string,
+        private: formData.get('private') === 'on',
+        allowedUsers: formData.getAll('allowedUsers') as string[],
+        allowCollaborate: formData.get('allowCollaborate') === 'on',
+        allowShare: formData.get('allowShare') === 'on',
+        id: params.projectId,
       });
 
       // Reset the form and set the message

@@ -41,19 +41,19 @@ type CreateProjectData = {
   allowShare: boolean;
 };
 
-export async function createProject(create: CreateProjectData) {
+export async function createProject(createData: CreateProjectData) {
   // Check if user is signed in, and if they are authorized to create a project
   const session = await auth();
   if (!session?.user) throw new Error('You must be signed in to create a project');
 
   // Validate the data
   const validatedFields = ProjectSchema.safeParse({
-    name: create.name,
-    description: create.description,
-    picture: create.picture,
-    private: create.private,
-    allowCollaborate: create.allowCollaborate,
-    allowShare: create.allowShare,
+    name: createData.name,
+    description: createData.description,
+    picture: createData.picture,
+    private: createData.private,
+    allowCollaborate: createData.allowCollaborate,
+    allowShare: createData.allowShare,
   });
   if (!validatedFields.success) throw new Error(validatedFields.error.toString());
 
@@ -128,6 +128,7 @@ export async function createProject(create: CreateProjectData) {
 }
 
 type UpdateProjectData = {
+  id: string;
   name: string;
   description?: string;
   picture?: string;
@@ -137,7 +138,7 @@ type UpdateProjectData = {
   allowShare: boolean;
 };
 
-export async function updateProject({ update, projectId }: { update: UpdateProjectData; projectId: string }) {
+export async function updateProject(updateData: UpdateProjectData) {
   // Check if user is signed in, and if they are authorized to update the project
   const session = await auth();
   if (!session?.user) throw new Error('You must be signed in to update a project');
@@ -145,7 +146,7 @@ export async function updateProject({ update, projectId }: { update: UpdateProje
   // Check if project exists
   const existingProject = await db.project.findFirst({
     where: {
-      id: projectId,
+      id: updateData.id,
       authorId: session.user.id,
     },
   });
@@ -153,13 +154,13 @@ export async function updateProject({ update, projectId }: { update: UpdateProje
 
   // Validate the data
   const validatedFields = ProjectSchema.safeParse({
-    name: update.name ?? existingProject.name,
-    description: update.description ?? existingProject.description,
-    picture: update.picture ?? undefined,
-    private: update.private,
-    allowedUsers: update.allowedUsers ?? [],
-    allowCollaborate: update.allowCollaborate,
-    allowShare: update.allowShare,
+    name: updateData.name ?? existingProject.name,
+    description: updateData.description ?? existingProject.description,
+    picture: updateData.picture ?? undefined,
+    private: updateData.private,
+    allowedUsers: updateData.allowedUsers ?? [],
+    allowCollaborate: updateData.allowCollaborate,
+    allowShare: updateData.allowShare,
   });
   if (!validatedFields.success) throw new Error(validatedFields.error.toString());
 
@@ -168,7 +169,7 @@ export async function updateProject({ update, projectId }: { update: UpdateProje
     // DB transaction to update the project and its permissions
     await db.$transaction(async (trx) => {
       await trx.project.update({
-        where: { id: projectId },
+        where: { id: updateData.id },
         data: {
           name: data.name,
           description: data.description,
@@ -177,7 +178,7 @@ export async function updateProject({ update, projectId }: { update: UpdateProje
         },
       });
       await trx.projectPermissions.update({
-        where: { projectId },
+        where: { projectId: updateData.id },
         data: {
           private: data.private,
           allowedUsers: {
@@ -188,10 +189,10 @@ export async function updateProject({ update, projectId }: { update: UpdateProje
         },
       });
     });
-    console.log(`Project ${projectId} updated by user ${session.user.id}`);
+    console.log(`Project ${updateData.id} updated by user ${session.user.id}`);
     // Revalidate the project page and pass the redirect path to the client
-    revalidatePath(`/projects/${projectId}`);
-    return { message: 'Project updated successfully.', redirect: `/projects/${projectId}` };
+    revalidatePath(`/projects/${updateData.id}`);
+    return { message: 'Project updated successfully.', redirect: `/projects/${updateData.id}` };
   } catch (error) {
     console.error('Failed to update project:', error);
     throw new Error(toErrorMessage(error, 'Failed to update project'));
