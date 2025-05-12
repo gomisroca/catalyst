@@ -1,19 +1,24 @@
 'use client';
 
-import Button from '@/app/_components/ui/button';
+// Libraries
 import { useParams } from 'next/navigation';
-import { interactionAction } from '@/actions/projects';
 import { useSetAtom } from 'jotai';
 import { messageAtom } from '@/atoms/message';
-import { FaBookmark, FaEye, FaShare, FaStar } from 'react-icons/fa6';
-import { MdWarning } from 'react-icons/md';
-import { type User } from 'next-auth';
 import { twMerge } from 'tailwind-merge';
 import { startTransition, useOptimistic } from 'react';
+import { toErrorMessage } from '@/utils/errors';
+// Actions
+import { interactionAction } from '@/actions/projects';
+// Components
+import Button from '@/app/_components/ui/button';
+import { FaBookmark, FaEye, FaShare, FaStar } from 'react-icons/fa6';
+import { MdWarning } from 'react-icons/md';
+// Types
+import { type User } from 'next-auth';
 import { type Prisma } from 'generated/prisma';
 import { type ActionReturn, type InteractionType } from 'types';
-import { toErrorMessage } from '@/utils/errors';
 
+// Attach an icon to each type of interaction
 const types = {
   LIKE: <FaStar size={12} />,
   SHARE: <FaShare size={12} />,
@@ -35,8 +40,9 @@ export default function ProjectInteraction({
   user?: User;
 }) {
   const params = useParams<{ projectId: string }>();
-  const setMessage = useSetAtom(messageAtom);
+  const setMessage = useSetAtom(messageAtom); // Set the message atom
 
+  // Use optimistic updates to add or remove interactions
   const [optimisticInteractions, setOptimisticInteraction] = useOptimistic(
     data!,
     (state, { action, newInteraction }: { action: 'add' | 'remove'; newInteraction: ProjectInteractionWithUser }) => {
@@ -48,8 +54,8 @@ export default function ProjectInteraction({
     }
   );
 
+  // Optimistically add or remove the interaction
   const hasInteracted = optimisticInteractions.some((i) => i.user.email === user?.email && i.type === type);
-
   const handleInteraction = async (type: InteractionType) => {
     startTransition(async () => {
       try {
@@ -116,7 +122,7 @@ export default function ProjectInteraction({
         'flex h-6 items-center justify-center gap-2 px-2 text-sm font-semibold',
         hasInteracted && 'from-sky-300 dark:from-sky-700'
       )}>
-      {types[type]} {optimisticInteractions?.length}
+      {types[type]} {!['HIDE', 'REPORT'].includes(type) && optimisticInteractions?.length}
     </Button>
   );
 }
