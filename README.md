@@ -35,13 +35,6 @@
     </li>
     <li><a href="#usage">Usage</a></li>
     <li>
-      <a href="#api-specification">API Specification</a>
-      <ul>
-        <li><a href="#projects">Projects</a></li>
-        <li><a href="#users">Users</a></li>
-      </ul>
-    </li>
-    <li>
       <a href="#adjustments">Adjusting the Codebase</a>
       <ul>
         <li><a href="#login-providers">Login Providers</a></li>
@@ -58,7 +51,7 @@
 <!-- ABOUT THE PROJECT -->
 <h2 id="about-the-project">📡 About The Project</h2>
 
-![Catalyst Screen Shot](screenshot.webp)
+![Catalyst Screen Shot](public/screenshot.png)
 
 The project is a web application that allows the creation of projects and the collaboration within them. A project in this web application can be understood as multiple branches and posts containing text and media content. As such, what purpose each project has is left to its author, as is the way in which collaboration will happen.
 
@@ -68,10 +61,10 @@ The project is a web application that allows the creation of projects and the co
 ![Supabase Badge](https://img.shields.io/badge/Supabase-3FCF8E?logo=supabase&logoColor=fff&style=for-the-badge)
 ![Prisma](https://img.shields.io/badge/Prisma-3982CE?style=for-the-badge&logo=Prisma&logoColor=white)  
 ![Vite](https://img.shields.io/badge/vite-%23646CFF.svg?style=for-the-badge&logo=vite&logoColor=white)
-![Express.js](https://img.shields.io/badge/express.js-%23404d59.svg?style=for-the-badge&logo=express&logoColor=%2361DAFB)
+![Next JS](https://img.shields.io/badge/Next-black?style=for-the-badge&logo=next.js&logoColor=white)
 ![Zod Badge](https://img.shields.io/badge/Zod-3E67B1?logo=zod&logoColor=fff&style=for-the-badge)  
-![React](https://img.shields.io/badge/react-%2320232a.svg?style=for-the-badge&logo=react&logoColor=%2361DAFB)
 ![TailwindCSS](https://img.shields.io/badge/tailwindcss-%2338B2AC.svg?style=for-the-badge&logo=tailwind-css&logoColor=white)
+![Storybook](https://img.shields.io/badge/-Storybook-FF4785?style=for-the-badge&logo=storybook&logoColor=white)
 
 <p align="right">[<a href="#readme-top">back to top</a>]</p>
 
@@ -88,22 +81,22 @@ Make sure you have node.js and npm installed on your machine.
   ```sh
   npm install npm@latest -g
   ```
-  Beyond this, if you plan on adjusting the codebase, you might need some knowledge of Express, React, APIs, authentication processess or databases.
+  Beyond this, if you plan on adjusting the codebase, you might need some knowledge of Next.js's App Router, React, APIs, authentication processess or databases.
 
 <h3 id="installation">Installation</h3>
 
-1. Set up your login providers. By default, we use [Google OAuth](https://www.passportjs.org/packages/passport-google-oauth/), [Facebook OAuth](https://www.passportjs.org/packages/passport-facebook/) and [Discord OAuth](https://www.passportjs.org/packages/passport-discord/) via [Passport](https://www.passportjs.org/). If you want to use different login methods, you will have to adjust the codebase accordingly. More details [here](#login-providers).
+1. Set up your login providers. By default, we use [Google OAuth](https://authjs.dev/getting-started/providers/google) and [Magic Links](https://authjs.dev/getting-started/providers/nodemailer) using Nodemailer. If you want to use different login methods, you will have to adjust the codebase accordingly. More details [here](#login-providers).
 2. Set up your database. By default, we use PostgreSQL via Prisma. If you want to use a different database, you will have to adjust the codebase accordingly. More details [here](#database-options).
-3. Set up image hosting. By default, we use Supabase Buckets. If you want to use a different image hosting service, you will have to adjust the codebase accordingly. More details [here](#image-hosting).
+3. Set up image hosting. By default, we use UploadThing. If you want to use a different image hosting service, you will have to adjust the codebase accordingly. More details [here](#image-hosting).
 4. Clone the repo
    ```sh
    git clone https://github.com/gomisroca/catalyst.git
    ```
-5. Install NPM packages in both _backend_ and _frontend_ folders
+5. Install NPM packages
    ```sh
    npm install
    ```
-6. Check `.env.example` and create an `.env` file in both _backend_ and _frontend_ folders
+6. Check `.env.example` and create an `.env` file in the root folder
    ```js
    DATABASE_URL="postgresql://postgres:password@localhost:5432/catalyst"
    DIRECT_URL="postgresql://postgres:password@localhost:5432/catalyst"
@@ -120,61 +113,11 @@ Make sure you have node.js and npm installed on your machine.
 <!-- USAGE EXAMPLES -->
 <h2 id="usage">💠 Usage</h2>
 
-You can run the project in development mode with **npm run dev** in both _backend_ and _frontend_ folders.
+You can run the project in development mode with **npm run dev** from the root folder.
 
 After initializing the database, run **npm run db:push** in the _backend_ folder to apply the Prisma schema.
 
-All necessary environment variables can be found in **.env.example** in both _backend_ and _frontend_ folders.
-
-<p align="right">[<a href="#readme-top">back to top</a>]</p>
-
-<!-- API SPECIFICATION -->
-<h2 id="api-specification">🚀 API Specification</h2>
-
-<h3 id="projects">📚 Projects</h3>
-<details>
-  <summary>Methods and Procedures</summary>
-
-| Method | Endpoint                   | Description               | Input                                                                     | Output    |
-| ------ | -------------------------- | ------------------------- | ------------------------------------------------------------------------- | --------- |
-| GET    | `/`                        | Get all projects          |                                                                           | Project[] |
-| POST   | `/`                        | Create a project          | Name, Description, Avatar, Permissions, Branch Name?, Branch Description? | Project   |
-| GET    | `/:id`                     | Get a unique project      |                                                                           | Project   |
-| PUT    | `/:id`                     | Update a project          | Name, Description, Avatar?, Permissions                                   | Project   |
-| POST   | `/:projectId/branch`       | Create a branch           | Name, Description, Parent Branch?, Permissions                            | Project   |
-| GET    | `/branch/:id`              | Get a unique branch       |                                                                           | Branch    |
-| PUT    | `/branch/:id`              | Update a branch           | Name, Description, Permissions, Project ID                                | Branch    |
-| POST   | `/branch/:id/post`         | Create a post             | Content, Media?                                                           | Post      |
-| PUT    | `/post/:id`                | Update a post             | Content, Media?                                                           | Post      |
-| POST   | `/branch/:id/interactions` | Add Branch Interaction    | Interaction                                                               | 200       |
-| DELETE | `/branch/:id/interactions` | Remove Branch Interaction | Interaction                                                               | 200       |
-| POST   | `/post/:id/interactions`   | Add Post Interaction      | Interaction                                                               | 200       |
-| DELETE | `/post/:id/interactions`   | Remove Post Interaction   | Interaction                                                               | 200       |
-
-</details>
-
-<h3 id="users">👤 Users</h3>
-<details>
-  <summary>Methods and Procedures</summary>
-
-| Method | Endpoint             | Description                             | Input                                       | Output       |
-| ------ | -------------------- | --------------------------------------- | ------------------------------------------- | ------------ |
-| GET    | `/`                  | Health Check                            |                                             | 200          |
-| GET    | `/discord`           | Discord OAuth Authentication            |                                             | 200          |
-| GET    | `/discord/callback`  | Discord OAuth Callback                  |                                             | JWT          |
-| GET    | `/facebook`          | Facebook OAuth Authentication           |                                             | 200          |
-| GET    | `/facebook/callback` | Facebook OAuth Callback                 |                                             | JWT          |
-| GET    | `/google`            | Google OAuth Authentication             |                                             | 200          |
-| GET    | `/google/callback`   | Google OAuth Callback                   |                                             | JWT          |
-| POST   | `/sign-in`           | Register or log in user                 | Email, Password                             | Access Token |
-| GET    | `/info`              | Logged-in user info                     |                                             | User         |
-| GET    | `/:id`               | Specific user info                      |                                             | User         |
-| PUT    | `/settings`          | Update logged-in user settings          | Username, Nickname, Email, Avatar, Password | JWT          |
-| GET    | `/follows`           | Logged-in user follows                  |                                             | User[]       |
-| POST   | `/:id/follow`        | Logged-in user follows specified user   | Profile ID                                  | 200          |
-| POST   | `/:id/unfollow`      | Logged-in user unfollows specified user | Profile ID                                  | 200          |
-
-</details>
+All necessary environment variables can be found in **.env.example** in the root folder.
 
 <p align="right">[<a href="#readme-top">back to top</a>]</p>
 
@@ -183,11 +126,10 @@ All necessary environment variables can be found in **.env.example** in both _ba
 
   <h3 id="login-providers">🔑 Login Providers</h3>
 
-By default, we use [Google OAuth](https://www.passportjs.org/packages/passport-google-oauth/), [Facebook OAuth](https://www.passportjs.org/packages/passport-facebook/) and [Discord OAuth](https://www.passportjs.org/packages/passport-discord/) via [Passport](https://www.passportjs.org/).  
- If you wish to keep using Passport, you can easily add more strategies to your project. You can read more about how to do this [here](https://www.passportjs.org/packages/).
+By default, we use [Google OAuth](https://authjs.dev/getting-started/providers/google) and [Magic Links](https://authjs.dev/getting-started/providers/nodemailer) via [AuthJS](https://authjs.dev/). If you wish to keep using Auth.js, you can easily add more providers to your project. You can read more about how to do this [here](https://authjs.dev/getting-started/authentication).
 
-However, if you wish to move away from Passport, you will have to remove its package.
-Then, you can implement your own authentication logic by reworking or removing the auth and oauth2 files found in _/utils_. Depending on the needs of your authentication process, you might need to adjust the database schemas and/or the sign in/out buttons.
+However, if you wish to move away from Auth.js, you will have to remove its package.
+Then, you can implement your own authentication logic by reworking or removing the files found in _/server/auth_. Depending on the needs of your authentication process, you might need to adjust the database schemas and/or the sign in/out buttons.
 
   <h3 id="database-options">💾 Database Options</h3>
 
@@ -197,7 +139,7 @@ If you wish to use a non-relational database (e.g. MongoDB), Prisma will help ma
 
   <h3 id="image-handling">🖼️ Image Handling</h3>
 
-By default we use [Supabase Buckets](https://supabase.com/docs/guides/storage) for image handling. If you want to switch to a different method, in the backend, you can remove the _src/utils/supabase.js_ file and adjust the settings in _src/utils/upload-image_. Furthermore, in _src/utils/upload-checks_ you can modify which types of files and sizes are allowed.
+By default we use [UploadThing](https://docs.uploadthing.com) for image handling. If you want to switch to a different method, you can remove the _src/utils/uploadthing.ts_ file and the ones found in _src/app/api/uploadthing_. Furthermore, in many of the forms we use the hook _useUploadThing_, which will also have to be removed or replaced.
 
 The implementation of each image hosting method is beyond the scope of this documentation, but easy steps to follow should be provided by the option you choose.
 
@@ -206,15 +148,7 @@ The implementation of each image hosting method is beyond the scope of this docu
 <!-- ROADMAP -->
 <h2 id="roadmap">📍 Roadmap</h2>
 
-- [ ] Improve API structure (e.g. repetition, redundancy)
-  - [ ] Decouple projects, branches, posts
-- [ ] API User Verification as Middleware
-- [ ] Improve Frontend structure
-  - [ ] Group components by their use (i.e. Navbar components in the navbar folder)
-  - [ ] Remove redundant or unused components
-  - [ ] Simplify components (i.e. buttons instead of dropdowns)
 - [ ] Add many more testing instances
-- [ ] Reintroduce Typescript for backend
 - [ ] Improve 'For You' page with more fine-tuned decision-making
 
 See the [open issues](https://github.com/gomisroca/catalyst/issues) for a full list of proposed features (and known issues).
