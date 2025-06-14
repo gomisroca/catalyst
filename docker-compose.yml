@@ -5,13 +5,20 @@ services:
       context: .
       dockerfile: Dockerfile
       args:
-        - SUPABASE_PROJECT_URL=${SUPABASE_PROJECT_URL}
-        - IMAGE_PROXY_HOSTNAME=${IMAGE_PROXY_HOSTNAME}
-        - NEXT_PUBLIC_BASE_URL=${NEXT_PUBLIC_BASE_URL}
-        - NEXTAUTH_URL=${NEXTAUTH_URL}
-    working_dir: /app
+        DATABASE_URL: ${DATABASE_URL}
+        DIRECT_URL: ${DIRECT_URL}
+        NEXTAUTH_SECRET: ${NEXTAUTH_SECRET}
+        NEXTAUTH_URL: ${NEXTAUTH_URL}
+        GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+        GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
+        EMAIL_SERVER: ${EMAIL_SERVER}
+        EMAIL_FROM: ${EMAIL_FROM}
+        UPLOADTHING_TOKEN: ${UPLOADTHING_TOKEN}
+        NEXT_PUBLIC_BASE_URL: ${NEXT_PUBLIC_BASE_URL}
+        IMAGE_PROXY_HOSTNAME: ${IMAGE_PROXY_HOSTNAME}
+        SUPABASE_PROJECT_URL: ${SUPABASE_PROJECT_URL}
+    env_file:
+      - .env
     ports:
       - '3000:3000'
     image: catalyst
-    env_file:
-      - .env
