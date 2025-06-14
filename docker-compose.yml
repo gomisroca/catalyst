@@ -12,6 +12,6 @@ services:
     working_dir: /app
     ports:
       - '3000:3000'
-    image: esia-gallery
+    image: catalyst
     env_file:
       - .env
