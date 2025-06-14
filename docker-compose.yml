@@ -3,15 +3,10 @@ services:
     platform: 'linux/amd64'
     build:
       context: .
-      dockerfile: Dockerfile
-      args:
-        - SUPABASE_PROJECT_URL=${SUPABASE_PROJECT_URL}
-        - IMAGE_PROXY_HOSTNAME=${IMAGE_PROXY_HOSTNAME}
-        - NEXT_PUBLIC_BASE_URL=${NEXT_PUBLIC_BASE_URL}
-        - NEXTAUTH_URL=${NEXTAUTH_URL}
+      dockerfile: dockerfile
     working_dir: /app
-    ports:
-      - '3000:3000'
-    image: esia-gallery
     env_file:
       - .env
+    ports:
+      - '3000:3000'
+    image: catalyst
