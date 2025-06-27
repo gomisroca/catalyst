@@ -1,20 +1,18 @@
 import '@/styles/globals.css';
 
-// Libraries
+import { NextSSRPlugin as UploadThingSSRPlugin } from '@uploadthing/react/next-ssr-plugin';
+import { Provider as JotaiProvider } from 'jotai';
 import { type Metadata } from 'next';
 import { Work_Sans } from 'next/font/google';
+import { type Session } from 'next-auth';
 import { ThemeProvider } from 'next-themes';
-import { Provider as JotaiProvider } from 'jotai';
-import { NextSSRPlugin as UploadThingSSRPlugin } from '@uploadthing/react/next-ssr-plugin';
 import { extractRouterConfig } from 'uploadthing/server';
+
+import Footer from '@/app/_components/footer';
+import Navbar from '@/app/_components/navbar';
+import SidebarWrapper from '@/app/_components/sidebar/wrapper';
 import { UploadThingRouter } from '@/app/api/uploadthing/core';
 import { auth } from '@/server/auth';
-// Components
-import Navbar from '@/app/_components/navbar';
-import Footer from '@/app/_components/footer';
-import SidebarWrapper from '@/app/_components/sidebar/wrapper';
-// Types
-import { type Session } from 'next-auth';
 
 // Establish the metadata for the page
 export const metadata: Metadata = {

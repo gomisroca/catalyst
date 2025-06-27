@@ -1,16 +1,14 @@
-// Libraries
-import { auth } from '@/server/auth';
-// Queries
-import { getProject } from '@/server/queries/projects';
-// Components
-import { Suspense } from 'react';
-import * as NextLink from 'next/link';
 import Image from 'next/image';
-import LoadingSpinner from '@/app/_components/ui/loading-spinner';
-import Link from '@/app/_components/ui/link';
-import AuthorActions from '@/app/_components/projects/author-actions';
-import BranchSelection from '@/app/projects/[projectId]/branch-selection';
+import * as NextLink from 'next/link';
 import { notFound } from 'next/navigation';
+import { Suspense } from 'react';
+
+import AuthorActions from '@/app/_components/projects/author-actions';
+import Link from '@/app/_components/ui/link';
+import LoadingSpinner from '@/app/_components/ui/loading-spinner';
+import BranchSelection from '@/app/projects/[projectId]/branch-selection';
+import { auth } from '@/server/auth';
+import { getProject } from '@/server/queries/projects';
 
 export default async function ProjectLayout({
   params,

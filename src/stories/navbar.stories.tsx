@@ -1,5 +1,6 @@
-import Navbar from '@/app/_components/navbar';
 import type { Meta, StoryObj } from '@storybook/react';
+
+import Navbar from '@/app/_components/navbar';
 
 const mockSesion = {
   user: {

@@ -2,9 +2,10 @@
 
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
+
+import { env } from '@/env';
 import { auth, signIn } from '@/server/auth';
 import { db } from '@/server/db';
-import { env } from '@/env';
 import { toErrorMessage } from '@/utils/errors';
 
 // Define the schema for the email sign in data

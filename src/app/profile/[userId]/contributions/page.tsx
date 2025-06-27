@@ -1,7 +1,5 @@
-// Queries
-import { getUserContributions } from '@/server/queries/users';
-// Components
 import { BranchCard, PostCard, ProjectCard } from '@/app/_components/cards';
+import { getUserContributions } from '@/server/queries/users';
 
 export default async function ContributionsTimeline({ params }: { params: Promise<{ userId: string }> }) {
   const data = await getUserContributions((await params).userId);

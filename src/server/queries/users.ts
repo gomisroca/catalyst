@@ -1,7 +1,9 @@
 import 'server-only';
-import { db } from '@/server/db';
-import { auth } from '@/server/auth';
+
 import { type ForYouTimelineItem } from 'types';
+
+import { auth } from '@/server/auth';
+import { db } from '@/server/db';
 
 export async function getUserProfile(userId: string) {
   // Get user

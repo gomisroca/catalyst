@@ -5,19 +5,16 @@
  * <ProjectCard project={project} />
  */
 
-// Libraries
 import { format } from 'date-fns';
-// Components
 import Image from 'next/image';
 import Link from 'next/link';
 import { FaBookmark, FaCodeBranch, FaShare, FaStar } from 'react-icons/fa6';
-// Types
 import {
   type ExtendedBranch,
-  type ExtendedPost,
-  type ExtendedProject,
   type ExtendedBranchInteraction,
+  type ExtendedPost,
   type ExtendedPostInteraction,
+  type ExtendedProject,
   type ExtendedProjectInteraction,
 } from 'types';
 

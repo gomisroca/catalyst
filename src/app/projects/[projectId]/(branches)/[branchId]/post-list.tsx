@@ -1,10 +1,9 @@
-// Components
+import { type Prisma } from 'generated/prisma';
 import Image from 'next/image';
+import { type Session } from 'next-auth';
+
 import AuthorActions from '@/app/_components/projects/author-actions';
 import PostInteractionsMenu from '@/app/projects/[projectId]/(branches)/[branchId]/(posts)/(interactions)/post-interactions-menu';
-// Types
-import { type Session } from 'next-auth';
-import { type Prisma } from 'generated/prisma';
 
 type ExtendedPost = Prisma.PostGetPayload<{
   include: { media: true; author: true; interactions: { include: { user: true } } };

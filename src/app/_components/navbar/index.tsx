@@ -2,12 +2,11 @@
  * Navbar component with links to the home page. Passes the session to the NavMenu component server-side.
  */
 
-// Libraries
 import { type Session } from 'next-auth';
-// Components
-import Link from '@/app/_components/ui/link';
+
 import NavMenu from '@/app/_components/navbar/nav-menu';
 import ScrollBg from '@/app/_components/navbar/scroll-bg';
+import Link from '@/app/_components/ui/link';
 
 function Navbar({ session }: { session: Session | null }) {
   return (

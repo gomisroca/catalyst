@@ -1,11 +1,9 @@
-// Libraries
-import { auth } from '@/server/auth';
-// Components
 import { Suspense } from 'react';
+
 import NotAllowed from '@/app/_components/not-allowed';
 import LoadingSpinner from '@/app/_components/ui/loading-spinner';
 import UpdateBranchForm from '@/app/projects/[projectId]/(branches)/[branchId]/update/update-branch-form';
-// Queries
+import { auth } from '@/server/auth';
 import { getBranch } from '@/server/queries/branches';
 import { getUserFollows } from '@/server/queries/users';
 
