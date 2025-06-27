@@ -1,10 +1,11 @@
-import { Suspense } from 'react';
-import { searchDatabase } from '@/actions/search';
-import SearchBar from '@/app/_components/search/search-bar';
-import { type SearchItem } from 'types';
-import { BranchCard, PostCard, ProjectCard } from '@/app/_components/cards';
 import { type User } from 'generated/prisma';
 import Image from 'next/image';
+import { Suspense } from 'react';
+import { type SearchItem } from 'types';
+
+import { searchDatabase } from '@/actions/search';
+import { BranchCard, PostCard, ProjectCard } from '@/app/_components/cards';
+import SearchBar from '@/app/_components/search/search-bar';
 import Link from '@/app/_components/ui/link';
 
 // Loading component for search results

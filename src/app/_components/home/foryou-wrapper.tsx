@@ -2,13 +2,10 @@
  * Server-side wrapper for the ForYouTimeline component. Fetches initial data for the timeline from the server and passes it to the client component.
  */
 
-// Libraries
-import { auth } from '@/server/auth';
-// Actions
 import { fetchForYouTimeline } from '@/actions/timelines';
-// Components
 import ForYouTimeline from '@/app/_components/home/foryou-timeline';
 import NotAllowed from '@/app/_components/not-allowed';
+import { auth } from '@/server/auth';
 
 export default async function ForYouWrapper() {
   const session = await auth();

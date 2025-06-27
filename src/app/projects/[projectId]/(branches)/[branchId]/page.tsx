@@ -1,14 +1,12 @@
-// Libraries
-import { auth } from '@/server/auth';
-//Queries
-import { getBranch } from '@/server/queries/branches';
-// Components
 import { FaCodeBranch, FaPen } from 'react-icons/fa6';
-import Link from '@/app/_components/ui/link';
-import ExpandedDescription from '@/app/_components/projects/expanded-description';
+
 import AuthorActions from '@/app/_components/projects/author-actions';
+import ExpandedDescription from '@/app/_components/projects/expanded-description';
+import Link from '@/app/_components/ui/link';
 import BranchInteractionsMenu from '@/app/projects/[projectId]/(branches)/[branchId]/(interactions)/branch-interactions-menu';
 import PostList from '@/app/projects/[projectId]/(branches)/[branchId]/post-list';
+import { auth } from '@/server/auth';
+import { getBranch } from '@/server/queries/branches';
 
 export default async function BranchPage({ params }: { params: Promise<{ projectId: string; branchId: string }> }) {
   const session = await auth();

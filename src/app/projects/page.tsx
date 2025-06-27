@@ -1,7 +1,5 @@
-// Queries
-import { getProjects } from '@/server/queries/projects';
-// Components
 import { ProjectCard } from '@/app/_components/cards';
+import { getProjects } from '@/server/queries/projects';
 
 export default async function ProjectList() {
   const data = await getProjects();

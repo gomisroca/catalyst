@@ -4,18 +4,15 @@
  * Renders a timeline of trending projects and branches.
  */
 
-// Libraries
-import { useState, useEffect, useRef, Fragment } from 'react';
-import { messageAtom } from '@/atoms/message';
 import { useSetAtom } from 'jotai';
-import { toErrorMessage } from '@/utils/errors';
-// Actions
+import { Fragment, useEffect, useRef, useState } from 'react';
+import { type TrendingTimelineItem } from 'types';
+
 import { fetchTrendingTimeline } from '@/actions/timelines';
-// Components
 import { BranchCard, ProjectCard } from '@/app/_components/cards';
 import LoadingSpinner from '@/app/_components/ui/loading-spinner';
-// Types
-import { type TrendingTimelineItem } from 'types';
+import { messageAtom } from '@/atoms/message';
+import { toErrorMessage } from '@/utils/errors';
 
 // Define the structure of the data expected from the server action
 type TrendingTimelineProps = {

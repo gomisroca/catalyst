@@ -1,8 +1,6 @@
-// Queries
-import { getUserContributions } from '@/server/queries/users';
-// Components
-import Modal from '@/app/_components/ui/modal';
 import { BranchCard, PostCard, ProjectCard } from '@/app/_components/cards';
+import Modal from '@/app/_components/ui/modal';
+import { getUserContributions } from '@/server/queries/users';
 
 export default async function ProfileContributionsModal({ params }: { params: Promise<{ userId: string }> }) {
   const data = await getUserContributions((await params).userId);

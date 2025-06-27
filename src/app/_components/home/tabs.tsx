@@ -4,11 +4,9 @@
  * Renders two tabs for the timelines: Trending and For You.
  */
 
-// Libraries
+import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { twMerge } from 'tailwind-merge';
-// Components
-import Link from 'next/link';
 
 function TabButton({ tab, text, currentTab, index }: { tab: string; text: string; currentTab: string; index: number }) {
   // Get the current pathname

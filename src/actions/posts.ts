@@ -1,15 +1,13 @@
 'use server';
 
-// Libraries
 import { revalidatePath } from 'next/cache';
-import { z } from 'zod';
-import { db } from '@/server/db';
-import { auth } from '@/server/auth';
-import { toErrorMessage } from '@/utils/errors';
-// Queries
-import { getBranch } from '@/server/queries/branches';
-// Types
 import { type InteractionType } from 'types';
+import { z } from 'zod';
+
+import { auth } from '@/server/auth';
+import { db } from '@/server/db';
+import { getBranch } from '@/server/queries/branches';
+import { toErrorMessage } from '@/utils/errors';
 
 // Define the schema for the media data
 const MediaUrlSchema = z

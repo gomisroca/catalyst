@@ -1,6 +1,3 @@
-// Queries
-import { getUserProfileTimeline } from '@/server/queries/users';
-// Components
 import {
   BranchCard,
   BranchInteractionCard,
@@ -9,6 +6,7 @@ import {
   ProjectCard,
   ProjectInteractionCard,
 } from '@/app/_components/cards';
+import { getUserProfileTimeline } from '@/server/queries/users';
 
 export default async function ProfileTimeline({ params }: { params: Promise<{ userId: string }> }) {
   const data = await getUserProfileTimeline((await params).userId);

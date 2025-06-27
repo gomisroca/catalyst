@@ -4,16 +4,12 @@
  * Renders a timeline of projects, branches, posts, and interactions for the user.
  */
 
-// Libraries
-import { Fragment, useEffect, useRef, useState } from 'react';
-import { type Session } from 'next-auth';
-import { messageAtom } from '@/atoms/message';
 import { useSetAtom } from 'jotai';
-import { toErrorMessage } from '@/utils/errors';
-// Actions
+import { type Session } from 'next-auth';
+import { Fragment, useEffect, useRef, useState } from 'react';
+import { type ForYouTimelineItem } from 'types';
+
 import { fetchForYouTimeline } from '@/actions/timelines';
-// Components
-import LoadingSpinner from '@/app/_components/ui/loading-spinner';
 import {
   BranchCard,
   BranchInteractionCard,
@@ -23,8 +19,9 @@ import {
   ProjectInteractionCard,
 } from '@/app/_components/cards';
 import NotAllowed from '@/app/_components/not-allowed';
-// Types
-import { type ForYouTimelineItem } from 'types';
+import LoadingSpinner from '@/app/_components/ui/loading-spinner';
+import { messageAtom } from '@/atoms/message';
+import { toErrorMessage } from '@/utils/errors';
 
 // Define the structure of the data expected from the server action
 type ForYouTimelineProps = {

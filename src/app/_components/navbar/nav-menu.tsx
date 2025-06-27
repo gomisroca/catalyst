@@ -4,23 +4,22 @@
  * Expandable user menu and search bar.
  */
 
-// Libraries
-import { useEffect, useRef, useState } from 'react';
 import { useAutoAnimate } from '@formkit/auto-animate/react';
+import Image from 'next/image';
 import { type Session } from 'next-auth';
 import { signOut } from 'next-auth/react';
-// Components
-import Image from 'next/image';
-import { MdOutlineMenu, MdClear } from 'react-icons/md';
+import { useEffect, useRef, useState } from 'react';
 import { BsSearch } from 'react-icons/bs';
+import { MdClear, MdOutlineMenu } from 'react-icons/md';
+
+import SearchBar from '@/app/_components/search/search-bar';
 import Button from '@/app/_components/ui/button';
 import Link from '@/app/_components/ui/link';
-import SearchBar from '@/app/_components/search/search-bar';
 
 // Define a function to toggle the search bar
 function SearchToggle({ open, setOpen }: { open: boolean; setOpen: React.Dispatch<React.SetStateAction<boolean>> }) {
   return (
-    <Button onClick={() => setOpen(!open)} name="Search" className="p-1">
+    <Button onClick={() => setOpen(!open)} arialabel="Search" className="p-1">
       {open ? <MdClear size={20} /> : <BsSearch size={20} />}
     </Button>
   );
@@ -37,7 +36,7 @@ function MenuToggle({
   session: Session | null;
 }) {
   return (
-    <Button onClick={() => setOpen(!open)} name="User Menu" className="p-1">
+    <Button onClick={() => setOpen(!open)} arialabel="User Menu" className="p-1">
       {open ? (
         <MdClear size={20} />
       ) : session ? (
@@ -62,7 +61,7 @@ function Menu({ session }: { session: Session | null }) {
       {/* If the user is signed in, render the sign out and settings links */}
       {session ? (
         <div className="flex w-full flex-col items-center justify-center gap-2">
-          <Button onClick={() => signOut()} name="Sign Out" className="w-full text-center">
+          <Button onClick={() => signOut()} arialabel="Sign Out" className="w-full text-center">
             Sign Out
           </Button>
           <Link href="/settings" className="w-full text-center">

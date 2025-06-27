@@ -1,16 +1,14 @@
 'use client';
 
-// Libraries
+import { type Branch } from 'generated/prisma';
+import { useSetAtom } from 'jotai';
 import { useParams } from 'next/navigation';
+import { type ActionReturn } from 'types';
+
+import { goToBranch } from '@/actions/branches';
+import { messageAtom } from '@/atoms/message';
 import { useRedirect } from '@/hooks/useRedirect';
 import { toErrorMessage } from '@/utils/errors';
-import { useSetAtom } from 'jotai';
-import { messageAtom } from '@/atoms/message';
-// Actions
-import { goToBranch } from '@/actions/branches';
-// Types
-import { type Branch } from 'generated/prisma';
-import { type ActionReturn } from 'types';
 
 // Expected props
 type BranchSelectionProps = {
