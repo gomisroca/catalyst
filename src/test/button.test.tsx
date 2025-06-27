@@ -1,17 +1,18 @@
-import { render, fireEvent } from '@testing-library/react';
+import { fireEvent, render } from '@testing-library/react';
+import { describe, expect, it, vi } from 'vitest';
+
 import Button from '../app/_components/ui/button';
-import { describe, it, expect, vi } from 'vitest';
 
 describe('Button', () => {
   it('renders children correctly', () => {
-    const { getByText } = render(<Button name="Click me">Child</Button>);
+    const { getByText } = render(<Button arialabel="Click me">Child</Button>);
     expect(getByText('Child')).toBeInTheDocument();
   });
 
   it('calls onClick when clicked', () => {
     const handleClick = vi.fn();
     const { getByRole } = render(
-      <Button onClick={handleClick} name="Click me">
+      <Button onClick={handleClick} arialabel="Click me">
         Click me
       </Button>
     );
@@ -22,7 +23,7 @@ describe('Button', () => {
   it('does not call onClick when disabled', () => {
     const handleClick = vi.fn();
     const { getByRole } = render(
-      <Button onClick={handleClick} disabled name="Click me">
+      <Button onClick={handleClick} disabled arialabel="Click me">
         Click me
       </Button>
     );
@@ -31,13 +32,13 @@ describe('Button', () => {
   });
 
   it('has type="button" by default', () => {
-    const { getByRole } = render(<Button name="Click me">Click me</Button>);
+    const { getByRole } = render(<Button arialabel="Click me">Click me</Button>);
     expect(getByRole('button')).toHaveAttribute('type', 'button');
   });
 
   it('respects the type prop', () => {
     const { getByRole } = render(
-      <Button name="Click me" type="submit">
+      <Button arialabel="Click me" type="submit">
         Submit
       </Button>
     );
@@ -46,7 +47,7 @@ describe('Button', () => {
 
   it('applies custom className', () => {
     const { getByRole } = render(
-      <Button name="Click me" className="custom-class">
+      <Button arialabel="Click me" className="custom-class">
         Click
       </Button>
     );
@@ -55,7 +56,7 @@ describe('Button', () => {
 
   it('adds disabled styles when disabled', () => {
     const { getByRole } = render(
-      <Button name="Click me" disabled>
+      <Button arialabel="Click me" disabled>
         Click
       </Button>
     );

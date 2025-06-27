@@ -1,18 +1,16 @@
 'use client';
 
-// Libraries
-import { type Session } from 'next-auth';
-import { followUser } from '@/actions/users';
-import { useParams, useRouter } from 'next/navigation';
-import { messageAtom } from '@/atoms/message';
 import { useSetAtom } from 'jotai';
+import { useParams, useRouter } from 'next/navigation';
+import { type Session } from 'next-auth';
 import { startTransition, useOptimistic } from 'react';
-import { toErrorMessage } from '@/utils/errors';
-// Components
 import { BsHeart, BsHeartFill } from 'react-icons/bs';
-import Button from '@/app/_components/ui/button';
-// Types
 import { type ActionReturn, type ExtendedFollow } from 'types';
+
+import { followUser } from '@/actions/users';
+import Button from '@/app/_components/ui/button';
+import { messageAtom } from '@/atoms/message';
+import { toErrorMessage } from '@/utils/errors';
 
 export default function FollowMenu({ session, followers }: { session: Session | null; followers: ExtendedFollow[] }) {
   const navigate = useRouter();
@@ -117,7 +115,7 @@ export default function FollowMenu({ session, followers }: { session: Session | 
       onClick={() =>
         session?.user.id === params.userId ? navigate.push(`/profile/${params.userId}/followers`) : handleFollow()
       }
-      name="Follow">
+      arialabel="Follow">
       {isFollowing ? <BsHeartFill size={16} /> : <BsHeart size={16} />}
     </Button>
   );

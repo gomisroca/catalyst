@@ -4,17 +4,16 @@
  * Search bar component with a search button.
  */
 
-// Libraries
-import { type FormEvent, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { twMerge } from 'tailwind-merge';
-import { useFormStatus } from 'react-dom';
 import { useSetAtom } from 'jotai';
+import { useRouter } from 'next/navigation';
+import { type FormEvent, useState } from 'react';
+import { useFormStatus } from 'react-dom';
+import { BsArrowRightCircle } from 'react-icons/bs';
+import { twMerge } from 'tailwind-merge';
+
+import Button from '@/app/_components/ui/button';
 import { messageAtom } from '@/atoms/message';
 import { toErrorMessage } from '@/utils/errors';
-// Components
-import Button from '@/app/_components/ui/button';
-import { BsArrowRightCircle } from 'react-icons/bs';
 
 export default function SearchBar({ navbar = false }: { navbar?: boolean }) {
   const setMessage = useSetAtom(messageAtom);
@@ -57,7 +56,7 @@ export default function SearchBar({ navbar = false }: { navbar?: boolean }) {
         />
         <Button
           type="submit"
-          name="Go to Search"
+          arialabel="Go to Search"
           className="h-[30px] w-[30px] font-semibold whitespace-nowrap"
           disabled={pending}>
           <BsArrowRightCircle size={20} />

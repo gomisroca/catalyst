@@ -4,16 +4,14 @@
  * Client-side component for the sidebar. Renders the user's contributions to projects and branches as well as their bookmarks.
  */
 
-// Libraries
-import { useEffect, useRef, useState } from 'react';
-import { type Session } from 'next-auth';
 import { useAutoAnimate } from '@formkit/auto-animate/react';
-// Components
+import { type Session } from 'next-auth';
+import { useEffect, useRef, useState } from 'react';
 import { FaCircleChevronDown, FaCircleChevronUp } from 'react-icons/fa6';
+import { type ExtendedBranch, type ExtendedProject } from 'types';
+
 import Button from '@/app/_components/ui/button';
 import Link from '@/app/_components/ui/link';
-// Types
-import { type ExtendedProject, type ExtendedBranch } from 'types';
 
 // Define the interface for the Bookmark type and the SidebarData type
 interface Bookmark {
@@ -146,7 +144,7 @@ export default function Sidebar({ session, data }: { session: Session | null; da
   return (
     <aside ref={menuRef} className="absolute top-0 bottom-0 left-0 mt-10 flex h-fit w-50 flex-col gap-4 p-4">
       <Button
-        name="sidebar"
+        arialabel="sidebar"
         onClick={() => setOpen(!open)}
         className="flex h-10 w-10 items-center justify-center rounded-full">
         {!open ? <FaCircleChevronDown size={20} /> : <FaCircleChevronUp size={20} />}

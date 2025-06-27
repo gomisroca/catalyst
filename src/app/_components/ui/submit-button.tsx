@@ -7,10 +7,8 @@
  * <SubmitButton baseText="Submit" pendingText="Submitting..." />
  */
 
-// Libraries
 import { useFormStatus } from 'react-dom';
 import { twMerge } from 'tailwind-merge';
-// Components
 import Button from '@/app/_components/ui/button';
 
 export default function SubmitButton({
@@ -27,7 +25,7 @@ export default function SubmitButton({
   return (
     <Button
       type="submit"
-      name={baseText}
+      arialabel={baseText}
       className={twMerge('w-fit font-semibold whitespace-nowrap', className)}
       disabled={pending}>
       {pending ? pendingText : baseText}
