@@ -14,6 +14,8 @@ import SidebarWrapper from '@/app/_components/sidebar/wrapper';
 import { UploadThingRouter } from '@/app/api/uploadthing/core';
 import { auth } from '@/server/auth';
 
+import SilentSignIn from './_components/silent-signin';
+
 // Establish the metadata for the page
 export const metadata: Metadata = {
   title: 'Catalyst',
@@ -47,6 +49,7 @@ export default async function RootLayout({
       <body className="bg-radial-[at_25%_25%] from-sky-500 to-zinc-100 to-75% text-zinc-900 dark:from-sky-950 dark:to-zinc-950 dark:text-zinc-100">
         <ThemeProvider attribute="class">
           <JotaiProvider>
+            <SilentSignIn session={session} />
             <UploadThingSSRPlugin routerConfig={extractRouterConfig(UploadThingRouter)} />
             <div id="modal-root" />
             {modal}
