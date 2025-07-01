@@ -21,12 +21,12 @@ const mockProject: ExtendedProject = {
     name: 'Test User',
     email: 'test@example.com',
     emailVerified: new Date(),
-    image: '/test-user-image.png',
+    image: '/user.jpg',
   },
   createdAt: new Date(),
   updatedAt: new Date(),
   authorId: 'user123',
-  picture: '/test-image.png',
+  picture: '/screenshot.png',
 };
 
 describe('ProjectCard', () => {
