@@ -1,10 +1,9 @@
-// Libraries
-import { auth } from '@/server/auth';
-// Components
 import { Suspense } from 'react';
+
+import NotAllowed from '@/app/_components/not-allowed';
 import LoadingSpinner from '@/app/_components/ui/loading-spinner';
 import CreateProjectForm from '@/app/projects/create/create-project-form';
-import NotAllowed from '@/app/_components/not-allowed';
+import { auth } from '@/server/auth';
 
 export default async function CreatePost() {
   const session = await auth();

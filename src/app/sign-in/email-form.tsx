@@ -1,18 +1,15 @@
 'use client';
 
-// Libraries
-import { useRef } from 'react';
 import { useSetAtom } from 'jotai';
-import { messageAtom } from '@/atoms/message';
-import { toErrorMessage } from '@/utils/errors';
-import { useRedirect } from '@/hooks/useRedirect';
-// Actions
-import { signInWithEmail } from '@/actions/users';
-// Components
 import Form from 'next/form';
-import SubmitButton from '@/app/_components/ui/submit-button';
-// Types
+import { useRef } from 'react';
 import { type ActionReturn } from 'types';
+
+import { signInWithEmail } from '@/actions/users';
+import SubmitButton from '@/app/_components/ui/submit-button';
+import { messageAtom } from '@/atoms/message';
+import { useRedirect } from '@/hooks/useRedirect';
+import { toErrorMessage } from '@/utils/errors';
 
 export default function EmailForm({ modal = false }: { modal?: boolean }) {
   const redirect = useRedirect(); // Redirect hook

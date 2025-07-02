@@ -2,11 +2,9 @@
  * Server-side wrapper for the sidebar component. Fetches the user's sidebar data from the server and passes it to the sidebar component.
  */
 
-// Libraries
 import { type Session } from 'next-auth';
-// Components
+
 import Sidebar from '@/app/_components/sidebar';
-// Actions
 import { getUserSidebar } from '@/server/queries/users';
 
 export default async function SidebarWrapper({ session }: { session: Session | null }) {

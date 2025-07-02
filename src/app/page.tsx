@@ -1,5 +1,5 @@
-import HomeTabs from '@/app/_components/home/tabs';
 import ForYouWrapper from '@/app/_components/home/foryou-wrapper';
+import HomeTabs from '@/app/_components/home/tabs';
 import TrendingWrapper from '@/app/_components/home/trending-wrapper';
 
 export default async function Home({

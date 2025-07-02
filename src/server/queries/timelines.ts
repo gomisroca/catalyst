@@ -1,9 +1,11 @@
 import 'server-only';
-import { db } from '@/server/db';
-import { auth } from '@/server/auth';
-import { getUserFollows } from '@/server/queries/users';
+
 import { type Session } from 'next-auth';
-import { type TrendingTimelineItem, type ForYouTimelineItem } from 'types';
+import { type ForYouTimelineItem, type TrendingTimelineItem } from 'types';
+
+import { auth } from '@/server/auth';
+import { db } from '@/server/db';
+import { getUserFollows } from '@/server/queries/users';
 
 async function getTrendingProjects({
   session,

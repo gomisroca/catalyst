@@ -1,10 +1,7 @@
-// Libraries
-import { auth } from '@/server/auth';
-// Queries
-import { getBranchInteractions } from '@/server/queries/branches';
-// Components
-import BranchInteraction from '@/app/projects/[projectId]/(branches)/[branchId]/(interactions)/branch-interaction';
 import BranchExtraInteractions from '@/app/projects/[projectId]/(branches)/[branchId]/(interactions)/branch-extra-interactions';
+import BranchInteraction from '@/app/projects/[projectId]/(branches)/[branchId]/(interactions)/branch-interaction';
+import { auth } from '@/server/auth';
+import { getBranchInteractions } from '@/server/queries/branches';
 
 type InteractionType = 'LIKE' | 'SHARE' | 'BOOKMARK';
 

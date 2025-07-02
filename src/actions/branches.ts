@@ -1,15 +1,13 @@
 'use server';
 
-// Libraries
 import { revalidatePath } from 'next/cache';
-import { z } from 'zod';
-import { db } from '@/server/db';
-import { auth } from '@/server/auth';
-import { toErrorMessage } from '@/utils/errors';
-// Queries
-import { getProject } from '@/server/queries/projects';
-// Types
 import { type InteractionType } from 'types';
+import { z } from 'zod';
+
+import { auth } from '@/server/auth';
+import { db } from '@/server/db';
+import { getProject } from '@/server/queries/projects';
+import { toErrorMessage } from '@/utils/errors';
 
 // Define the schema for the branch data
 const BranchSchema = z.object({

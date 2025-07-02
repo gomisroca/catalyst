@@ -1,19 +1,16 @@
 'use client';
 
-// Libraries
 import { useSetAtom } from 'jotai';
-import { messageAtom } from '@/atoms/message';
-import { useRef } from 'react';
+import Form from 'next/form';
 import { useParams } from 'next/navigation';
+import { useRef } from 'react';
+import { type ActionReturn } from 'types';
+
+import { createBranch } from '@/actions/branches';
+import SubmitButton from '@/app/_components/ui/submit-button';
+import { messageAtom } from '@/atoms/message';
 import { useRedirect } from '@/hooks/useRedirect';
 import { toErrorMessage } from '@/utils/errors';
-// Actions
-import { createBranch } from '@/actions/branches';
-// Components
-import Form from 'next/form';
-import SubmitButton from '@/app/_components/ui/submit-button';
-// Types
-import { type ActionReturn } from 'types';
 
 export default function CreateBranchForm({ modal = false }: { modal?: boolean }) {
   const redirect = useRedirect(); // Redirect hook

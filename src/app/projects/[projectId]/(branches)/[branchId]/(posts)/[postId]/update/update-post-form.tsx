@@ -1,22 +1,19 @@
 'use client';
 
-// Libraries
+import { type Prisma } from 'generated/prisma';
 import { useSetAtom } from 'jotai';
-import { messageAtom } from '@/atoms/message';
-import { useRef, useState } from 'react';
-import { useParams } from 'next/navigation';
-import { useUploadThing } from '@/utils/uploadthing';
-import { useRedirect } from '@/hooks/useRedirect';
-import { toErrorMessage } from '@/utils/errors';
-// Actions
-import { updatePost } from '@/actions/posts';
-// Components
 import Form from 'next/form';
 import Image from 'next/image';
-import SubmitButton from '@/app/_components/ui/submit-button';
-// Types
-import { type Prisma } from 'generated/prisma';
+import { useParams } from 'next/navigation';
+import { useRef, useState } from 'react';
 import { type ActionReturn } from 'types';
+
+import { updatePost } from '@/actions/posts';
+import SubmitButton from '@/app/_components/ui/submit-button';
+import { messageAtom } from '@/atoms/message';
+import { useRedirect } from '@/hooks/useRedirect';
+import { toErrorMessage } from '@/utils/errors';
+import { useUploadThing } from '@/utils/uploadthing';
 
 type PostWithMedia = Prisma.PostGetPayload<{
   include: { media: true };

@@ -1,5 +1,6 @@
-import type { Preview } from '@storybook/react';
 import '../src/styles/globals.css';
+import type { Preview } from '@storybook/nextjs-vite';
+
 import { withThemeByClassName } from '@storybook/addon-themes';
 
 const preview: Preview = {
@@ -10,12 +11,15 @@ const preview: Preview = {
         date: /Date$/i,
       },
     },
+
+    a11y: {
+      test: 'todo',
+    },
   },
 
   decorators: [
     withThemeByClassName({
       themes: {
-        // nameOfTheme: 'classNameForTheme',
         light: '',
         dark: 'dark',
       },

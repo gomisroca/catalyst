@@ -1,19 +1,16 @@
 'use client';
 
-// Libraries
-import { useUploadThing } from '@/utils/uploadthing';
 import { useSetAtom } from 'jotai';
-import { messageAtom } from '@/atoms/message';
+import Form from 'next/form';
 import { useRef, useState } from 'react';
+import { type ActionReturn } from 'types';
+
+import { createProject } from '@/actions/projects';
+import SubmitButton from '@/app/_components/ui/submit-button';
+import { messageAtom } from '@/atoms/message';
 import { useRedirect } from '@/hooks/useRedirect';
 import { toErrorMessage } from '@/utils/errors';
-// Actions
-import { createProject } from '@/actions/projects';
-// Components
-import Form from 'next/form';
-import SubmitButton from '@/app/_components/ui/submit-button';
-// Types
-import { type ActionReturn } from 'types';
+import { useUploadThing } from '@/utils/uploadthing';
 
 export default function CreateProjectForm({ modal = false }: { modal?: boolean }) {
   const redirect = useRedirect(); // Redirect hook

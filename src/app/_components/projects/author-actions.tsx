@@ -4,21 +4,18 @@
  * Component for the author actions of a project, branch, or post, such as deleting or updating.
  */
 
-// Libraries
 import { useSetAtom } from 'jotai';
-import { messageAtom } from '@/atoms/message';
-import { toErrorMessage } from '@/utils/errors';
-import { useRedirect } from '@/hooks/useRedirect';
-// Actions
-import { deleteProject } from '@/actions/projects';
+import { FaPencil, FaTrash } from 'react-icons/fa6';
+import { type ActionReturn } from 'types';
+
 import { deleteBranch } from '@/actions/branches';
 import { deletePost } from '@/actions/posts';
-// Components
-import { FaPencil, FaTrash } from 'react-icons/fa6';
+import { deleteProject } from '@/actions/projects';
 import Button from '@/app/_components/ui/button';
 import Link from '@/app/_components/ui/link';
-// Types
-import { type ActionReturn } from 'types';
+import { messageAtom } from '@/atoms/message';
+import { useRedirect } from '@/hooks/useRedirect';
+import { toErrorMessage } from '@/utils/errors';
 
 // Define the interface for the AuthorActions component
 interface AuthorActionsProps {
@@ -117,7 +114,7 @@ export default function AuthorActions({ type, projectId, branchId, postId }: Aut
       <Link href={updateHref}>
         <FaPencil size={10} />
       </Link>
-      <Button onClick={handleDelete} name="Delete" className="w-fit">
+      <Button onClick={handleDelete} arialabel="Delete" className="w-fit">
         <FaTrash size={10} />
       </Button>
     </div>

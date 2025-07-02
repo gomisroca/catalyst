@@ -1,13 +1,11 @@
-// Libraries
-import { auth } from '@/server/auth';
-// Queries
-import { getProject } from '@/server/queries/projects';
-// Components
-import { Suspense } from 'react';
 import { notFound } from 'next/navigation';
-import LoadingSpinner from '@/app/_components/ui/loading-spinner';
+import { Suspense } from 'react';
+
 import NotAllowed from '@/app/_components/not-allowed';
+import LoadingSpinner from '@/app/_components/ui/loading-spinner';
 import CreateBranchForm from '@/app/projects/[projectId]/(branches)/create/create-branch-form';
+import { auth } from '@/server/auth';
+import { getProject } from '@/server/queries/projects';
 
 export default async function CreateBranch({ searchParams }: { searchParams: Promise<{ projectId: string }> }) {
   // Get the project from the database

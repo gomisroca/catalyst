@@ -1,7 +1,8 @@
 import Image from 'next/image';
+
 import Link from '@/app/_components/ui/link';
-import { getUserFollowers } from '@/server/queries/users';
 import Modal from '@/app/_components/ui/modal';
+import { getUserFollowers } from '@/server/queries/users';
 
 export default async function FollowerListModal({ params }: { params: Promise<{ userId: string }> }) {
   const data = await getUserFollowers((await params).userId);

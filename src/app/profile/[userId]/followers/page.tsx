@@ -1,4 +1,5 @@
 import Image from 'next/image';
+
 import Link from '@/app/_components/ui/link';
 import { getUserFollowers } from '@/server/queries/users';
 
