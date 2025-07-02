@@ -80,8 +80,19 @@ const mockPost: ExtendedPost = {
   branch: mockBranch,
 };
 
+const mockPostWithoutMedia: ExtendedPost = {
+  ...mockPost,
+  media: [],
+};
+
 export const Basic: Story = {
   args: {
     post: mockPost,
+  },
+};
+
+export const WithoutMedia: Story = {
+  args: {
+    post: mockPostWithoutMedia,
   },
 };
