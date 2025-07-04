@@ -29,7 +29,7 @@ export default async function BranchPage({ params }: { params: Promise<{ project
             <h1 className="text-lg font-bold">{branch.name}</h1>
           </div>
           <div className="flex items-center gap-1 text-sm font-medium text-zinc-500 dark:text-zinc-400">
-            <span>{branch.author?.name ? branch.author?.name : branch.author?.email.split('@')[0]}</span>
+            <span>{branch.author?.name ?? branch.author?.email.split('@')[0]}</span>
             <span>•</span>
             <span>
               {branch.createdAt.toLocaleDateString('en-US', {
