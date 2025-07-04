@@ -1,6 +1,6 @@
 import Link from '@/app/_components/ui/link';
 
-export default async function NotAllowed() {
+export default function NotAllowed() {
   return (
     <div className="flex flex-col gap-4">
       <p>You need to be logged in to access this page.</p>
