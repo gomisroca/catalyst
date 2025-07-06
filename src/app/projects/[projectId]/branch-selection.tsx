@@ -3,6 +3,7 @@
 import { type Branch } from 'generated/prisma';
 import { useSetAtom } from 'jotai';
 import { useParams } from 'next/navigation';
+import { useMemo } from 'react';
 import { type ActionReturn } from 'types';
 
 import { goToBranch } from '@/actions/branches';
@@ -36,6 +37,14 @@ export default function BranchSelection({ projectId, branches }: BranchSelection
     }
   };
 
+  const renderedOptions = useMemo(() => {
+    return branches.map((option) => (
+      <option key={option.id} value={option.id} className="rounded-lg bg-zinc-200 dark:bg-zinc-800">
+        {option.name}
+      </option>
+    ));
+  }, [branches]);
+
   return (
     <form
       action={async (formData) => formAction(formData)}
@@ -53,11 +62,7 @@ export default function BranchSelection({ projectId, branches }: BranchSelection
         <option value="" disabled className="hidden">
           Branch
         </option>
-        {branches.map((branch) => (
-          <option key={branch.id} value={branch.id} className="rounded-lg bg-zinc-200 dark:bg-zinc-800">
-            {branch.name}
-          </option>
-        ))}
+        {renderedOptions}
       </select>
     </form>
   );
