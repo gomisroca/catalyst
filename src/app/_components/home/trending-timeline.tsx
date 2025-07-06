@@ -5,7 +5,7 @@
  */
 
 import { useSetAtom } from 'jotai';
-import { Fragment, useEffect, useRef, useState } from 'react';
+import { Fragment, useEffect, useMemo, useRef, useState } from 'react';
 import { type TrendingTimelineItem } from 'types';
 
 import { fetchTrendingTimeline } from '@/actions/timelines';
@@ -81,17 +81,21 @@ export default function TrendingTimeline({ initialData }: TrendingTimelineProps)
     };
   }, []);
 
+  const renderedTimelineData = useMemo(() => {
+    return timelineData.map((data) => (
+      <Fragment key={data.content.id}>
+        {/* Render different types of cards based on the type attribute */}
+        {data.type === 'branch' && <BranchCard branch={data.content} />}
+        {data.type === 'project' && <ProjectCard project={data.content} />}
+      </Fragment>
+    ));
+  }, [timelineData]);
+
   // Render timeline data
   return (
     <div className="flex flex-col gap-4">
       {/* Render different types of cards based on the type attribute */}
-      {timelineData.map((data) => (
-        <Fragment key={data.content.id}>
-          {/* Render different types of cards based on the type attribute */}
-          {data.type === 'branch' && <BranchCard branch={data.content} />}
-          {data.type === 'project' && <ProjectCard project={data.content} />}
-        </Fragment>
-      ))}
+      {renderedTimelineData}
       {isLoading && <LoadingSpinner />}
       {/* Load more timeline data as the user scrolls down */}
       <div ref={observerRef} />

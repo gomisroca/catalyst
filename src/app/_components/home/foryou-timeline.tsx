@@ -6,7 +6,7 @@
 
 import { useSetAtom } from 'jotai';
 import { type Session } from 'next-auth';
-import { Fragment, useEffect, useRef, useState } from 'react';
+import { Fragment, useEffect, useMemo, useRef, useState } from 'react';
 import { type ForYouTimelineItem } from 'types';
 
 import { fetchForYouTimeline } from '@/actions/timelines';
@@ -87,23 +87,27 @@ export default function ForYouTimeline({ session, initialData }: ForYouTimelineP
     };
   }, []);
 
+  const renderedTimelineData = useMemo(() => {
+    return timelineData.map((data) => (
+      <Fragment key={data.content.id}>
+        {/* Render different types of cards based on the type attribute */}
+        {data.type === 'post-interaction' && <PostInteractionCard interaction={data.content} />}
+        {data.type === 'branch-interaction' && <BranchInteractionCard interaction={data.content} />}
+        {data.type === 'project-interaction' && <ProjectInteractionCard interaction={data.content} />}
+        {data.type === 'post' && <PostCard post={data.content} />}
+        {data.type === 'branch' && <BranchCard branch={data.content} />}
+        {data.type === 'project' && <ProjectCard project={data.content} />}
+      </Fragment>
+    ));
+  }, [timelineData]);
+
   // If user is not logged in, show restricted access component
   if (!session) return <NotAllowed />;
 
   // Render timeline data
   return (
     <div className="flex flex-col gap-4">
-      {timelineData.map((data) => (
-        <Fragment key={data.content.id}>
-          {/* Render different types of cards based on the type attribute */}
-          {data.type === 'post-interaction' && <PostInteractionCard interaction={data.content} />}
-          {data.type === 'branch-interaction' && <BranchInteractionCard interaction={data.content} />}
-          {data.type === 'project-interaction' && <ProjectInteractionCard interaction={data.content} />}
-          {data.type === 'post' && <PostCard post={data.content} />}
-          {data.type === 'branch' && <BranchCard branch={data.content} />}
-          {data.type === 'project' && <ProjectCard project={data.content} />}
-        </Fragment>
-      ))}
+      {renderedTimelineData}
       {isLoading && <LoadingSpinner />}
       {/* Load more timeline data as the user scrolls down */}
       <div ref={observerRef} />
