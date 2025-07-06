@@ -49,7 +49,7 @@ export default function Modal({ children }: { children: React.ReactNode }) {
     ref={parent}>
       <dialog ref={dialogRef} className="bg-zinc-100 dark:bg-zinc-900 relative w-[80%] max-w-[500px] m-auto max-height-[500px] rounded-lg p-4 flex justify-center items-center" onClose={onDismiss}>
         {children}
-        <Button name='Close' onClick={onDismiss} className="absolute top-[10px] right-[10px]"><MdClear size={10} /></Button>
+        <Button arialabel='Close' onClick={onDismiss} className="absolute top-[10px] right-[10px]"><MdClear size={10} /></Button>
       </dialog>
     </div>,
     document.getElementById('modal-root')!

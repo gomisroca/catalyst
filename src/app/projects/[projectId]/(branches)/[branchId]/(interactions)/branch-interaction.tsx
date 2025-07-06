@@ -1,22 +1,19 @@
 'use client';
 
-// Libraries
-import { useParams } from 'next/navigation';
+import { type Prisma } from 'generated/prisma';
 import { useSetAtom } from 'jotai';
-import { messageAtom } from '@/atoms/message';
-import { twMerge } from 'tailwind-merge';
+import { useParams } from 'next/navigation';
+import { type User } from 'next-auth';
 import { startTransition, useOptimistic } from 'react';
-import { toErrorMessage } from '@/utils/errors';
-// Actions
-import { interactionAction } from '@/actions/branches';
-// Components
-import Button from '@/app/_components/ui/button';
 import { FaBookmark, FaEye, FaShare, FaStar } from 'react-icons/fa6';
 import { MdWarning } from 'react-icons/md';
-// Types
-import { type User } from 'next-auth';
-import { type Prisma } from 'generated/prisma';
+import { twMerge } from 'tailwind-merge';
 import { type ActionReturn, type InteractionType } from 'types';
+
+import { interactionAction } from '@/actions/branches';
+import Button from '@/app/_components/ui/button';
+import { messageAtom } from '@/atoms/message';
+import { toErrorMessage } from '@/utils/errors';
 
 // Attach an icon to each type of interaction
 const types = {
@@ -121,7 +118,7 @@ export default function BranchInteraction({
         'flex h-6 items-center justify-center gap-2 px-2 text-sm font-semibold',
         hasInteracted && 'from-sky-300 dark:from-sky-700'
       )}
-      name={type}>
+      arialabel={type}>
       {types[type]} {!['HIDE', 'REPORT'].includes(type) && optimisticInteractions?.length}
     </Button>
   );

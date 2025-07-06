@@ -1,10 +1,7 @@
-// Libraries
-import { auth } from '@/server/auth';
-// Queries
-import { getPostInteractions } from '@/server/queries/posts';
-// Components
 import PostExtraInteractions from '@/app/projects/[projectId]/(branches)/[branchId]/(posts)/(interactions)/post-extra-interactions';
 import PostInteraction from '@/app/projects/[projectId]/(branches)/[branchId]/(posts)/(interactions)/post-interaction';
+import { auth } from '@/server/auth';
+import { getPostInteractions } from '@/server/queries/posts';
 
 type InteractionType = 'LIKE' | 'SHARE' | 'BOOKMARK';
 

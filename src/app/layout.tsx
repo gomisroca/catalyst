@@ -1,20 +1,20 @@
 import '@/styles/globals.css';
 
-// Libraries
+import { NextSSRPlugin as UploadThingSSRPlugin } from '@uploadthing/react/next-ssr-plugin';
+import { Provider as JotaiProvider } from 'jotai';
 import { type Metadata } from 'next';
 import { Work_Sans } from 'next/font/google';
+import { type Session } from 'next-auth';
 import { ThemeProvider } from 'next-themes';
-import { Provider as JotaiProvider } from 'jotai';
-import { NextSSRPlugin as UploadThingSSRPlugin } from '@uploadthing/react/next-ssr-plugin';
 import { extractRouterConfig } from 'uploadthing/server';
+
+import Footer from '@/app/_components/footer';
+import Navbar from '@/app/_components/navbar';
+import SidebarWrapper from '@/app/_components/sidebar/wrapper';
 import { UploadThingRouter } from '@/app/api/uploadthing/core';
 import { auth } from '@/server/auth';
-// Components
-import Navbar from '@/app/_components/navbar';
-import Footer from '@/app/_components/footer';
-import SidebarWrapper from '@/app/_components/sidebar/wrapper';
-// Types
-import { type Session } from 'next-auth';
+
+import SilentSignIn from './_components/silent-signin';
 
 // Establish the metadata for the page
 export const metadata: Metadata = {
@@ -49,6 +49,7 @@ export default async function RootLayout({
       <body className="bg-radial-[at_25%_25%] from-sky-500 to-zinc-100 to-75% text-zinc-900 dark:from-sky-950 dark:to-zinc-950 dark:text-zinc-100">
         <ThemeProvider attribute="class">
           <JotaiProvider>
+            <SilentSignIn session={session} />
             <UploadThingSSRPlugin routerConfig={extractRouterConfig(UploadThingRouter)} />
             <div id="modal-root" />
             {modal}

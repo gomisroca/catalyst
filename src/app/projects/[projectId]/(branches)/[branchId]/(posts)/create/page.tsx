@@ -1,13 +1,11 @@
-// Libraries
-import { auth } from '@/server/auth';
-// Queries
-import { getBranch } from '@/server/queries/branches';
-// Components
-import { Suspense } from 'react';
 import { notFound } from 'next/navigation';
-import LoadingSpinner from '@/app/_components/ui/loading-spinner';
+import { Suspense } from 'react';
+
 import NotAllowed from '@/app/_components/not-allowed';
+import LoadingSpinner from '@/app/_components/ui/loading-spinner';
 import CreatePostForm from '@/app/projects/[projectId]/(branches)/[branchId]/(posts)/create/create-post-form';
+import { auth } from '@/server/auth';
+import { getBranch } from '@/server/queries/branches';
 
 export default async function CreatePost({
   searchParams,

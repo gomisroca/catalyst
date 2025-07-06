@@ -1,13 +1,12 @@
-// Libraries
-import { auth } from '@/server/auth';
-// Components
 import { Suspense } from 'react';
-import LoadingSpinner from '@/app/_components/ui/loading-spinner';
-import UpdateProjectForm from './update-project-form';
+
 import NotAllowed from '@/app/_components/not-allowed';
-// Queries
+import LoadingSpinner from '@/app/_components/ui/loading-spinner';
+import { auth } from '@/server/auth';
 import { getProject } from '@/server/queries/projects';
 import { getUserFollows } from '@/server/queries/users';
+
+import UpdateProjectForm from './update-project-form';
 
 export default async function ProjectUpdate({ searchParams }: { searchParams: Promise<{ projectId: string }> }) {
   const session = await auth();

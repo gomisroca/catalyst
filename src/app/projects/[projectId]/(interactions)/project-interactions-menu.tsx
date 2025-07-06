@@ -1,10 +1,7 @@
-// Libraries
-import { auth } from '@/server/auth';
-// Queries
-import { getProjectInteractions } from '@/server/queries/projects';
-// Components
-import ProjectInteraction from '@/app/projects/[projectId]/(interactions)/project-interaction';
 import ProjectExtraInteractions from '@/app/projects/[projectId]/(interactions)/project-extra-interactions';
+import ProjectInteraction from '@/app/projects/[projectId]/(interactions)/project-interaction';
+import { auth } from '@/server/auth';
+import { getProjectInteractions } from '@/server/queries/projects';
 
 type InteractionType = 'LIKE' | 'SHARE' | 'BOOKMARK';
 

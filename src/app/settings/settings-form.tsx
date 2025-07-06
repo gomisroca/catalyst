@@ -1,21 +1,18 @@
 'use client';
 
-// Libraries
-import { messageAtom } from '@/atoms/message';
-import { useUploadThing } from '@/utils/uploadthing';
 import { useSetAtom } from 'jotai';
-import { useRedirect } from '@/hooks/useRedirect';
-import { toErrorMessage } from '@/utils/errors';
-import { useRef, useState } from 'react';
-// Actions
-import { updateUserSettings } from '@/actions/users';
-// Components
 import Form from 'next/form';
 import Image from 'next/image';
-import SubmitButton from '@/app/_components/ui/submit-button';
-// Types
 import { type User } from 'next-auth';
+import { useRef, useState } from 'react';
 import { type ActionReturn } from 'types';
+
+import { updateUserSettings } from '@/actions/users';
+import SubmitButton from '@/app/_components/ui/submit-button';
+import { messageAtom } from '@/atoms/message';
+import { useRedirect } from '@/hooks/useRedirect';
+import { toErrorMessage } from '@/utils/errors';
+import { useUploadThing } from '@/utils/uploadthing';
 
 export default function UserSettingsForm({ user, modal = false }: { user: User; modal?: boolean }) {
   const redirect = useRedirect(); // Redirect hook

@@ -1,10 +1,9 @@
-// Libraries
-import { auth } from '@/server/auth';
-// Components
 import { Suspense } from 'react';
-import LoadingSpinner from '@/app/_components/ui/loading-spinner';
+
 import NotAllowed from '@/app/_components/not-allowed';
+import LoadingSpinner from '@/app/_components/ui/loading-spinner';
 import UserSettingsForm from '@/app/settings/settings-form';
+import { auth } from '@/server/auth';
 
 export default async function UserSettings() {
   const session = await auth();

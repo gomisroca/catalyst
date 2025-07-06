@@ -1,16 +1,14 @@
 'use client';
 
-// Libraries
-import { useState } from 'react';
-import { twMerge } from 'tailwind-merge';
 import { useAutoAnimate } from '@formkit/auto-animate/react';
-// Components
-import Button from '@/app/_components/ui/button';
-import { BsThreeDotsVertical } from 'react-icons/bs';
-import BranchInteraction from '@/app/projects/[projectId]/(branches)/[branchId]/(interactions)/branch-interaction';
-// Types
-import { type User } from 'next-auth';
 import { type Prisma } from 'generated/prisma';
+import { type User } from 'next-auth';
+import { useState } from 'react';
+import { BsThreeDotsVertical } from 'react-icons/bs';
+import { twMerge } from 'tailwind-merge';
+
+import Button from '@/app/_components/ui/button';
+import BranchInteraction from '@/app/projects/[projectId]/(branches)/[branchId]/(interactions)/branch-interaction';
 
 // Expected props
 type BranchInteractionWithUser = Prisma.BranchInteractionGetPayload<{
@@ -40,7 +38,7 @@ export default function BranchExtraInteractions({ user, data }: BranchExtraInter
       <Button
         onClick={() => setOpen(!open)}
         className="my-auto flex h-5 w-5 items-center justify-center rounded-full"
-        name="More">
+        arialabel="More">
         <span className="text-sm font-semibold">
           <BsThreeDotsVertical
             size={12}

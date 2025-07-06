@@ -1,11 +1,10 @@
 'use server';
 
-// Libraries
+import { type SearchItem } from 'types';
+
 import { auth } from '@/server/auth';
 import { db } from '@/server/db';
 import { toErrorMessage } from '@/utils/errors';
-// Types
-import { type SearchItem } from 'types';
 
 export async function searchDatabase(query: string) {
   const session = await auth();

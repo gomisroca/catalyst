@@ -2,9 +2,7 @@
  * Server-side wrapper for the TrendingTimeline component. Fetches initial data for the timeline from the server and passes it to the client component.
  */
 
-// Actions
 import { fetchTrendingTimeline } from '@/actions/timelines';
-// Components
 import TrendingTimeline from '@/app/_components/home/trending-timeline';
 
 export default async function TrendingWrapper() {
