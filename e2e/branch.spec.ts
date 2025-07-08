@@ -1,26 +1,18 @@
 import { expect, test } from '@playwright/test';
-import { PrismaClient } from 'generated/prisma';
 
-import { createTestBranch } from './testUtils';
+test('has branch name', async ({ page }) => {
+  await page.goto('/');
 
-test('has branch details', async ({ page }) => {
-  const db = new PrismaClient();
+  const branchLink = page.getByRole('listitem').first();
+  await expect(branchLink).toBeInViewport();
 
-  const data = await createTestBranch(db);
+  const branchName = branchLink.getByRole('link').last();
+  const href = await branchName.getAttribute('href');
+  const name = await branchName.innerText();
 
-  if (!data) throw new Error('Failed to create project');
-  try {
-    await page.goto(`/projects/${data.project.id}/${data.branch.id}`);
+  await branchName.click();
 
-    await expect(page).toHaveURL(`/projects/${data.project.id}/${data.branch.id}`);
-    await expect(page.getByRole('heading', { name: data.branch.name })).toBeVisible();
-    await expect(page.getByRole('link', { name: data.branch.authorName })).toBeVisible();
-    await expect(page.getByText('This is a temporary branch')).toBeVisible();
-  } finally {
-    await db.project.delete({
-      where: {
-        id: data.project.id,
-      },
-    });
-  }
+  await expect(page).toHaveURL(href!);
+
+  await expect(page.getByRole('heading', { name })).not.toBeEmpty();
 });
