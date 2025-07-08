@@ -1,8 +1,9 @@
 import { expect, test } from '@playwright/test';
-
-import { db } from '@/server/db';
+import { PrismaClient } from 'generated/prisma';
 
 test('has branch details', async ({ page }) => {
+  const db = new PrismaClient();
+
   const [project, branch] = await db.$transaction(async (trx) => {
     const newProject = await trx.project.create({
       data: {
