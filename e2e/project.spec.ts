@@ -1,12 +1,9 @@
 import { expect, test } from '@playwright/test';
-import { PrismaClient } from 'generated/prisma';
 
-const prisma = new PrismaClient({
-  log: ['error', 'warn'],
-});
+import { db } from '@/server/db';
 
 test('has project details', async ({ page }) => {
-  const project = await prisma.$transaction(async (trx) => {
+  const project = await db.$transaction(async (trx) => {
     const newProject = await trx.project.create({
       data: {
         name: 'Temp Project',
@@ -41,7 +38,7 @@ test('has project details', async ({ page }) => {
     ).toBeVisible();
     await expect(page.getByText('This is a temporary project')).toBeVisible();
   } finally {
-    await prisma.project.delete({
+    await db.project.delete({
       where: {
         id: project.id,
       },
