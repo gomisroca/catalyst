@@ -1,31 +1,13 @@
 import { expect, test } from '@playwright/test';
 import { PrismaClient } from 'generated/prisma';
 
+import { createTestProject } from './testUtils';
+
 test('has project details', async ({ page }) => {
   const db = new PrismaClient();
 
-  const project = await db.$transaction(async (trx) => {
-    const newProject = await trx.project.create({
-      data: {
-        name: 'Temp Project',
-        description: 'This is a temporary project',
-        authorId: 'c3895654-8595-46cf-9190-a89ff1ce8750',
-      },
-      include: {
-        author: true,
-      },
-    });
-    await trx.projectPermissions.create({
-      data: {
-        projectId: newProject.id,
-        private: false,
-        allowCollaborate: false,
-        allowShare: false,
-      },
-    });
-
-    return newProject;
-  });
+  const project = await createTestProject(db);
+  if (!project) throw new Error('Failed to create project');
 
   try {
     await page.goto('/projects/' + project.id);
