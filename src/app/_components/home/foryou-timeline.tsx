@@ -27,13 +27,16 @@ import { toErrorMessage } from '@/utils/errors';
 type ForYouTimelineProps = {
   session: Session | null;
   initialData: ForYouTimelineItem[];
+  initialHasMore: boolean;
 };
 
-export default function ForYouTimeline({ session, initialData }: ForYouTimelineProps) {
+export default function ForYouTimeline({ session, initialData, initialHasMore }: ForYouTimelineProps) {
   const [isLoading, setIsLoading] = useState(false); // Track loading state
+  const [hasMore, setHasMore] = useState(initialHasMore);
   const [page, setPage] = useState(2); // Track pagination state
   const setMessage = useSetAtom(messageAtom); // Hook to set the message atom
   const observerRef = useRef<HTMLDivElement | null>(null); // Ref to the div element
+  const loadingRef = useRef(false);
 
   // Initialize timeline data state (merged and sorted in the backend)
   const [timelineData, setTimelineData] = useState<ForYouTimelineItem[]>(initialData);
@@ -43,11 +46,15 @@ export default function ForYouTimeline({ session, initialData }: ForYouTimelineP
     let isMounted = true;
 
     const loadData = async () => {
+      if (!hasMore) return;
+
       setIsLoading(true);
+      loadingRef.current = true;
       try {
-        const data = await fetchForYouTimeline({ page, pageSize: 1 });
+        const { data, hasMore: newHasMore } = await fetchForYouTimeline({ page, pageSize: 1 });
         if (data && isMounted) {
           setTimelineData((prevData) => [...prevData, ...data]);
+          setHasMore(newHasMore);
         }
       } catch (err) {
         setMessage({
@@ -56,6 +63,7 @@ export default function ForYouTimeline({ session, initialData }: ForYouTimelineP
         });
       } finally {
         setIsLoading(false);
+        loadingRef.current = false;
       }
     };
 
@@ -71,7 +79,7 @@ export default function ForYouTimeline({ session, initialData }: ForYouTimelineP
   // Handle loading more data via intersection observer
   useEffect(() => {
     const observer = new IntersectionObserver(([entry]) => {
-      if (entry?.isIntersecting) {
+      if (entry?.isIntersecting && !loadingRef.current && hasMore) {
         setPage((prevPage) => prevPage + 1);
       }
     });
@@ -109,6 +117,7 @@ export default function ForYouTimeline({ session, initialData }: ForYouTimelineP
     <div className="flex flex-col gap-4">
       {renderedTimelineData}
       {isLoading && <LoadingSpinner />}
+      {!hasMore && <p className="text-center text-gray-500">You’ve reached the end of the timeline.</p>}
       {/* Load more timeline data as the user scrolls down */}
       <div ref={observerRef} />
     </div>
