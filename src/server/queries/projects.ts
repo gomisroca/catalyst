@@ -101,6 +101,7 @@ export async function getProjects() {
         });
       } catch (error) {
         console.error(`Failed to get projects:`, error);
+        return [];
       }
     },
     60 * 5 // Cache for 5 minutes
