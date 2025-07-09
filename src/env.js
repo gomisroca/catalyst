@@ -22,6 +22,8 @@ export const env = createEnv({
     GOOGLE_CLIENT_SECRET: z.string(),
     EMAIL_SERVER: z.string(),
     EMAIL_FROM: z.string(),
+    UPSTASH_REDIS_REST_URL: z.string(),
+    UPSTASH_REDIS_REST_TOKEN: z.string(),
     UPLOADTHING_TOKEN: z.string(),
   },
 
@@ -49,6 +51,8 @@ export const env = createEnv({
     EMAIL_SERVER: process.env.EMAIL_SERVER,
     EMAIL_FROM: process.env.EMAIL_FROM,
     UPLOADTHING_TOKEN: process.env.UPLOADTHING_TOKEN,
+    UPSTASH_REDIS_REST_TOKEN: process.env.UPSTASH_REDIS_REST_TOKEN,
+    UPSTASH_REDIS_REST_URL: process.env.UPSTASH_REDIS_REST_URL,
     NEXT_PUBLIC_BASE_URL: process.env.NEXT_PUBLIC_BASE_URL,
   },
   /**
