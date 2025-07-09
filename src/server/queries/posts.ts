@@ -2,6 +2,7 @@ import 'server-only';
 
 import { auth } from '@/server/auth';
 import { db } from '@/server/db';
+import { cached } from '@/utils/redis';
 
 export async function getPost(id: string) {
   try {
@@ -9,24 +10,32 @@ export async function getPost(id: string) {
 
     // Get post
     // Include media and author
-    const post = await db.post
-      .findFirstOrThrow({
-        where: {
-          id,
-          authorId: session?.user.id,
-        },
-        include: {
-          author: true,
-          media: true,
-        },
-      })
-      .catch(() => {
-        throw new Error('Post with the given ID does not exist or you do not have access to it');
-      });
+    const cacheKey = `post:${id}`;
+    const post = await cached(
+      cacheKey,
+      async () => {
+        try {
+          return await db.post.findFirstOrThrow({
+            where: {
+              id,
+              authorId: session?.user.id,
+            },
+            include: {
+              author: true,
+              media: true,
+            },
+          });
+        } catch (error) {
+          console.error(`Failed to get post ${id}:`, error);
+          throw new Error('Post with the given ID does not exist or you do not have access to it');
+        }
+      },
+      60 * 5 // Cache for 5 minutes
+    );
 
     return post;
   } catch (error) {
-    console.error('Failed to get branch:', error);
+    console.error('Failed to get post:', error);
     throw new Error('An unexpected error occurred');
   }
 }

@@ -13,6 +13,6 @@ export default async function ForYouWrapper() {
   if (!session) return <NotAllowed />;
 
   // Fetch initial data for the timeline server-side and pass it to the client component
-  const initialData = await fetchForYouTimeline({ page: 1, pageSize: 1 });
-  return <ForYouTimeline session={session} initialData={initialData} />;
+  const { data: initialData, hasMore: initialHasMore } = await fetchForYouTimeline({ page: 1, pageSize: 1 });
+  return <ForYouTimeline session={session} initialData={initialData} initialHasMore={initialHasMore} />;
 }

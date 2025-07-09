@@ -4,24 +4,33 @@ import { type ForYouTimelineItem } from 'types';
 
 import { auth } from '@/server/auth';
 import { db } from '@/server/db';
+import { cached } from '@/utils/redis';
 
 export async function getUserProfile(userId: string) {
   // Get user
   // Include posts, branches and projects
-  const user = await db.user
-    .findUniqueOrThrow({
-      where: {
-        id: userId,
-      },
-      include: {
-        posts: true,
-        branches: true,
-        projects: true,
-      },
-    })
-    .catch(() => {
-      throw new Error('User with the given ID does not exist');
-    });
+  const cacheKey = `user:${userId}`;
+  const user = await cached(
+    cacheKey,
+    async () => {
+      try {
+        return await db.user.findUniqueOrThrow({
+          where: {
+            id: userId,
+          },
+          include: {
+            posts: true,
+            branches: true,
+            projects: true,
+          },
+        });
+      } catch (error) {
+        console.error(`Failed to get user ${userId}:`, error);
+        throw new Error('User with the given ID does not exist');
+      }
+    },
+    60 * 5 // Cache for 5 minutes
+  );
 
   return user;
 }

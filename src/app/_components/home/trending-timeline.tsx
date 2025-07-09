@@ -17,13 +17,16 @@ import { toErrorMessage } from '@/utils/errors';
 // Define the structure of the data expected from the server action
 type TrendingTimelineProps = {
   initialData: TrendingTimelineItem[];
+  initialHasMore: boolean;
 };
 
-export default function TrendingTimeline({ initialData }: TrendingTimelineProps) {
+export default function TrendingTimeline({ initialData, initialHasMore }: TrendingTimelineProps) {
   const [isLoading, setIsLoading] = useState(false); // Track loading state
+  const [hasMore, setHasMore] = useState(initialHasMore);
   const [page, setPage] = useState(2); // Track pagination state
   const setMessage = useSetAtom(messageAtom); // Hook to set the message atom
   const observerRef = useRef<HTMLDivElement | null>(null); // Ref to the div element
+  const loadingRef = useRef(false);
 
   // Initialize timeline data state (merged and sorted)
   const [timelineData, setTimelineData] = useState<TrendingTimelineItem[]>(initialData);
@@ -33,15 +36,19 @@ export default function TrendingTimeline({ initialData }: TrendingTimelineProps)
     let isMounted = true;
 
     const loadData = async () => {
+      if (!hasMore) return;
+
       setIsLoading(true);
+      loadingRef.current = true;
       try {
-        const data = await fetchTrendingTimeline({
+        const { data, hasMore: newHasMore } = await fetchTrendingTimeline({
           page,
           pageSize: 3,
         });
         if (data && isMounted) {
           // Append new data to existing timeline
           setTimelineData((prevData) => [...prevData, ...data]);
+          setHasMore(newHasMore);
         }
       } catch (err) {
         setMessage({
@@ -50,6 +57,7 @@ export default function TrendingTimeline({ initialData }: TrendingTimelineProps)
         });
       } finally {
         setIsLoading(false);
+        loadingRef.current = false;
       }
     };
 
@@ -65,7 +73,7 @@ export default function TrendingTimeline({ initialData }: TrendingTimelineProps)
   // Handle loading more data via intersection observer
   useEffect(() => {
     const observer = new IntersectionObserver(([entry]) => {
-      if (entry?.isIntersecting) {
+      if (entry?.isIntersecting && !loadingRef.current && hasMore) {
         setPage((prevPage) => prevPage + 1);
       }
     });
@@ -97,6 +105,7 @@ export default function TrendingTimeline({ initialData }: TrendingTimelineProps)
       {/* Render different types of cards based on the type attribute */}
       {renderedTimelineData}
       {isLoading && <LoadingSpinner />}
+      {!hasMore && <p className="text-center text-gray-500">You’ve reached the end of the timeline.</p>}
       {/* Load more timeline data as the user scrolls down */}
       <div ref={observerRef} />
     </div>
