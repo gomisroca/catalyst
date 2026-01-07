@@ -13,8 +13,7 @@ export default async function CreateBranch({ searchParams }: { searchParams: Pro
   if (!project) notFound(); // If the project is not found, redirect to the 404 page
 
   const session = await auth();
-  const allowCollaborate =
-    (session && session.user.id === project.author.id) ?? (session && project.permissions?.allowCollaborate);
+  const allowCollaborate = session?.user?.id === project.author.id || project.permissions?.allowCollaborate;
   // If user is not logged in or not allowed to collaborate, show restricted access component
   if (!session || !allowCollaborate) return <NotAllowed />;
 

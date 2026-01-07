@@ -14,9 +14,9 @@ export default async function BranchPage({ params }: { params: Promise<{ project
   if (!branch) return null;
 
   const allowCollaborate =
-    (session && session.user.id === branch.author.id) ??
-    (session && branch.permissions?.allowCollaborate) ??
-    (session && branch.permissions?.allowedUsers?.some((user) => user.id === session.user.id));
+    session?.user?.id === branch.author.id ||
+    Boolean(branch.permissions?.allowCollaborate) ||
+    branch.permissions?.allowedUsers?.some((user) => user.id === session?.user?.id);
 
   return (
     <main className="flex w-full flex-col gap-4">

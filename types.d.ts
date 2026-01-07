@@ -1,4 +1,4 @@
-import { type User, type Prisma } from 'generated/prisma';
+import { type Prisma, type User } from 'generated/prisma';
 
 interface Provider {
   name: string;
