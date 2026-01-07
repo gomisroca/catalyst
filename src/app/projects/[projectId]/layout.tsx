@@ -23,8 +23,7 @@ export default async function ProjectLayout({
 
   // Check if the user is logged in and if they are allowed to collaborate on the project
   const session = await auth();
-  const allowCollaborate =
-    (session && session.user.id === project.author.id) ?? (session && project.permissions?.allowCollaborate);
+  const allowCollaborate = session?.user?.id === project.author.id || project.permissions?.allowCollaborate;
 
   return (
     <div className="flex w-sm flex-col items-center justify-start gap-4 rounded-lg bg-zinc-100 p-4 drop-shadow-md md:w-xl lg:w-2xl dark:bg-zinc-900">

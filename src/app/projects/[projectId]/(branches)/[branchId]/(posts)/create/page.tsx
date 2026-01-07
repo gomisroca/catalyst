@@ -17,8 +17,7 @@ export default async function CreatePost({
   if (!branch) notFound(); // If the branch is not found, redirect to the 404 page
 
   const session = await auth();
-  const allowCollaborate =
-    (session && session.user.id === branch.author.id) ?? (session && branch.permissions?.allowCollaborate);
+  const allowCollaborate = session?.user?.id === branch.author.id || branch.permissions?.allowCollaborate;
   // If user is not logged in or not allowed to collaborate, show restricted access component
   if (!session || !allowCollaborate) return <NotAllowed />;
 
