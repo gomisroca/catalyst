@@ -30,7 +30,7 @@ export function RootLayoutContent({
   session,
 }: Readonly<{ children: React.ReactNode; session: Session | null }>) {
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className="relative flex min-h-screen flex-col">
       <Navbar session={session} />
       <SidebarWrapper session={session} />
       <main className="mt-12 flex flex-1 flex-col items-center justify-center">{children}</main>
@@ -46,7 +46,7 @@ export default async function RootLayout({
   const session = await auth();
   return (
     <html lang="en" className={worksans.className} suppressHydrationWarning>
-      <body className="bg-radial-[at_25%_25%] from-sky-500 to-zinc-100 to-75% text-zinc-900 dark:from-sky-950 dark:to-zinc-950 dark:text-zinc-100">
+      <body className="bg-zinc-100 text-zinc-900 dark:bg-zinc-950 dark:text-zinc-100">
         <ThemeProvider attribute="class">
           <JotaiProvider>
             <SilentSignIn session={session} />

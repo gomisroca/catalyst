@@ -23,7 +23,7 @@ describe('ThemeButton', () => {
     });
     render(<ThemeButton />);
 
-    expect(screen.getByRole('button', { name: 'Theme Button' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Toggle theme' })).toBeInTheDocument();
   });
 
   it('changes the theme to dark when current theme is light', async () => {
@@ -37,7 +37,7 @@ describe('ThemeButton', () => {
     });
 
     render(<ThemeButton />);
-    const button = screen.getByRole('button', { name: 'Theme Button' });
+    const button = screen.getByRole('button', { name: 'Toggle theme' });
 
     await act(async () => {
       fireEvent.click(button);
@@ -57,7 +57,7 @@ describe('ThemeButton', () => {
     });
 
     render(<ThemeButton />);
-    const button = screen.getByRole('button', { name: 'Theme Button' });
+    const button = screen.getByRole('button', { name: 'Toggle theme' });
 
     await act(async () => {
       fireEvent.click(button);
