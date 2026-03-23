@@ -9,10 +9,8 @@ import { usePathname } from 'next/navigation';
 import { twMerge } from 'tailwind-merge';
 
 function TabButton({ tab, text, currentTab, index }: { tab: string; text: string; currentTab: string; index: number }) {
-  // Get the current pathname
   const pathname = usePathname();
 
-  // Create a button with unique styling based on index and currentTab
   return (
     <Link
       href={tab === 'trending' ? pathname : pathname + '?tl=' + tab}
