@@ -122,11 +122,11 @@ function SidebarContent({ session, data }: { session: Session | null; data: Side
 
   // Render the user's contributions to projects and branches as well as their bookmarks
   return (
-    <nav className="flex min-h-16 w-42 flex-col items-center justify-center gap-2 rounded-lg bg-zinc-100 px-4 py-2 dark:bg-zinc-950">
+    <nav className="flex min-h-16 w-42 flex-col items-center justify-center gap-2 rounded-lg bg-zinc-300 px-4 py-2 dark:bg-zinc-800">
       <SidebarProjects projects={data.contributions.projects.map((project) => project.content)} />
-      <hr className="w-full border border-zinc-300 dark:border-zinc-700" />
+      <hr className="w-full border border-white dark:border-black" />
       <SidebarBranches branches={data.contributions.branches.map((branch) => branch.content)} />
-      <hr className="w-full border border-zinc-300 dark:border-zinc-700" />
+      <hr className="w-full border border-white dark:border-black" />
       <SidebarBookmarks bookmarks={data.bookmarks} />
     </nav>
   );
@@ -154,14 +154,11 @@ export default function Sidebar({ session, data }: { session: Session | null; da
   }, [open]);
 
   return (
-    <aside ref={menuRef} className="absolute top-0 bottom-0 left-0 mt-10 flex h-fit w-50 flex-col gap-4 p-4">
-      <Button
-        arialabel="sidebar"
-        onClick={() => setOpen(!open)}
-        className="flex h-10 w-10 items-center justify-center rounded-full">
+    <aside ref={menuRef} className="fixed top-0 bottom-0 left-0 mt-10 flex h-fit w-50 flex-col gap-4 p-4">
+      <Button arialabel="sidebar" onClick={() => setOpen(!open)} className="w-fit">
         {!open ? <FaCircleChevronDown size={20} /> : <FaCircleChevronUp size={20} />}
       </Button>
-      <div ref={parent} className="relative z-[999]">
+      <div ref={parent} className="relative z-999">
         {open && <SidebarContent session={session} data={data} />}
       </div>
     </aside>

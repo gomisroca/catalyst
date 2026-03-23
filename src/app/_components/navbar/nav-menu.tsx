@@ -36,16 +36,16 @@ function MenuToggle({
   session: Session | null;
 }) {
   return (
-    <Button onClick={() => setOpen(!open)} arialabel="User Menu" className="p-1">
+    <Button onClick={() => setOpen(!open)} arialabel="User Menu" className="p-0.5">
       {open ? (
         <MdClear size={20} />
       ) : session ? (
         <Image
           src={session.user?.image ?? '/user.jpg'}
           alt="Profile Picture"
-          width={30}
-          height={30}
-          className="aspect-square rounded-full"
+          width={24}
+          height={24}
+          className="aspect-square rounded-lg"
         />
       ) : (
         <MdOutlineMenu size={20} />
@@ -57,7 +57,7 @@ function MenuToggle({
 // Define a function to render the user menu
 function Menu({ session }: { session: Session | null }) {
   return (
-    <div className="absolute top-[0.75rem] right-0 bottom-0 flex h-fit w-42 items-center justify-center gap-2 rounded-lg bg-zinc-100 p-2 dark:bg-zinc-950">
+    <div className="absolute top-3 right-0 bottom-0 flex h-fit w-42 items-center justify-center gap-2 rounded-lg bg-zinc-100 p-2 dark:bg-zinc-950">
       {/* If the user is signed in, render the sign out and settings links */}
       {session ? (
         <div className="flex w-full flex-col items-center justify-center gap-2">

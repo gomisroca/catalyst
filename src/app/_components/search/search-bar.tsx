@@ -1,17 +1,12 @@
 'use client';
 
-/**
- * Search bar component with a search button.
- */
-
 import { useSetAtom } from 'jotai';
 import { useRouter } from 'next/navigation';
 import { type FormEvent, useState } from 'react';
 import { useFormStatus } from 'react-dom';
-import { BsArrowRightCircle } from 'react-icons/bs';
+import { BsArrowRight } from 'react-icons/bs';
 import { twMerge } from 'tailwind-merge';
 
-import Button from '@/app/_components/ui/button';
 import { messageAtom } from '@/atoms/message';
 import { toErrorMessage } from '@/utils/errors';
 
@@ -23,10 +18,7 @@ export default function SearchBar({ navbar = false }: { navbar?: boolean }) {
 
   const handleSearch = async (e: FormEvent) => {
     e.preventDefault();
-    // If the query is empty, return
     if (!query.trim()) return;
-
-    // Navigate to the search page with the query as a query parameter
     try {
       router.push(`/search?q=${encodeURIComponent(query)}`);
     } catch (error) {
@@ -40,27 +32,33 @@ export default function SearchBar({ navbar = false }: { navbar?: boolean }) {
   return (
     <form
       onSubmit={handleSearch}
-      className={twMerge(
-        'w-full max-w-md',
-        navbar
-          ? 'absolute top-4 right-[-45] bottom-0 h-fit w-fit rounded-lg bg-zinc-100 p-2 dark:bg-zinc-950'
-          : 'relative'
-      )}>
-      <div className="relative flex items-center justify-center gap-2">
+      className={twMerge('w-full max-w-md', navbar && 'absolute top-4 right-[-45] bottom-0 h-fit w-fit')}>
+      <div className="flex items-center gap-0">
         <input
           type="text"
           placeholder="Search"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          className={twMerge('rounded-lg ring-1', navbar ? 'w-32 p-1 pr-0' : 'p-2 pr-10')}
+          className={twMerge(
+            'h-9 rounded-l-lg bg-zinc-300 px-3 text-sm font-bold text-zinc-900 placeholder-zinc-500 drop-shadow-sm transition-all duration-200 ease-in-out outline-none dark:bg-zinc-800 dark:text-zinc-100 dark:placeholder-zinc-400',
+            'hover:bg-white dark:hover:bg-black',
+            'focus:bg-white dark:focus:bg-black',
+            navbar ? 'w-32 py-1' : 'w-full py-2'
+          )}
         />
-        <Button
+        <button
           type="submit"
-          arialabel="Go to Search"
-          className="h-[30px] w-[30px] font-semibold whitespace-nowrap"
-          disabled={pending}>
-          <BsArrowRightCircle size={20} />
-        </Button>
+          aria-label="Go to Search"
+          disabled={pending}
+          className={twMerge(
+            'h-9 cursor-pointer rounded-r-lg bg-zinc-300 px-3 drop-shadow-sm transition-all duration-200 ease-in-out dark:bg-zinc-800',
+            'hover:scale-105 hover:bg-white hover:drop-shadow-md dark:hover:bg-black',
+            'active:scale-90 active:duration-100',
+            navbar ? 'py-1' : 'py-2',
+            pending && 'pointer-events-none opacity-50'
+          )}>
+          <BsArrowRight size={16} />
+        </button>
       </div>
     </form>
   );
