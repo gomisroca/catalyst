@@ -5,7 +5,7 @@
  */
 
 import { useSetAtom } from 'jotai';
-import { Fragment, useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { type TrendingTimelineItem } from 'types';
 
 import { fetchTrendingTimeline } from '@/actions/timelines';
@@ -90,22 +90,22 @@ export default function TrendingTimeline({ initialData, initialHasMore }: Trendi
   }, []);
 
   const renderedTimelineData = useMemo(() => {
-    return timelineData.map((data) => (
-      <Fragment key={data.content.id}>
-        {/* Render different types of cards based on the type attribute */}
-        {data.type === 'branch' && <BranchCard branch={data.content} />}
-        {data.type === 'project' && <ProjectCard project={data.content} />}
-      </Fragment>
-    ));
+    return timelineData.map((data) =>
+      data.type === 'branch' ? (
+        <BranchCard key={data.content.id} branch={data.content} />
+      ) : data.type === 'project' ? (
+        <ProjectCard key={data.content.id} project={data.content} />
+      ) : null
+    );
   }, [timelineData]);
 
   // Render timeline data
   return (
     <div className="flex flex-col gap-4">
       {/* Render different types of cards based on the type attribute */}
-      {renderedTimelineData}
+      <ul className="grid grid-cols-1 items-stretch gap-4">{renderedTimelineData}</ul>
       {isLoading && <LoadingSpinner />}
-      {!hasMore && <p className="text-center text-gray-500">You’ve reached the end of the timeline.</p>}
+      {!hasMore && <p className="text-center text-zinc-500">You’ve reached the end of the timeline.</p>}
       {/* Load more timeline data as the user scrolls down */}
       <div ref={observerRef} />
     </div>

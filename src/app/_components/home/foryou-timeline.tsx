@@ -6,7 +6,7 @@
 
 import { useSetAtom } from 'jotai';
 import { type Session } from 'next-auth';
-import { Fragment, useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { type ForYouTimelineItem } from 'types';
 
 import { fetchForYouTimeline } from '@/actions/timelines';
@@ -96,17 +96,21 @@ export default function ForYouTimeline({ session, initialData, initialHasMore }:
   }, []);
 
   const renderedTimelineData = useMemo(() => {
-    return timelineData.map((data) => (
-      <Fragment key={data.content.id}>
-        {/* Render different types of cards based on the type attribute */}
-        {data.type === 'post-interaction' && <PostInteractionCard interaction={data.content} />}
-        {data.type === 'branch-interaction' && <BranchInteractionCard interaction={data.content} />}
-        {data.type === 'project-interaction' && <ProjectInteractionCard interaction={data.content} />}
-        {data.type === 'post' && <PostCard post={data.content} />}
-        {data.type === 'branch' && <BranchCard branch={data.content} />}
-        {data.type === 'project' && <ProjectCard project={data.content} />}
-      </Fragment>
-    ));
+    return timelineData.map((data) =>
+      data.type === 'post-interaction' ? (
+        <PostInteractionCard key={data.content.id} interaction={data.content} />
+      ) : data.type === 'branch-interaction' ? (
+        <BranchInteractionCard key={data.content.id} interaction={data.content} />
+      ) : data.type === 'project-interaction' ? (
+        <ProjectInteractionCard key={data.content.id} interaction={data.content} />
+      ) : data.type === 'post' ? (
+        <PostCard key={data.content.id} post={data.content} />
+      ) : data.type === 'branch' ? (
+        <BranchCard key={data.content.id} branch={data.content} />
+      ) : data.type === 'project' ? (
+        <ProjectCard key={data.content.id} project={data.content} />
+      ) : null
+    );
   }, [timelineData]);
 
   // If user is not logged in, show restricted access component
@@ -115,9 +119,9 @@ export default function ForYouTimeline({ session, initialData, initialHasMore }:
   // Render timeline data
   return (
     <div className="flex flex-col gap-4">
-      {renderedTimelineData}
+      <ul className="grid grid-cols-1 items-stretch gap-4">{renderedTimelineData}</ul>
       {isLoading && <LoadingSpinner />}
-      {!hasMore && <p className="text-center text-gray-500">You’ve reached the end of the timeline.</p>}
+      {!hasMore && <p className="text-center text-zinc-500">You’ve reached the end of the timeline.</p>}
       {/* Load more timeline data as the user scrolls down */}
       <div ref={observerRef} />
     </div>
