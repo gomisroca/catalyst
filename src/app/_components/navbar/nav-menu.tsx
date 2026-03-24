@@ -36,15 +36,15 @@ function MenuToggle({
   session: Session | null;
 }) {
   return (
-    <Button onClick={() => setOpen(!open)} arialabel="User Menu" className="p-0.5">
+    <Button onClick={() => setOpen(!open)} arialabel="User Menu" className="p-1">
       {open ? (
         <MdClear size={20} />
       ) : session ? (
         <Image
           src={session.user?.image ?? '/user.jpg'}
           alt="Profile Picture"
-          width={24}
-          height={24}
+          width={20}
+          height={20}
           className="aspect-square rounded-lg"
         />
       ) : (
