@@ -10,7 +10,7 @@ import { MdWarning } from 'react-icons/md';
 import { twMerge } from 'tailwind-merge';
 import { type ActionReturn, type InteractionType } from 'types';
 
-import { interactionAction } from '@/actions/projects';
+import { toggleProjectInteraction } from '@/actions/projects';
 import Button from '@/app/_components/ui/button';
 import { messageAtom } from '@/atoms/message';
 import { toErrorMessage } from '@/utils/errors';
@@ -94,7 +94,7 @@ export default function ProjectInteraction({
           });
         }
 
-        const action: ActionReturn = await interactionAction(type, params.projectId);
+        const action: ActionReturn = await toggleProjectInteraction(type, params.projectId);
 
         setMessage({
           content: action.message,
