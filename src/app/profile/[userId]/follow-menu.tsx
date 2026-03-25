@@ -7,7 +7,7 @@ import { startTransition, useOptimistic } from 'react';
 import { BsHeart, BsHeartFill } from 'react-icons/bs';
 import { type ActionReturn, type ExtendedFollow } from 'types';
 
-import { followUser } from '@/actions/users';
+import { toggleFollowUser } from '@/actions/users';
 import Button from '@/app/_components/ui/button';
 import { messageAtom } from '@/atoms/message';
 import { toErrorMessage } from '@/utils/errors';
@@ -92,7 +92,7 @@ export default function FollowMenu({ session, followers }: { session: Session | 
             },
           });
         }
-        const action: ActionReturn = await followUser({ followedId: params.userId });
+        const action: ActionReturn = await toggleFollowUser({ followedId: params.userId });
 
         setMessage({
           content: action.message,
