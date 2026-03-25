@@ -1,69 +1,42 @@
 'use client';
 
 import { type Branch } from 'generated/prisma';
-import { useSetAtom } from 'jotai';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import { useMemo } from 'react';
-import { type ActionReturn } from 'types';
+import { twMerge } from 'tailwind-merge';
 
-import { goToBranch } from '@/actions/branches';
-import { messageAtom } from '@/atoms/message';
-import { useRedirect } from '@/hooks/useRedirect';
-import { toErrorMessage } from '@/utils/errors';
-
-// Expected props
 type BranchSelectionProps = {
   projectId: string;
   branches: Branch[];
 };
 
 export default function BranchSelection({ projectId, branches }: BranchSelectionProps) {
-  const setMessage = useSetAtom(messageAtom); // Message atom setter/getter
-  const redirect = useRedirect(); // Redirect hook
+  const router = useRouter();
   const params = useParams<{ projectId: string; branchId: string }>();
 
-  const formAction = async (formData: FormData) => {
-    try {
-      // Execute the goToBranch action with the form data
-      const action: ActionReturn = await goToBranch(formData);
-      // Redirect to the branch
-      if (action.redirect) redirect(false, action.redirect);
-    } catch (error) {
-      // Set the message to the error message
-      setMessage({
-        content: toErrorMessage(error, 'Failed to go to branch'),
-        error: true,
-      });
-    }
-  };
-
   const renderedOptions = useMemo(() => {
-    return branches.map((option) => (
-      <option key={option.id} value={option.id} className="rounded-lg bg-zinc-200 dark:bg-zinc-800">
-        {option.name}
+    return branches.map((branch) => (
+      <option key={branch.id} value={branch.id} className="bg-zinc-200 dark:bg-zinc-800">
+        {branch.name}
       </option>
     ));
   }, [branches]);
 
   return (
-    <form
-      action={async (formData) => formAction(formData)}
-      className="cursor-pointer rounded-full bg-radial-[at_15%_15%] via-zinc-300 to-75% p-2 transition duration-200 ease-in-out hover:from-rose-500 dark:via-zinc-700 dark:hover:from-rose-700">
-      <input type="hidden" name="projectId" value={projectId} />
-      <select
-        name="branchId"
-        defaultValue={params.branchId ?? ''}
-        className="w-full cursor-pointer rounded-full text-center"
-        onChange={(e) => {
-          if (e.target.value) {
-            e.target.form?.requestSubmit();
-          }
-        }}>
-        <option value="" disabled className="hidden">
-          Branch
-        </option>
-        {renderedOptions}
-      </select>
-    </form>
+    <select
+      defaultValue={params.branchId ?? ''}
+      onChange={(e) => {
+        if (e.target.value) router.push(`/projects/${projectId}/${e.target.value}`);
+      }}
+      className={twMerge(
+        'cursor-pointer rounded-lg bg-zinc-300 px-4 py-2 text-sm font-bold uppercase drop-shadow-sm',
+        'transition-all duration-200 ease-in-out',
+        'hover:bg-white hover:drop-shadow-md dark:bg-zinc-800 dark:hover:bg-black'
+      )}>
+      <option value="" disabled className="hidden">
+        Branch
+      </option>
+      {renderedOptions}
+    </select>
   );
 }

@@ -9,7 +9,6 @@ import { db } from '@/server/db';
 import { getProject } from '@/server/queries/projects';
 import { toErrorMessage } from '@/utils/errors';
 
-// Define the schema for the branch data
 const BranchSchema = z.object({
   name: z.string().min(3, 'Branch name must be at least 3 characters long').max(100, 'Branch name is too long'),
   description: z.string().optional(),
@@ -19,6 +18,17 @@ const BranchSchema = z.object({
   allowShare: z.boolean(),
   allowBranch: z.boolean(),
 });
+
+type BranchSchemaData = z.infer<typeof BranchSchema>;
+
+function buildPermissionsData(data: BranchSchemaData) {
+  return {
+    private: data.private,
+    allowCollaborate: data.allowCollaborate,
+    allowShare: data.allowShare,
+    allowBranch: data.allowBranch,
+  };
+}
 
 type CreateBranchData = {
   projectId: string;
@@ -31,7 +41,6 @@ type CreateBranchData = {
 };
 
 export async function createBranch(createData: CreateBranchData) {
-  // Check if user is signed in, and if they are authorized to create a branch
   const session = await auth();
   if (!session?.user) throw new Error('You must be signed in to create a branch');
 
@@ -39,29 +48,17 @@ export async function createBranch(createData: CreateBranchData) {
   if (!project.permissions?.allowCollaborate && session.user.id !== project.authorId)
     throw new Error('You do not have permission to collaborate in this project');
 
-  // Validate the data
-  const validatedFields = BranchSchema.safeParse({
-    name: createData.name,
-    description: createData.description,
-    private: createData.private,
-    allowCollaborate: createData.allowCollaborate,
-    allowShare: createData.allowShare,
-    allowBranch: createData.allowBranch,
-  });
+  const validatedFields = BranchSchema.safeParse(createData);
   if (!validatedFields.success) throw new Error(validatedFields.error.toString());
 
   const { data } = validatedFields;
 
-  // Check if a branch with the same name already exists in the project
   const existingBranch = await db.branch.findFirst({
-    where: {
-      AND: [{ name: data.name }, { projectId: createData.projectId }],
-    },
+    where: { name: data.name, projectId: createData.projectId },
   });
   if (existingBranch) throw new Error('A branch with this name already exists in this project');
 
   try {
-    // DB transaction to create the branch and its permissions
     const newBranchId = await db.$transaction(async (trx) => {
       const newBranch = await trx.branch.create({
         data: {
@@ -71,18 +68,12 @@ export async function createBranch(createData: CreateBranchData) {
           projectId: createData.projectId,
         },
       });
+
       await trx.branchPermissions.create({
         data: {
           branchId: newBranch.id,
-          allowedUsers: {
-            connect: {
-              id: session.user.id,
-            },
-          },
-          private: data.private,
-          allowCollaborate: data.allowCollaborate,
-          allowShare: data.allowShare,
-          allowBranch: data.allowBranch,
+          allowedUsers: { connect: { id: session.user.id } },
+          ...buildPermissionsData(data),
         },
       });
 
@@ -90,8 +81,6 @@ export async function createBranch(createData: CreateBranchData) {
     });
 
     console.log(`Branch ${newBranchId} created by user ${session.user.id}`);
-
-    // Revalidate the project page and pass the redirect path to the client
     revalidatePath(`/projects/${createData.projectId}`);
     return { message: 'Branch created successfully.', redirect: `/projects/${createData.projectId}/${newBranchId}` };
   } catch (error) {
@@ -100,7 +89,6 @@ export async function createBranch(createData: CreateBranchData) {
   }
 }
 
-// Define the structure of the data expected by the server action
 type UpdateBranchData = {
   projectId: string;
   branchId: string;
@@ -114,36 +102,24 @@ type UpdateBranchData = {
 };
 
 export async function updateBranch(updateData: UpdateBranchData) {
-  // Check if user is signed in, and if they are authorized to update the branch
   const session = await auth();
   if (!session?.user) throw new Error('You must be signed in to update a branch');
 
-  // Check if branch exists
   const existingBranch = await db.branch.findFirst({
-    where: {
-      id: updateData.branchId,
-      authorId: session.user.id,
-      projectId: updateData.projectId,
-    },
+    where: { id: updateData.branchId, authorId: session.user.id, projectId: updateData.projectId },
   });
   if (!existingBranch) throw new Error('Branch not found or you do not have permission to update it.');
 
-  // Validate the data
   const validatedFields = BranchSchema.safeParse({
+    ...updateData,
     name: updateData.name ?? existingBranch.name,
     description: updateData.description ?? existingBranch.description,
-    private: updateData.private,
-    allowedUsers: updateData.allowedUsers ?? [],
-    allowCollaborate: updateData.allowCollaborate,
-    allowShare: updateData.allowShare,
-    allowBranch: updateData.allowBranch,
   });
-
   if (!validatedFields.success) throw new Error(validatedFields.error.toString());
 
   const { data } = validatedFields;
+
   try {
-    // DB transaction to update the branch and its permissions
     await db.$transaction(async (trx) => {
       await trx.branch.update({
         where: { id: updateData.branchId },
@@ -153,23 +129,20 @@ export async function updateBranch(updateData: UpdateBranchData) {
           updatedAt: new Date(),
         },
       });
+
       await trx.branchPermissions.update({
         where: { branchId: updateData.branchId },
         data: {
-          private: data.private,
+          ...buildPermissionsData(data),
+          // Use `set` to replace allowed users list entirely rather than only adding
           allowedUsers: {
-            connect: data.allowedUsers?.map((userId: string) => ({ id: userId })),
+            set: data.allowedUsers?.map((id) => ({ id })) ?? [],
           },
-          allowCollaborate: data.allowCollaborate,
-          allowShare: data.allowShare,
-          allowBranch: data.allowBranch,
         },
       });
     });
 
     console.log(`Branch ${updateData.branchId} updated by user ${session.user.id}`);
-
-    // Revalidate the project page and pass the redirect path to the client
     revalidatePath(`/projects/${updateData.projectId}`);
     return {
       message: 'Branch updated successfully.',
@@ -186,25 +159,14 @@ export async function deleteBranch({ projectId, branchId }: { projectId: string;
     const session = await auth();
     if (!session?.user) throw new Error('You must be signed in to delete a branch');
 
-    // Check if user is authorized to delete the branch
     const existingBranch = await db.branch.findFirst({
-      where: {
-        id: branchId,
-        authorId: session.user.id,
-        projectId,
-      },
+      where: { id: branchId, authorId: session.user.id, projectId },
     });
     if (!existingBranch) throw new Error('You do not have permission to delete this branch');
 
-    // Delete the branch
-    await db.branch.delete({
-      where: {
-        id: branchId,
-      },
-    });
+    await db.branch.delete({ where: { id: branchId } });
 
-    // Revalidate the project page and pass the redirect path to the client
-    revalidatePath(`/projects/${projectId}}`);
+    revalidatePath(`/projects/${projectId}`);
     return { message: 'Branch deleted successfully', redirect: `/projects/${projectId}` };
   } catch (error) {
     console.log('Failed to delete branch:', error);
@@ -212,30 +174,22 @@ export async function deleteBranch({ projectId, branchId }: { projectId: string;
   }
 }
 
-export async function interactionAction(type: InteractionType, projectId: string, branchId: string) {
+export async function toggleBranchInteraction(type: InteractionType, projectId: string, branchId: string) {
   try {
-    // Check if user is signed in
     const session = await auth();
     if (!session?.user) throw new Error('You must be signed in to interact with a branch');
 
-    // Check if user has already interacted with the branch
-    const where = {
-      branchId,
-      userId: session.user.id,
-      type,
-    };
+    const where = { branchId, userId: session.user.id, type };
     const existing = await db.branchInteraction.findUnique({
       where: { branchId_userId_type: where },
     });
 
-    // If the user has already interacted, delete the interaction and revalidate the branch page
     if (existing) {
       await db.branchInteraction.delete({ where: { branchId_userId_type: where } });
       revalidatePath(`/projects/${projectId}/${branchId}`);
       return { message: 'Interaction removed successfully' };
     }
 
-    // Otherwise, create a new interaction and revalidate the branch page
     await db.branchInteraction.create({ data: where });
     revalidatePath(`/projects/${projectId}/${branchId}`);
     return { message: 'Interaction added successfully' };
@@ -243,15 +197,4 @@ export async function interactionAction(type: InteractionType, projectId: string
     console.error('Failed to interact:', error);
     throw new Error(toErrorMessage(error, 'Failed to interact'));
   }
-}
-
-export async function goToBranch(formData: FormData) {
-  const projectId = formData.get('projectId');
-  const branchId = formData.get('branchId');
-
-  // Revalidate the branch page and pass the redirect path to the client
-  return {
-    message: 'Redirecting...',
-    redirect: `/projects/${projectId as string}/${branchId as string}`,
-  };
 }

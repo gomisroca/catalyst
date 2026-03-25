@@ -10,7 +10,7 @@ import { MdWarning } from 'react-icons/md';
 import { twMerge } from 'tailwind-merge';
 import { type ActionReturn, type InteractionType } from 'types';
 
-import { interactionAction } from '@/actions/branches';
+import { toggleBranchInteraction } from '@/actions/branches';
 import Button from '@/app/_components/ui/button';
 import { messageAtom } from '@/atoms/message';
 import { toErrorMessage } from '@/utils/errors';
@@ -94,7 +94,7 @@ export default function BranchInteraction({
           });
         }
 
-        const action: ActionReturn = await interactionAction(type, params.projectId, params.branchId);
+        const action: ActionReturn = await toggleBranchInteraction(type, params.projectId, params.branchId);
 
         setMessage({
           content: action.message,
