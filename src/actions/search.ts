@@ -6,135 +6,71 @@ import { auth } from '@/server/auth';
 import { db } from '@/server/db';
 import { toErrorMessage } from '@/utils/errors';
 
-export async function searchDatabase(query: string) {
-  const session = await auth();
+const SEARCH_LIMIT = 10;
 
-  // If the query is empty, return an empty array
-  if (!query || query.trim() === '') {
-    return [];
-  }
+function buildPermissionsFilter(userId?: string) {
+  return {
+    OR: [
+      { permissions: { private: false } },
+      ...(userId ? [{ permissions: { private: true, allowedUsers: { some: { id: userId } } } }] : []),
+    ],
+  };
+}
+
+export async function searchDatabase(query: string) {
+  if (!query?.trim()) return [];
+
+  const session = await auth();
+  const userId = session?.user?.id;
+  const search = { contains: query, mode: 'insensitive' as const };
+  const permissionsFilter = buildPermissionsFilter(userId);
 
   try {
-    // Search for projects
-    const projects = await db.project.findMany({
-      where: {
-        AND: [
-          {
-            OR: [
-              { name: { contains: query, mode: 'insensitive' } },
-              { description: { contains: query, mode: 'insensitive' } },
-            ],
-          },
-          {
-            OR: [
-              { permissions: { private: false } },
-              {
-                permissions: {
-                  private: true,
-                  allowedUsers: {
-                    some: {
-                      id: session?.user.id,
-                    },
-                  },
-                },
-              },
-            ],
-          },
-        ],
-      },
-      include: {
-        author: true,
-        permissions: true,
-      },
-    });
-
-    // Search for branches
-    const branches = await db.branch.findMany({
-      where: {
-        AND: [
-          {
-            OR: [
-              { name: { contains: query, mode: 'insensitive' } },
-              { description: { contains: query, mode: 'insensitive' } },
-            ],
-          },
-          {
-            OR: [
-              { permissions: { private: false } },
-              {
-                permissions: {
-                  private: true,
-                  allowedUsers: {
-                    some: {
-                      id: session?.user.id,
-                    },
-                  },
-                },
-              },
-            ],
-          },
-        ],
-      },
-      include: {
-        author: true,
-        project: true,
-        permissions: true,
-      },
-    });
-
-    // Search for posts
-    const posts = await db.post.findMany({
-      where: {
-        AND: [
-          {
-            OR: [
-              { title: { contains: query, mode: 'insensitive' } },
-              { content: { contains: query, mode: 'insensitive' } },
-            ],
-          },
-          {
-            OR: [
-              {
-                branch: {
-                  permissions: { private: false },
-                },
-              },
-              {
-                branch: {
-                  permissions: {
-                    private: true,
-                    allowedUsers: {
-                      some: {
-                        id: session?.user.id,
-                      },
-                    },
-                  },
-                },
-              },
-            ],
-          },
-        ],
-      },
-      include: {
-        author: true,
-        media: true,
-        branch: {
-          include: {
-            permissions: true,
-            project: true,
-          },
+    const [projects, branches, posts, users] = await Promise.all([
+      db.project.findMany({
+        where: {
+          AND: [{ OR: [{ name: search }, { description: search }] }, permissionsFilter],
         },
-      },
-    });
+        include: { author: true, permissions: true },
+        take: SEARCH_LIMIT,
+      }),
 
-    // Search for users
-    const users = await db.user.findMany({
-      where: {
-        OR: [{ name: { contains: query, mode: 'insensitive' } }],
-      },
-    });
+      db.branch.findMany({
+        where: {
+          AND: [{ OR: [{ name: search }, { description: search }] }, permissionsFilter],
+        },
+        include: { author: true, project: true, permissions: true },
+        take: SEARCH_LIMIT,
+      }),
 
-    // Return an array of search items, with each item containing its type and content
+      db.post.findMany({
+        where: {
+          AND: [
+            { OR: [{ title: search }, { content: search }] },
+            {
+              branch: {
+                OR: [
+                  { permissions: { private: false } },
+                  ...(userId ? [{ permissions: { private: true, allowedUsers: { some: { id: userId } } } }] : []),
+                ],
+              },
+            },
+          ],
+        },
+        include: {
+          author: true,
+          media: true,
+          branch: { include: { permissions: true, project: true } },
+        },
+        take: SEARCH_LIMIT,
+      }),
+
+      db.user.findMany({
+        where: { OR: [{ name: search }, { email: search }] },
+        take: SEARCH_LIMIT,
+      }),
+    ]);
+
     return [
       ...projects.map((project) => ({ type: 'project', content: project }) as const satisfies SearchItem),
       ...branches.map((branch) => ({ type: 'branch', content: branch }) as const satisfies SearchItem),
