@@ -6,9 +6,9 @@
 
 import { useSetAtom } from 'jotai';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { type TrendingTimelineItem } from 'types';
+import { type TimelineItem } from 'types';
 
-import { fetchTrendingTimeline } from '@/actions/timelines';
+import { fetchTimeline } from '@/actions/timelines';
 import { BranchCard, ProjectCard } from '@/app/_components/cards';
 import LoadingSpinner from '@/app/_components/ui/loading-spinner';
 import { messageAtom } from '@/atoms/message';
@@ -16,7 +16,7 @@ import { toErrorMessage } from '@/utils/errors';
 
 // Define the structure of the data expected from the server action
 type TrendingTimelineProps = {
-  initialData: TrendingTimelineItem[];
+  initialData: TimelineItem[];
   initialHasMore: boolean;
 };
 
@@ -29,7 +29,7 @@ export default function TrendingTimeline({ initialData, initialHasMore }: Trendi
   const loadingRef = useRef(false);
 
   // Initialize timeline data state (merged and sorted)
-  const [timelineData, setTimelineData] = useState<TrendingTimelineItem[]>(initialData);
+  const [timelineData, setTimelineData] = useState<TimelineItem[]>(initialData);
 
   // Load more data when page changes (except for initial page 1)
   useEffect(() => {
@@ -41,7 +41,8 @@ export default function TrendingTimeline({ initialData, initialHasMore }: Trendi
       setIsLoading(true);
       loadingRef.current = true;
       try {
-        const { data, hasMore: newHasMore } = await fetchTrendingTimeline({
+        const { data, hasMore: newHasMore } = await fetchTimeline({
+          type: 'trending',
           page,
           pageSize: 3,
         });

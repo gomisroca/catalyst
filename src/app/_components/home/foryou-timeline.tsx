@@ -7,9 +7,9 @@
 import { useSetAtom } from 'jotai';
 import { type Session } from 'next-auth';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { type ForYouTimelineItem } from 'types';
+import { type TimelineItem } from 'types';
 
-import { fetchForYouTimeline } from '@/actions/timelines';
+import { fetchTimeline } from '@/actions/timelines';
 import {
   BranchCard,
   BranchInteractionCard,
@@ -26,7 +26,7 @@ import { toErrorMessage } from '@/utils/errors';
 // Define the structure of the data expected from the server action
 type ForYouTimelineProps = {
   session: Session | null;
-  initialData: ForYouTimelineItem[];
+  initialData: TimelineItem[];
   initialHasMore: boolean;
 };
 
@@ -39,7 +39,7 @@ export default function ForYouTimeline({ session, initialData, initialHasMore }:
   const loadingRef = useRef(false);
 
   // Initialize timeline data state (merged and sorted in the backend)
-  const [timelineData, setTimelineData] = useState<ForYouTimelineItem[]>(initialData);
+  const [timelineData, setTimelineData] = useState<TimelineItem[]>(initialData);
 
   // Load more data when page changes (except for initial page 1)
   useEffect(() => {
@@ -51,7 +51,7 @@ export default function ForYouTimeline({ session, initialData, initialHasMore }:
       setIsLoading(true);
       loadingRef.current = true;
       try {
-        const { data, hasMore: newHasMore } = await fetchForYouTimeline({ page, pageSize: 1 });
+        const { data, hasMore: newHasMore } = await fetchTimeline({ type: 'for-you', page, pageSize: 10 });
         if (data && isMounted) {
           setTimelineData((prevData) => [...prevData, ...data]);
           setHasMore(newHasMore);
