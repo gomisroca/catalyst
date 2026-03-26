@@ -34,15 +34,13 @@ type ActionReturn = {
   redirect?: string;
 };
 
-type ForYouTimelineItem =
-  | { type: 'post'; content: ExtendedPost }
-  | { type: 'branch'; content: ExtendedBranch }
+export type TimelineItem =
   | { type: 'project'; content: ExtendedProject }
-  | { type: 'post-interaction'; content: ExtendedPostInteraction & { updatedAt: Date } }
-  | { type: 'branch-interaction'; content: ExtendedBranchInteraction & { updatedAt: Date } }
-  | { type: 'project-interaction'; content: ExtendedProjectInteraction & { updatedAt: Date } };
-
-type TrendingTimelineItem = { type: 'branch'; content: ExtendedBranch } | { type: 'project'; content: ExtendedProject };
+  | { type: 'branch'; content: ExtendedBranch }
+  | { type: 'post'; content: ExtendedPost }
+  | { type: 'project-interaction'; content: ExtendedProjectInteraction }
+  | { type: 'branch-interaction'; content: ExtendedBranchInteraction }
+  | { type: 'post-interaction'; content: ExtendedPostInteraction };
 
 type SearchItem =
   | { type: 'post'; content: ExtendedPost }
