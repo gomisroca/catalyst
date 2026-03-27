@@ -4,56 +4,32 @@ import { auth } from '@/server/auth';
 import { db } from '@/server/db';
 import { cached } from '@/utils/redis';
 
+function buildPermissionsFilter(userId?: string) {
+  return {
+    OR: [
+      { permissions: { private: false } },
+      ...(userId ? [{ permissions: { private: true, allowedUsers: { some: { id: userId } } } }] : []),
+    ],
+  };
+}
+
 export async function getProject(id: string) {
   const session = await auth();
+  const userId = session?.user?.id;
 
-  // Get project, ensuring the user has access to it
-  // Include permissions, author and branches the user has access to
-  const cacheKey = `project:${id}`;
-  const project = await cached(
+  const cacheKey = `project:${id}:${userId ?? 'anonymous'}`;
+
+  return cached(
     cacheKey,
     async () => {
       try {
         return await db.project.findFirstOrThrow({
-          where: {
-            id,
-            OR: [
-              { permissions: { private: false } },
-              {
-                permissions: {
-                  private: true,
-                  allowedUsers: {
-                    some: {
-                      id: session?.user.id,
-                    },
-                  },
-                },
-              },
-            ],
-          },
+          where: { id, ...buildPermissionsFilter(userId) },
           include: {
             branches: {
-              where: {
-                OR: [
-                  { permissions: { private: false } },
-                  {
-                    permissions: {
-                      private: true,
-                      allowedUsers: {
-                        some: {
-                          id: session?.user.id,
-                        },
-                      },
-                    },
-                  },
-                ],
-              },
+              where: buildPermissionsFilter(userId),
             },
-            permissions: {
-              include: {
-                allowedUsers: true,
-              },
-            },
+            permissions: { include: { allowedUsers: true } },
             author: true,
           },
         });
@@ -62,81 +38,48 @@ export async function getProject(id: string) {
         throw new Error('Project with the given ID does not exist or you do not have access to it');
       }
     },
-    60 * 5 // Cache for 5 minutes
+    60 * 5
   );
-
-  return project;
 }
 
 export async function getProjects() {
   const session = await auth();
+  const userId = session?.user?.id;
 
-  // Get projects, ensuring the user has access to them
-  // Include permissions and author
-  const cacheKey = `projects:${session?.user.id ?? 'global'}`;
-  const projects = await cached(
+  const cacheKey = `projects:${userId ?? 'anonymous'}`;
+
+  return cached(
     cacheKey,
     async () => {
       try {
         return await db.project.findMany({
-          where: {
-            OR: [
-              { permissions: { private: false } },
-              {
-                permissions: {
-                  private: true,
-                  allowedUsers: {
-                    some: {
-                      id: session?.user.id,
-                    },
-                  },
-                },
-              },
-            ],
-          },
-          include: {
-            permissions: true,
-            author: true,
-          },
+          where: buildPermissionsFilter(userId),
+          include: { permissions: true, author: true },
         });
       } catch (error) {
-        console.error(`Failed to get projects:`, error);
-        return [];
+        console.error('Failed to get projects:', error);
+        throw new Error('Failed to get projects');
       }
     },
-    60 * 5 // Cache for 5 minutes
+    60 * 5
   );
-
-  return projects;
 }
 
 export async function getProjectInteractions(projectId: string) {
   const interactions = await db.projectInteraction.findMany({
-    where: {
-      projectId,
-    },
-    include: {
-      user: true,
-    },
+    where: { projectId },
+    include: { user: true },
   });
 
-  const likes = interactions.filter((data) => data.type === 'LIKE');
-  const shares = interactions.filter((data) => data.type === 'SHARE');
-  const bookmarks = interactions.filter((data) => data.type === 'BOOKMARK');
-
-  const reports = interactions.filter((data) => data.type === 'REPORT');
-  const hides = interactions.filter((data) => data.type === 'HIDE');
-
-  // Return a pre-formatted object with interactions and extra interactions
   return {
     interactions: {
-      likes,
-      shares,
-      bookmarks,
+      likes: interactions.filter((i) => i.type === 'LIKE'),
+      shares: interactions.filter((i) => i.type === 'SHARE'),
+      bookmarks: interactions.filter((i) => i.type === 'BOOKMARK'),
     },
     extraInteractions: {
-      reports,
-      hides,
+      reports: interactions.filter((i) => i.type === 'REPORT'),
+      hides: interactions.filter((i) => i.type === 'HIDE'),
     },
   };
 }
