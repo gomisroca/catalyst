@@ -1,4 +1,5 @@
 import { render, screen } from '@testing-library/react';
+import { format } from 'date-fns';
 import React from 'react';
 import { type ExtendedBranch, type ExtendedPost, type ExtendedProject } from 'types';
 import { expect, vi } from 'vitest';
@@ -87,7 +88,7 @@ describe('PostCard', () => {
 
   it('renders the date of last update', () => {
     render(<PostCard post={mockPost} />);
-    expect(screen.getByText(mockPost.updatedAt!.toLocaleDateString())).toBeInTheDocument();
+    expect(screen.getByText(format(mockPost.updatedAt!, 'dd/MM/yyyy'))).toBeInTheDocument();
   });
 
   it('has a link to the project page', () => {
