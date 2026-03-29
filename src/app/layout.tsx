@@ -23,12 +23,9 @@ export const metadata: Metadata = {
   icons: [{ rel: 'icon', url: '/favicon.svg' }],
 };
 
-const worksans = Work_Sans({ subsets: ['latin'], weight: ['400', '600'] });
+const worksans = Work_Sans({ subsets: ['latin'], weight: ['400', '600', '700'] });
 
-export function RootLayoutContent({
-  children,
-  session,
-}: Readonly<{ children: React.ReactNode; session: Session | null }>) {
+function RootLayoutContent({ children, session }: Readonly<{ children: React.ReactNode; session: Session | null }>) {
   return (
     <div className="relative flex min-h-screen flex-col">
       <Navbar session={session} />
