@@ -7,9 +7,9 @@ export default async function SignIn() {
       <div className="flex flex-col items-center justify-center gap-4">
         <EmailForm />
         <div className="flex w-full items-center justify-evenly">
-          <span className="h-[2px] w-1/3 bg-zinc-200 dark:bg-zinc-800" />
+          <span className="h-0.5 w-1/3 bg-zinc-200 dark:bg-zinc-800" />
           <span>OR</span>
-          <span className="h-[2px] w-1/3 bg-zinc-200 dark:bg-zinc-800" />
+          <span className="h-0.5 w-1/3 bg-zinc-200 dark:bg-zinc-800" />
         </div>
         <OAuthSignIn />
       </div>
