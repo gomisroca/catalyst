@@ -1,9 +1,5 @@
 'use client';
 
-/**
- * Expandable user menu and search bar.
- */
-
 import { useAutoAnimate } from '@formkit/auto-animate/react';
 import Image from 'next/image';
 import { type Session } from 'next-auth';
@@ -16,8 +12,7 @@ import SearchBar from '@/app/_components/search/search-bar';
 import Button from '@/app/_components/ui/button';
 import Link from '@/app/_components/ui/link';
 
-// Define a function to toggle the search bar
-function SearchToggle({ open, setOpen }: { open: boolean; setOpen: React.Dispatch<React.SetStateAction<boolean>> }) {
+function SearchToggle({ open, setOpen }: { open: boolean; setOpen: (open: boolean) => void }) {
   return (
     <Button onClick={() => setOpen(!open)} arialabel="Search" className="p-1">
       {open ? <MdClear size={20} /> : <BsSearch size={20} />}
@@ -25,14 +20,13 @@ function SearchToggle({ open, setOpen }: { open: boolean; setOpen: React.Dispatc
   );
 }
 
-// Define a function to toggle the user menu
 function MenuToggle({
   open,
   setOpen,
   session,
 }: {
   open: boolean;
-  setOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  setOpen: (open: boolean) => void;
   session: Session | null;
 }) {
   return (
@@ -54,22 +48,19 @@ function MenuToggle({
   );
 }
 
-// Define a function to render the user menu
 function Menu({ session }: { session: Session | null }) {
   return (
-    <div className="absolute top-3 right-0 bottom-0 flex h-fit w-42 items-center justify-center gap-2 rounded-lg bg-zinc-100 p-2 dark:bg-zinc-950">
-      {/* If the user is signed in, render the sign out and settings links */}
+    <div className="absolute top-10 right-0 z-20 flex h-fit w-40 flex-col items-center gap-2 rounded-lg bg-zinc-100 p-2 drop-shadow-md dark:bg-zinc-900">
       {session ? (
-        <div className="flex w-full flex-col items-center justify-center gap-2">
-          <Button onClick={() => signOut()} arialabel="Sign Out" className="w-full text-center">
-            Sign Out
-          </Button>
+        <>
           <Link href="/settings" className="w-full text-center">
             Settings
           </Link>
-        </div>
+          <Button onClick={() => signOut()} arialabel="Sign Out" className="w-full text-center">
+            Sign Out
+          </Button>
+        </>
       ) : (
-        // If the user is not signed in, render the sign in link
         <Link href="/sign-in" className="w-full text-center">
           Sign In
         </Link>
@@ -79,12 +70,23 @@ function Menu({ session }: { session: Session | null }) {
 }
 
 function NavMenu({ session }: { session: Session | null }) {
-  const [openMenu, setOpenMenu] = useState(false); // Track if the user menu is open
-  const [openSearch, setOpenSearch] = useState(false); // Track if the search bar is open
-  const [parent] = useAutoAnimate();
-  const menuRef = useRef<HTMLDivElement>(null); // Reference to the menu element
+  const [openMenu, setOpenMenu] = useState(false);
+  const [openSearch, setOpenSearch] = useState(false);
+  const [searchParent] = useAutoAnimate();
+  const [menuParent] = useAutoAnimate();
+  const menuRef = useRef<HTMLDivElement>(null);
 
-  // Define a function to handle clicks outside the menu so they close
+  // Opening one panel closes the other
+  const handleSearchToggle = (open: boolean) => {
+    setOpenSearch(open);
+    if (open) setOpenMenu(false);
+  };
+
+  const handleMenuToggle = (open: boolean) => {
+    setOpenMenu(open);
+    if (open) setOpenSearch(false);
+  };
+
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
@@ -95,7 +97,6 @@ function NavMenu({ session }: { session: Session | null }) {
     if (openMenu || openSearch) {
       document.addEventListener('mousedown', handleClickOutside);
     }
-
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
@@ -103,12 +104,12 @@ function NavMenu({ session }: { session: Session | null }) {
 
   return (
     <div ref={menuRef} className="flex items-center gap-2">
-      <div ref={parent} className="relative">
+      <div ref={searchParent} className="relative">
         {openSearch && <SearchBar navbar />}
       </div>
-      <SearchToggle open={openSearch} setOpen={setOpenSearch} />
-      <MenuToggle open={openMenu} setOpen={setOpenMenu} session={session} />
-      <div ref={parent} className="relative">
+      <SearchToggle open={openSearch} setOpen={handleSearchToggle} />
+      <MenuToggle open={openMenu} setOpen={handleMenuToggle} session={session} />
+      <div ref={menuParent} className="relative">
         {openMenu && <Menu session={session} />}
       </div>
     </div>
