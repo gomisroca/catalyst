@@ -1,27 +1,21 @@
-import { Suspense } from 'react';
-
 import NotAllowed from '@/app/_components/not-allowed';
-import LoadingSpinner from '@/app/_components/ui/loading-spinner';
 import { auth } from '@/server/auth';
 import { getProject } from '@/server/queries/projects';
 import { getUserFollows } from '@/server/queries/users';
 
 import UpdateProjectForm from './update-project-form';
 
-export default async function ProjectUpdate({ searchParams }: { searchParams: Promise<{ projectId: string }> }) {
+export default async function ProjectUpdate({ params }: { params: Promise<{ projectId: string }> }) {
+  const { projectId } = await params;
   const session = await auth();
-  // If user is not logged in, show restricted access component
   if (!session) return <NotAllowed />;
 
-  const follows = await getUserFollows(session.user.id);
-  const project = await getProject((await searchParams).projectId);
+  const [project, follows] = await Promise.all([getProject(projectId), getUserFollows(session.user.id)]);
 
   return (
     <div>
       <h1 className="mb-4 text-xl font-bold">Update Project</h1>
-      <Suspense fallback={<LoadingSpinner />}>
-        <UpdateProjectForm project={project} follows={follows} />
-      </Suspense>
+      <UpdateProjectForm project={project} follows={follows} />
     </div>
   );
 }

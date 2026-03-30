@@ -1,27 +1,26 @@
-import { Suspense } from 'react';
-
 import NotAllowed from '@/app/_components/not-allowed';
-import LoadingSpinner from '@/app/_components/ui/loading-spinner';
 import UpdatePostForm from '@/app/projects/[projectId]/(branches)/[branchId]/(posts)/[postId]/update/update-post-form';
 import { auth } from '@/server/auth';
 import { getPost } from '@/server/queries/posts';
 
 export default async function PostUpdate({
-  searchParams,
+  params,
 }: {
-  searchParams: Promise<{ projectId: string; branchId: string; postId: string }>;
+  params: Promise<{ projectId: string; branchId: string; postId: string }>;
 }) {
+  const { postId } = await params;
   const session = await auth();
-  const post = await getPost((await searchParams).postId);
-  // If user is not logged in, show restricted access component
   if (!session) return <NotAllowed />;
+
+  const post = await getPost(postId);
+
+  // Only the post author can update it
+  if (post.authorId !== session.user.id) return <NotAllowed />;
 
   return (
     <div>
       <h1 className="mb-4 text-xl font-bold">Update Post</h1>
-      <Suspense fallback={<LoadingSpinner />}>
-        <UpdatePostForm post={post} />
-      </Suspense>
+      <UpdatePostForm post={post} />
     </div>
   );
 }
