@@ -1,9 +1,5 @@
 'use client';
 
-/**
- * Component for the author actions of a project, branch, or post, such as deleting or updating.
- */
-
 import { useSetAtom } from 'jotai';
 import { FaPencil, FaTrash } from 'react-icons/fa6';
 import { type ActionReturn } from 'types';
@@ -17,7 +13,6 @@ import { messageAtom } from '@/atoms/message';
 import { useRedirect } from '@/hooks/useRedirect';
 import { toErrorMessage } from '@/utils/errors';
 
-// Define the interface for the AuthorActions component
 interface AuthorActionsProps {
   type: 'project' | 'branch' | 'post';
   projectId: string;
@@ -26,88 +21,53 @@ interface AuthorActionsProps {
 }
 
 export default function AuthorActions({ type, projectId, branchId, postId }: AuthorActionsProps) {
-  const redirect = useRedirect(); // Hook to redirect the user
-  const setMessage = useSetAtom(messageAtom); // Hook to set the message atom
+  const redirect = useRedirect();
+  const setMessage = useSetAtom(messageAtom);
 
-  // Define a record of delete handlers for each type
-  // Each handler returns a Promise that resolves when the delete action is complete
-  // The Promise returns an object with a message and an optional redirect
-  const deleteHandlers: Record<string, () => Promise<void>> = {
+  const deleteHandlers: Record<'project' | 'branch' | 'post', () => Promise<void>> = {
     project: async () => {
       try {
         const action: ActionReturn = await deleteProject({ projectId });
-        setMessage({ content: action.message, error: action.error });
+        setMessage({ content: action.message, type: action.error ? 'error' : 'success' });
         if (action.redirect) redirect(false, action.redirect);
       } catch (error) {
-        setMessage({
-          content: toErrorMessage(error, 'Failed to delete project'),
-          error: true,
-        });
+        setMessage({ content: toErrorMessage(error, 'Failed to delete project'), type: 'error' });
       }
     },
     branch: async () => {
       if (!branchId) return;
       try {
         const action: ActionReturn = await deleteBranch({ projectId, branchId });
-        setMessage({ content: action.message, error: action.error });
+        setMessage({ content: action.message, type: action.error ? 'error' : 'success' });
         if (action.redirect) redirect(false, action.redirect);
       } catch (error) {
-        setMessage({
-          content: toErrorMessage(error, 'Failed to delete branch'),
-          error: true,
-        });
+        setMessage({ content: toErrorMessage(error, 'Failed to delete branch'), type: 'error' });
       }
     },
     post: async () => {
       if (!branchId || !postId) return;
       try {
         const action: ActionReturn = await deletePost({ projectId, branchId, postId });
-        setMessage({ content: action.message, error: action.error });
+        setMessage({ content: action.message, type: action.error ? 'error' : 'success' });
         if (action.redirect) redirect(false, action.redirect);
       } catch (error) {
-        setMessage({
-          content: toErrorMessage(error, 'Failed to delete post'),
-          error: true,
-        });
+        setMessage({ content: toErrorMessage(error, 'Failed to delete post'), type: 'error' });
       }
     },
   };
 
-  // Define a function to get the update href for the current type
-  const getUpdateHref = () => {
-    switch (type) {
-      case 'project':
-        return `/projects/${projectId}/update`;
-      case 'branch':
-        if (!branchId) return null;
-        return `/projects/${projectId}/${branchId}/update`;
-      case 'post':
-        if (!branchId || !postId) return null;
-        return `/projects/${projectId}/${branchId}/${postId}/update`;
-      default:
-        return null;
-    }
-  };
+  const updateHref = {
+    project: `/projects/${projectId}/update`,
+    branch: branchId ? `/projects/${projectId}/${branchId}/update` : null,
+    post: branchId && postId ? `/projects/${projectId}/${branchId}/${postId}/update` : null,
+  }[type];
 
-  const updateHref = getUpdateHref();
-
-  // Define a function to handle the delete action
-  // If the user confirms the delete, call the delete handler
-  const handleDelete = async () => {
-    const confirmed = window.confirm(`Are you sure you want to delete this ${type}?`);
-    if (!confirmed) return;
-    try {
-      await deleteHandlers[type]?.();
-    } catch (error) {
-      setMessage({
-        content: toErrorMessage(error, `Failed to delete ${type}`),
-        error: true,
-      });
-    }
-  };
-
-  // If a wrong type is passed, return null
   if (!updateHref) return null;
+
+  const handleDelete = async () => {
+    if (!window.confirm(`Are you sure you want to delete this ${type}?`)) return;
+    await deleteHandlers[type]();
+  };
 
   return (
     <div className="flex items-center justify-center gap-1">
