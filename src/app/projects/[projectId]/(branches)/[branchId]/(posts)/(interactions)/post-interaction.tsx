@@ -1,126 +1,46 @@
-'use client';
-
-import { type Prisma } from 'generated/prisma';
-import { useSetAtom } from 'jotai';
-import { useParams } from 'next/navigation';
-import { type User } from 'next-auth';
-import { startTransition, useOptimistic } from 'react';
-import { FaBookmark, FaEye, FaShare, FaStar } from 'react-icons/fa6';
-import { MdWarning } from 'react-icons/md';
-import { twMerge } from 'tailwind-merge';
-import { type ActionReturn, type InteractionType } from 'types';
-
 import { togglePostInteraction } from '@/actions/posts';
-import Button from '@/app/_components/ui/button';
-import { messageAtom } from '@/atoms/message';
-import { toErrorMessage } from '@/utils/errors';
+import ExtraInteractions from '@/app/_components/projects/extra-interactions';
+import InteractionButton from '@/app/_components/projects/interaction-button';
+import { auth } from '@/server/auth';
+import { getPostInteractions } from '@/server/queries/posts';
 
-// Attach an icon to each type of interaction
-const types = {
-  LIKE: <FaStar size={12} />,
-  SHARE: <FaShare size={12} />,
-  BOOKMARK: <FaBookmark size={12} />,
-  REPORT: <MdWarning size={12} />,
-  HIDE: <FaEye size={12} />,
-};
+const typeMap = {
+  likes: 'LIKE',
+  shares: 'SHARE',
+  bookmarks: 'BOOKMARK',
+} as const;
 
-type PostInteractionWithUser = Prisma.PostInteractionGetPayload<{
-  include: { user: true };
-}>;
-export default function PostInteraction({
+export default async function PostInteractionsMenu({
+  projectId,
+  branchId,
   postId,
-  type,
-  data,
-  user,
 }: {
+  projectId: string;
+  branchId: string;
   postId: string;
-  type: InteractionType;
-  data?: PostInteractionWithUser[];
-  user?: User;
 }) {
-  const params = useParams<{ projectId: string; branchId: string }>();
-  const setMessage = useSetAtom(messageAtom); // Set the message atom
-
-  // Use optimistic updates to add or remove interactions
-  const [optimisticInteractions, setOptimisticInteraction] = useOptimistic(
-    data!,
-    (state, { action, newInteraction }: { action: 'add' | 'remove'; newInteraction: PostInteractionWithUser }) => {
-      if (action === 'add') {
-        return [...state, newInteraction];
-      } else {
-        return state.filter((i) => i.user.email !== newInteraction.user?.email);
-      }
-    }
-  );
-
-  // Optimistically add or remove the interaction
-  const hasInteracted = optimisticInteractions.some((i) => i.user.email === user?.email && i.type === type);
-  const handleInteraction = async (type: InteractionType) => {
-    startTransition(async () => {
-      try {
-        if (hasInteracted) {
-          setOptimisticInteraction({
-            action: 'remove',
-            newInteraction: {
-              type,
-              id: Math.random().toString(36),
-              postId,
-              createdAt: new Date(),
-              userId: user!.id!,
-              user: {
-                id: Math.random().toString(36),
-                name: user!.name!,
-                email: user!.email!,
-                emailVerified: null,
-                image: null,
-              },
-            },
-          });
-        } else {
-          setOptimisticInteraction({
-            action: 'add',
-            newInteraction: {
-              type,
-              id: Math.random().toString(36),
-              postId,
-              createdAt: new Date(),
-              userId: user!.id!,
-              user: {
-                id: Math.random().toString(36),
-                name: user!.name!,
-                email: user!.email!,
-                emailVerified: null,
-                image: null,
-              },
-            },
-          });
-        }
-
-        const action: ActionReturn = await togglePostInteraction(type, params.projectId, params.branchId, postId);
-        setMessage({
-          content: action.message,
-          error: action.error,
-        });
-        return;
-      } catch (error) {
-        setMessage({
-          content: toErrorMessage(error, 'Failed to interact'),
-          error: true,
-        });
-      }
-    });
-  };
+  const [session, data] = await Promise.all([auth(), getPostInteractions(postId)]);
 
   return (
-    <Button
-      arialabel={type}
-      disabled={!user}
-      onClick={() => handleInteraction(type)}
-      className={twMerge(
-        'flex h-6 items-center justify-center gap-2 px-2 text-sm font-semibold',
-        hasInteracted && 'from-sky-300 dark:from-sky-700'
-      )}>
-      {types[type]} {!['HIDE', 'REPORT'].includes(type) && optimisticInteractions?.length}
-    </Button>
+    <div className="flex flex-row gap-2">
+      {(Object.keys(data.interactions) as Array<keyof typeof data.interactions>).map((key) => (
+        <InteractionButton
+          key={key}
+          type={typeMap[key]}
+          data={data.interactions[key]}
+          user={session?.user}
+          entityId={postId}
+          entityKey="postId"
+          onInteract={() => togglePostInteraction(typeMap[key], projectId, branchId, postId)}
+        />
+      ))}
+      <ExtraInteractions
+        user={session?.user}
+        data={data.extraInteractions}
+        entityId={postId}
+        entityKey="postId"
+        onInteract={(type) => togglePostInteraction(type, projectId, branchId, postId)}
+      />
+    </div>
   );
 }
