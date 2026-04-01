@@ -1,4 +1,3 @@
-// branch-page.tsx
 import { FaCodeBranch, FaPen } from 'react-icons/fa6';
 
 import AuthorActions from '@/app/_components/projects/author-actions';
@@ -9,6 +8,8 @@ import { auth } from '@/server/auth';
 import { getBranch } from '@/server/queries/branches';
 
 import BranchInteractionsMenu from './(interactions)/branch-interaction';
+
+export const dynamic = 'force-dynamic';
 
 export default async function BranchPage({ params }: { params: Promise<{ projectId: string; branchId: string }> }) {
   const { projectId, branchId } = await params;
