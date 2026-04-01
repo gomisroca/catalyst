@@ -4,21 +4,23 @@ import Link from '@/app/_components/ui/link';
 import { getUserFollows } from '@/server/queries/users';
 
 export default async function FollowsList({ params }: { params: Promise<{ userId: string }> }) {
-  const data = await getUserFollows((await params).userId);
+  const follows = await getUserFollows((await params).userId);
+
+  if (follows.length === 0) return <p className="text-center text-zinc-500">No follows yet.</p>;
 
   return (
     <ul className="flex flex-col gap-1">
-      {data.map((data) => (
-        <li key={data.followed.email} className="flex items-center gap-2">
-          <Link href={`/profile/${data.followed.id}`} className="flex items-center justify-center gap-2">
+      {follows.map(({ followed }) => (
+        <li key={followed.id} className="flex items-center gap-2">
+          <Link href={`/profile/${followed.id}`} className="flex items-center justify-center gap-2">
             <Image
-              src={data.followed.image ?? '/user.jpg'}
-              alt={data.followed.name ?? 'Profile Picture'}
-              width={30}
-              height={30}
-              className="h-8 w-8 rounded-full"
+              src={followed.image ?? '/user.jpg'}
+              alt={followed.name ?? 'Profile Picture'}
+              width={32}
+              height={32}
+              className="rounded-full"
             />
-            <span>{data.followed.name}</span>
+            <span>{followed.name}</span>
           </Link>
         </li>
       ))}
