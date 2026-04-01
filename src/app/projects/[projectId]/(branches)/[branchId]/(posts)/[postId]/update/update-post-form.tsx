@@ -6,43 +6,34 @@ import Form from 'next/form';
 import Image from 'next/image';
 import { useParams } from 'next/navigation';
 import { useRef, useState } from 'react';
-import { type ActionReturn } from 'types';
 
 import { updatePost } from '@/actions/posts';
+import { fileInputClass, inputClass } from '@/app/_components/ui/form-styles';
 import SubmitButton from '@/app/_components/ui/submit-button';
 import { messageAtom } from '@/atoms/message';
 import { useRedirect } from '@/hooks/useRedirect';
 import { toErrorMessage } from '@/utils/errors';
 import { useUploadThing } from '@/utils/uploadthing';
 
-type PostWithMedia = Prisma.PostGetPayload<{
-  include: { media: true };
-}>;
+type PostWithMedia = Prisma.PostGetPayload<{ include: { media: true } }>;
 
 export default function UpdatePostForm({ post, modal = false }: { post: PostWithMedia; modal?: boolean }) {
-  const redirect = useRedirect(); // Redirect hook
-  const setMessage = useSetAtom(messageAtom); // Message atom setter/getter
-
-  // Form-related state and hooks
+  const redirect = useRedirect();
+  const setMessage = useSetAtom(messageAtom);
   const formRef = useRef<HTMLFormElement>(null);
   const [files, setFiles] = useState<FileList | null>(null);
   const params = useParams<{ projectId: string; branchId: string; postId: string }>();
   const { startUpload } = useUploadThing('postMedia');
 
-  // Action wrapper
   const formAction = async (formData: FormData) => {
     try {
-      // Upload media if files are provided
       if (files) {
         const data = await startUpload([...files]);
         if (!data) return;
-        for (const file of data) {
-          formData.append('media', file.ufsUrl);
-        }
+        for (const file of data) formData.append('media', file.ufsUrl);
       }
 
-      // Call the post update action
-      const action: ActionReturn = await updatePost({
+      const action = await updatePost({
         projectId: params.projectId,
         branchId: params.branchId,
         postId: params.postId,
@@ -51,62 +42,51 @@ export default function UpdatePostForm({ post, modal = false }: { post: PostWith
         media: formData.getAll('media') as string[],
       });
 
-      // Reset the form and set the message
       formRef.current?.reset();
       setFiles(null);
-      setMessage({
-        content: action.message,
-        error: action.error,
-      });
-
-      // If the action returns a redirect, redirect to the specified page
+      setMessage({ content: action.message, type: 'success' });
       if (action.redirect) redirect(modal, action.redirect);
     } catch (error) {
-      // Set the message to the error message
-      setMessage({
-        content: toErrorMessage(error, 'Failed to update post'),
-        error: true,
-      });
+      setMessage({ content: toErrorMessage(error, 'Failed to update post'), type: 'error' });
     }
   };
 
   return (
-    <Form
-      className="flex flex-col items-center justify-center gap-4"
-      ref={formRef}
-      action={async (formData) => formAction(formData)}>
+    <Form className="flex flex-col items-center justify-center gap-4" ref={formRef} action={formAction}>
       <section className="flex w-full flex-col">
         <label htmlFor="title">Title</label>
         <input
-          className="rounded-lg border-2 border-zinc-300 bg-zinc-200 p-2 focus:ring-2 focus:ring-sky-300 focus:outline-none dark:border-zinc-700 dark:bg-zinc-800 dark:focus:ring-sky-700"
+          className={inputClass}
           type="text"
+          id="title"
           name="title"
-          defaultValue={post.title ?? ''}
-          placeholder={post.title ?? 'My updated Post'}
+          defaultValue={post.title}
+          placeholder="My updated post"
           required
         />
       </section>
 
       <section className="flex w-full flex-col">
         <label htmlFor="content">Content</label>
-        <input
-          className="rounded-lg border-2 border-zinc-300 bg-zinc-200 p-2 focus:ring-2 focus:ring-sky-300 focus:outline-none dark:border-zinc-700 dark:bg-zinc-800 dark:focus:ring-sky-700"
-          type="textarea"
+        <textarea
+          className={inputClass}
+          id="content"
           name="content"
           defaultValue={post.content ?? ''}
-          placeholder={post.content ?? 'This is my updated post!'}
+          placeholder="This is my updated post!"
+          rows={3}
         />
       </section>
 
-      <section className="flex w-full flex-col">
+      <section className="flex w-full flex-col gap-2">
         <label htmlFor="imageFile">Media</label>
-        {post.media && (
-          <div className="mx-auto flex flex-col text-center">
+        {post.media.length > 0 && (
+          <div className="mx-auto flex flex-col gap-2 text-center">
             <h4>Current Media</h4>
             {post.media.map((media) => (
               <Image
                 key={media.id}
-                className="rounded-lg border-2 border-zinc-300 bg-zinc-200 focus:ring-2 focus:ring-sky-300 focus:outline-none dark:border-zinc-700 dark:bg-zinc-800 dark:focus:ring-sky-700"
+                className="rounded-lg"
                 src={media.url}
                 height={200}
                 width={200}
@@ -116,15 +96,15 @@ export default function UpdatePostForm({ post, modal = false }: { post: PostWith
           </div>
         )}
         <input
-          className="rounded-lg border-2 border-zinc-300 bg-zinc-200 file:mr-4 file:bg-zinc-300 file:p-2 file:transition file:duration-200 file:hover:bg-zinc-400 focus:ring-2 focus:ring-sky-300 focus:outline-none dark:border-zinc-700 dark:bg-zinc-800 dark:file:bg-zinc-700 dark:file:hover:bg-zinc-600 dark:focus:ring-sky-700"
+          className={fileInputClass}
           type="file"
-          onChange={(e) => {
-            const files = e.target.files;
-            if (files) setFiles(files);
-          }}
+          id="imageFile"
           name="imageFile"
           accept="image/*"
-          multiple={true}
+          multiple
+          onChange={(e) => {
+            if (e.target.files) setFiles(e.target.files);
+          }}
         />
       </section>
 

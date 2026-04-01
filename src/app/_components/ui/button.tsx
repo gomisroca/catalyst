@@ -1,6 +1,5 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState } from 'react';
 /**
  * Button component with established styling and functionality.
  *
@@ -9,6 +8,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
  */
 
 import { twMerge } from 'tailwind-merge';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 interface ButtonProps {
   arialabel?: string;
@@ -51,12 +51,14 @@ function Button({arialabel, type = 'button', disabled = false, onClick, classNam
       onClick={handleOnClick} 
       disabled={disabled || isPending}
       className={twMerge(
-        'flex cursor-pointer items-center justify-center rounded-full p-2 transition duration-200 ease-in-out active:shadow-lg *:text-zinc-900 bg-radial-[at_15%_15%] to-75% hover:from-rose-500 active:rotate-[-1deg] active:to-rose-400 dark:active:to-rose-700 via-zinc-300 dark:via-zinc-700 active:scale-90 active:from-rose-600 dark:*:text-zinc-100 dark:hover:from-rose-700 dark:active:from-rose-800',
-        className,
-        (disabled || isPending) &&
-          'cursor-not-allowed bg-transparent opacity-50 hover:bg-transparent active:bg-transparent dark:bg-transparent dark:hover:bg-transparent dark:active:bg-transparent'
+        'cursor-pointer rounded-lg bg-zinc-300 px-4 py-2 text-sm font-bold uppercase drop-shadow-sm transition-all duration-200 ease-in-out dark:bg-zinc-800',
+        'hover:bg-white hover:scale-105 hover:drop-shadow-md dark:hover:bg-black',
+        'active:scale-90 active:duration-100',
+        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-400 focus-visible:ring-offset-2',
+        (disabled || isPending) && 'pointer-events-none opacity-50',
+        className
       )}
-      >
+    >
       {children}
     </button>
   );

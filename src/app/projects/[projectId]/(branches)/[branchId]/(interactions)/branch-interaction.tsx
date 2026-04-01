@@ -1,125 +1,38 @@
-'use client';
+import { toggleBranchInteraction } from '@/actions/branches';
+import ExtraInteractions from '@/app/_components/projects/extra-interactions';
+import InteractionButton from '@/app/_components/projects/interaction-button';
+import { auth } from '@/server/auth';
+import { getBranchInteractions } from '@/server/queries/branches';
 
-import { type Prisma } from 'generated/prisma';
-import { useSetAtom } from 'jotai';
-import { useParams } from 'next/navigation';
-import { type User } from 'next-auth';
-import { startTransition, useOptimistic } from 'react';
-import { FaBookmark, FaEye, FaShare, FaStar } from 'react-icons/fa6';
-import { MdWarning } from 'react-icons/md';
-import { twMerge } from 'tailwind-merge';
-import { type ActionReturn, type InteractionType } from 'types';
+const typeMap = {
+  likes: 'LIKE',
+  shares: 'SHARE',
+  bookmarks: 'BOOKMARK',
+} as const;
 
-import { interactionAction } from '@/actions/branches';
-import Button from '@/app/_components/ui/button';
-import { messageAtom } from '@/atoms/message';
-import { toErrorMessage } from '@/utils/errors';
-
-// Attach an icon to each type of interaction
-const types = {
-  LIKE: <FaStar size={12} />,
-  SHARE: <FaShare size={12} />,
-  BOOKMARK: <FaBookmark size={12} />,
-  REPORT: <MdWarning size={12} />,
-  HIDE: <FaEye size={12} />,
-};
-
-type BranchInteractionWithUser = Prisma.BranchInteractionGetPayload<{
-  include: { user: true };
-}>;
-export default function BranchInteraction({
-  type,
-  data,
-  user,
-}: {
-  type: InteractionType;
-  data?: BranchInteractionWithUser[];
-  user?: User;
-}) {
-  const params = useParams<{ projectId: string; branchId: string }>();
-  const setMessage = useSetAtom(messageAtom); // Set the message atom
-
-  // Use optimistic updates to add or remove interactions
-  const [optimisticInteractions, setOptimisticInteraction] = useOptimistic(
-    data!,
-    (state, { action, newInteraction }: { action: 'add' | 'remove'; newInteraction: BranchInteractionWithUser }) => {
-      if (action === 'add') {
-        return [...state, newInteraction];
-      } else {
-        return state.filter((i) => i.user.email !== newInteraction.user?.email);
-      }
-    }
-  );
-
-  // Optimistically add or remove the interaction
-  const hasInteracted = optimisticInteractions.some((i) => i.user.email === user?.email && i.type === type);
-  const handleInteraction = async (type: InteractionType) => {
-    startTransition(async () => {
-      try {
-        if (hasInteracted) {
-          setOptimisticInteraction({
-            action: 'remove',
-            newInteraction: {
-              type,
-              id: Math.random().toString(36),
-              branchId: params.branchId,
-              createdAt: new Date(),
-              userId: user!.id!,
-              user: {
-                id: Math.random().toString(36),
-                name: user!.name!,
-                email: user!.email!,
-                emailVerified: null,
-                image: null,
-              },
-            },
-          });
-        } else {
-          setOptimisticInteraction({
-            action: 'add',
-            newInteraction: {
-              type,
-              id: Math.random().toString(36),
-              branchId: params.branchId,
-              createdAt: new Date(),
-              userId: user!.id!,
-              user: {
-                id: Math.random().toString(36),
-                name: user!.name!,
-                email: user!.email!,
-                emailVerified: null,
-                image: null,
-              },
-            },
-          });
-        }
-
-        const action: ActionReturn = await interactionAction(type, params.projectId, params.branchId);
-
-        setMessage({
-          content: action.message,
-          error: action.error,
-        });
-        return;
-      } catch (error) {
-        setMessage({
-          content: toErrorMessage(error, 'Failed to interact'),
-          error: true,
-        });
-      }
-    });
-  };
+export default async function BranchInteractionsMenu({ projectId, branchId }: { projectId: string; branchId: string }) {
+  const [session, data] = await Promise.all([auth(), getBranchInteractions(branchId)]);
 
   return (
-    <Button
-      disabled={!user}
-      onClick={() => handleInteraction(type)}
-      className={twMerge(
-        'flex h-6 items-center justify-center gap-2 px-2 text-sm font-semibold',
-        hasInteracted && 'from-sky-300 dark:from-sky-700'
-      )}
-      arialabel={type}>
-      {types[type]} {!['HIDE', 'REPORT'].includes(type) && optimisticInteractions?.length}
-    </Button>
+    <div className="flex flex-row gap-2">
+      {(Object.keys(data.interactions) as Array<keyof typeof data.interactions>).map((key) => (
+        <InteractionButton
+          key={key}
+          type={typeMap[key]}
+          data={data.interactions[key]}
+          user={session?.user}
+          entityId={branchId}
+          entityKey="branchId"
+          onInteract={() => toggleBranchInteraction(typeMap[key], projectId, branchId)}
+        />
+      ))}
+      <ExtraInteractions
+        user={session?.user}
+        data={data.extraInteractions}
+        entityId={branchId}
+        entityKey="branchId"
+        onInteract={(type) => toggleBranchInteraction(type, projectId, branchId)}
+      />
+    </div>
   );
 }

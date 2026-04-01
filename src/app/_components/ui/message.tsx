@@ -1,37 +1,23 @@
 'use client';
 
-/**
- * Display a message to the user, with an optional error state. Uses jotai's atoms to store the message.
- *
- * @example
- * setMessage({ content: 'Hello, world!', error: false })
- */
-
-import { messageAtom } from '@/atoms/message';
 import { useAtom } from 'jotai';
 import { usePathname } from 'next/navigation';
 import { useEffect } from 'react';
 import { twMerge } from 'tailwind-merge';
 
+import { messageAtom } from '@/atoms/message';
+
 const Message = () => {
-  const [message, setMessage] = useAtom(messageAtom); // Hook to get and set the message atom
+  const [message, setMessage] = useAtom(messageAtom);
+  const pathname = usePathname();
 
-  const pathname = usePathname(); // Get the current path
-
-  // Clear message and error on route change
   useEffect(() => {
-    if (message) {
-      setMessage(null);
-    }
+    if (message) setMessage(null);
   }, [pathname]);
 
-  // Automatically hide popup after 5 seconds
   useEffect(() => {
-    const timeout = setTimeout(() => {
-      setMessage(null);
-    }, 5000);
-
-    // Cleanup timeout when popup state changes
+    if (!message) return;
+    const timeout = setTimeout(() => setMessage(null), 5000);
     return () => clearTimeout(timeout);
   }, [message]);
 
@@ -40,9 +26,14 @@ const Message = () => {
   return (
     <div
       data-testid="message"
-      className=
-      {twMerge('p-1 bg-radial-[at_15%_15%] via-zinc-300 to-75% ease-in-out from-rose-500 dark:via-zinc-700 dark:from-rose-700 fixed right-0 bottom-10 left-0 z-[9999] m-auto flex w-[90vw] flex-col items-center justify-center gap-2 rounded-full bg-zinc-100 dark:bg-zinc-900 font-semibold xl:w-[30vw]', message.error ? 'to-rose-500' : 'to-sky-500')}>
-      <h3 className="text-lg px-5 py-2 w-full text-center bg-zinc-100 dark:bg-zinc-900 rounded-full">{message.content}</h3>
+      className={twMerge(
+        'fixed bottom-10 left-0 right-0 z-9999 mx-auto flex w-[90vw] items-center justify-center rounded-lg drop-shadow-md xl:w-[30vw]',
+        'bg-zinc-300 dark:bg-zinc-800',
+        message.type === 'error' && 'border-l-4 border-red-500',
+        message.type === 'success' && 'border-l-4 border-green-500',
+        message.type === 'warning' && 'border-l-4 border-yellow-500',
+      )}>
+      <h3 className="w-full px-5 py-3 text-center text-sm font-semibold">{message.content}</h3>
     </div>
   );
 };

@@ -15,7 +15,7 @@ function MessageWithProvider() {
   const [, setMessage] = useAtom(messageAtom);
 
   useEffect(() => {
-    setMessage({ content: 'Test Message', error: false });
+    setMessage({ content: 'Test Message', type: 'success' });
   }, []);
 
   return <Message />;
@@ -39,7 +39,7 @@ describe('Message component', () => {
 
     const msg = screen.getByTestId('message');
     expect(msg).toBeInTheDocument();
-    expect(msg).toHaveClass('to-sky-500');
+    expect(msg).toHaveClass('border-green-500');
     expect(screen.getByText('Test Message')).toBeVisible();
   });
 
@@ -66,7 +66,7 @@ describe('Message component', () => {
     function ErrorMessage() {
       const [, setMessage] = useAtom(messageAtom);
       useEffect(() => {
-        setMessage({ content: 'Error occurred', error: true });
+        setMessage({ content: 'Error occurred', type: 'error' });
       }, []);
       return <Message />;
     }
@@ -78,6 +78,6 @@ describe('Message component', () => {
     );
 
     const msg = screen.getByTestId('message');
-    expect(msg).toHaveClass('to-rose-500');
+    expect(msg).toHaveClass('border-red-500');
   });
 });

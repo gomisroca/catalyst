@@ -5,105 +5,52 @@ import { useParams, useRouter } from 'next/navigation';
 import { type Session } from 'next-auth';
 import { startTransition, useOptimistic } from 'react';
 import { BsHeart, BsHeartFill } from 'react-icons/bs';
-import { type ActionReturn, type ExtendedFollow } from 'types';
+import { type ExtendedFollow } from 'types';
 
-import { followUser } from '@/actions/users';
+import { toggleFollowUser } from '@/actions/users';
 import Button from '@/app/_components/ui/button';
 import { messageAtom } from '@/atoms/message';
 import { toErrorMessage } from '@/utils/errors';
 
 export default function FollowMenu({ session, followers }: { session: Session | null; followers: ExtendedFollow[] }) {
-  const navigate = useRouter();
+  const router = useRouter();
   const params = useParams<{ userId: string }>();
   const setMessage = useSetAtom(messageAtom);
 
-  // Optimistic followers state
   const [optimisticFollowers, setOptimisticFollowers] = useOptimistic(
     followers,
-    (
-      state,
-      {
-        action,
-        follow,
-      }: {
-        action: 'add' | 'remove';
-        follow: {
-          follower: {
-            name: string | null;
-            id: string;
-            email: string;
-            emailVerified: Date | null;
-            image: string | null;
-          };
-          id: string;
-          followerId: string;
-          followedId: string;
-          createdAt: Date;
-        };
-      }
-    ) => {
-      if (action === 'add') {
-        return [...state, follow];
-      } else {
-        return state.filter((f) => f.followerId !== follow.followerId);
-      }
+    (state, { action, follow }: { action: 'add' | 'remove'; follow: ExtendedFollow }) => {
+      if (action === 'add') return [...state, follow];
+      return state.filter((f) => f.followerId !== follow.followerId);
     }
   );
 
-  const isFollowing = optimisticFollowers.some((follower) => follower.followerId === session?.user.id);
+  const isFollowing = optimisticFollowers.some((f) => f.followerId === session?.user.id);
 
   const handleFollow = async () => {
+    if (!session?.user.id) return;
+
+    const optimisticFollow: ExtendedFollow = {
+      id: Math.random().toString(36),
+      createdAt: new Date(),
+      followerId: session.user.id,
+      followedId: params.userId,
+      follower: {
+        id: session.user.id,
+        name: session.user.name,
+        email: session.user.email,
+        emailVerified: null,
+        image: null,
+      },
+    };
+
     startTransition(async () => {
       try {
-        if (!session?.user.id) return;
-        // Update the optimistic followers state depending on the action
-        if (isFollowing) {
-          setOptimisticFollowers({
-            action: 'remove',
-            follow: {
-              id: Math.random().toString(36),
-              createdAt: new Date(),
-              followerId: session.user.id,
-              followedId: params.userId,
-              follower: {
-                id: session.user.id,
-                name: session.user.name,
-                email: session.user.email,
-                emailVerified: null,
-                image: null,
-              },
-            },
-          });
-        } else {
-          setOptimisticFollowers({
-            action: 'add',
-            follow: {
-              id: Math.random().toString(36),
-              createdAt: new Date(),
-              followerId: session.user.id,
-              followedId: params.userId,
-              follower: {
-                id: session.user.id,
-                name: session.user.name,
-                email: session.user.email,
-                emailVerified: null,
-                image: null,
-              },
-            },
-          });
-        }
-        const action: ActionReturn = await followUser({ followedId: params.userId });
-
-        setMessage({
-          content: action.message,
-          error: action.error,
-        });
-        return;
+        setOptimisticFollowers({ action: isFollowing ? 'remove' : 'add', follow: optimisticFollow });
+        const action = await toggleFollowUser({ followedId: params.userId });
+        setMessage({ content: action.message, type: 'success' });
       } catch (error) {
-        setMessage({
-          content: toErrorMessage(error, 'Failed to follow or unfollow user'),
-          error: true,
-        });
+        setMessage({ content: toErrorMessage(error, 'Failed to follow or unfollow user'), type: 'error' });
       }
     });
   };
@@ -113,7 +60,7 @@ export default function FollowMenu({ session, followers }: { session: Session | 
       className="gap-1 text-lg"
       disabled={!session?.user.id}
       onClick={() =>
-        session?.user.id === params.userId ? navigate.push(`/profile/${params.userId}/followers`) : handleFollow()
+        session?.user.id === params.userId ? router.push(`/profile/${params.userId}/followers`) : handleFollow()
       }
       arialabel="Follow">
       {isFollowing ? <BsHeartFill size={16} /> : <BsHeart size={16} />}

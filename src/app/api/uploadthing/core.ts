@@ -5,87 +5,30 @@ import { auth } from '@/server/auth';
 
 const f = createUploadthing();
 
-// FileRouter for your app, can contain multiple FileRoutes
+async function authMiddleware() {
+  const session = await auth();
+  // eslint-disable-next-line @typescript-eslint/only-throw-error
+  if (!session?.user) throw new UploadThingError('Unauthorized');
+  return { userId: session.user.id };
+}
+
+function onUploadComplete({ metadata, file }: { metadata: { userId: string }; file: { ufsUrl: string } }) {
+  console.log(`Upload complete for userId: ${metadata.userId} — ${file.ufsUrl}`);
+  return { uploadedBy: metadata.userId, url: file.ufsUrl };
+}
+
 export const UploadThingRouter = {
-  profilePicture: f({
-    image: {
-      /**
-       * For full list of options and defaults, see the File Route API reference
-       * @see https://docs.uploadthing.com/file-routes#route-config
-       */
-      maxFileSize: '2MB',
-      maxFileCount: 1,
-    },
-  })
-    // Set permissions and file types for this FileRoute
-    .middleware(async ({ req }) => {
-      // This code runs on your server before upload
-      const session = await auth();
+  profilePicture: f({ image: { maxFileSize: '2MB', maxFileCount: 1 } })
+    .middleware(authMiddleware)
+    .onUploadComplete(onUploadComplete),
 
-      // If you throw, the user will not be able to upload
-      // eslint-disable-next-line @typescript-eslint/only-throw-error
-      if (!session?.user) throw new UploadThingError('Unauthorized');
+  projectPicture: f({ image: { maxFileSize: '4MB', maxFileCount: 1 } })
+    .middleware(authMiddleware)
+    .onUploadComplete(onUploadComplete),
 
-      // Whatever is returned here is accessible in onUploadComplete as `metadata`
-      return { userId: session.user.id };
-    })
-    .onUploadComplete(async ({ metadata, file }) => {
-      // This code RUNS ON YOUR SERVER after upload
-      console.log('Upload complete for userId:', metadata.userId);
-
-      console.log('file url', file.ufsUrl);
-
-      // !!! Whatever is returned here is sent to the clientside `onClientUploadComplete` callback
-      return { uploadedBy: metadata.userId, url: file.ufsUrl };
-    }),
-  projectPicture: f({
-    image: {
-      /**
-       * For full list of options and defaults, see the File Route API reference
-       * @see https://docs.uploadthing.com/file-routes#route-config
-       */
-      maxFileSize: '4MB',
-      maxFileCount: 1,
-    },
-  })
-    // Set permissions and file types for this FileRoute
-    .middleware(async ({ req }) => {
-      // This code runs on your server before upload
-      const session = await auth();
-
-      // If you throw, the user will not be able to upload
-      // eslint-disable-next-line @typescript-eslint/only-throw-error
-      if (!session?.user) throw new UploadThingError('Unauthorized');
-
-      // Whatever is returned here is accessible in onUploadComplete as `metadata`
-      return { userId: session.user.id };
-    })
-    .onUploadComplete(async ({ metadata, file }) => {
-      // This code RUNS ON YOUR SERVER after upload
-      console.log('Upload complete for userId:', metadata.userId);
-
-      console.log('file url', file.ufsUrl);
-
-      // !!! Whatever is returned here is sent to the clientside `onClientUploadComplete` callback
-      return { uploadedBy: metadata.userId, url: file.ufsUrl };
-    }),
-  postMedia: f({
-    image: {
-      maxFileSize: '2MB',
-      maxFileCount: 5,
-    },
-  })
-    .middleware(async () => {
-      const session = await auth();
-
-      // eslint-disable-next-line @typescript-eslint/only-throw-error
-      if (!session?.user) throw new UploadThingError('Unauthorized');
-
-      return { userId: session.user.id };
-    })
-    .onUploadComplete(async ({ metadata, file }) => {
-      return { uploadedBy: metadata.userId, url: file.ufsUrl };
-    }),
+  postMedia: f({ image: { maxFileSize: '2MB', maxFileCount: 5 } })
+    .middleware(authMiddleware)
+    .onUploadComplete(onUploadComplete),
 } satisfies FileRouter;
 
 export type UploadThingRouter = typeof UploadThingRouter;

@@ -1,24 +1,25 @@
 'use server';
 
+import { type TimelineItem } from 'types';
+
 import { getForYouTimeline, getTrendingTimeline } from '@/server/queries/timelines';
 
-export async function fetchTrendingTimeline({ page, pageSize }: { page: number; pageSize: number }) {
-  const timeline = await getTrendingTimeline({ page, pageSize });
-  const hasMore = timeline.length === pageSize;
+const timelineQueries = {
+  trending: getTrendingTimeline,
+  'for-you': getForYouTimeline,
+};
 
-  return {
-    data: timeline,
-    hasMore,
-  };
-}
+export async function fetchTimeline({
+  type,
+  page,
+  pageSize,
+}: {
+  type: keyof typeof timelineQueries;
+  page: number;
+  pageSize: number;
+}): Promise<{ data: TimelineItem[]; hasMore: boolean }> {
+  const query = timelineQueries[type];
+  const data = (await query({ page, pageSize })) as TimelineItem[];
 
-export async function fetchForYouTimeline({ page, pageSize }: { page: number; pageSize: number }) {
-  const timeline = await getForYouTimeline({ page, pageSize });
-
-  const hasMore = timeline.length === pageSize;
-
-  return {
-    data: timeline,
-    hasMore,
-  };
+  return { data, hasMore: data.length === pageSize };
 }

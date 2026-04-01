@@ -113,20 +113,40 @@ describe('NavMenu', () => {
     expect(screen.queryByText('Sign Out')).not.toBeInTheDocument();
   });
 
-  it('closes menus when clicking outside', () => {
+  it('opening search closes menu', () => {
     render(<NavMenu session={mockSession} />);
     const searchToggle = screen.getByTestId('search-toggle');
     const menuToggle = screen.getByTestId('menu-toggle');
 
-    // Open both
-    fireEvent.click(searchToggle);
     fireEvent.click(menuToggle);
-    expect(screen.getByTestId('search-bar')).toBeInTheDocument();
     expect(screen.getByText('Sign Out')).toBeInTheDocument();
 
-    // Simulate outside click
-    fireEvent.mouseDown(document.body);
+    fireEvent.click(searchToggle);
+    expect(screen.getByTestId('search-bar')).toBeInTheDocument();
+    expect(screen.queryByText('Sign Out')).not.toBeInTheDocument();
+  });
+
+  it('opening menu closes search', () => {
+    render(<NavMenu session={mockSession} />);
+    const searchToggle = screen.getByTestId('search-toggle');
+    const menuToggle = screen.getByTestId('menu-toggle');
+
+    fireEvent.click(searchToggle);
+    expect(screen.getByTestId('search-bar')).toBeInTheDocument();
+
+    fireEvent.click(menuToggle);
+    expect(screen.getByText('Sign Out')).toBeInTheDocument();
     expect(screen.queryByTestId('search-bar')).not.toBeInTheDocument();
+  });
+
+  it('closes menus when clicking outside', () => {
+    render(<NavMenu session={mockSession} />);
+    const menuToggle = screen.getByTestId('menu-toggle');
+
+    fireEvent.click(menuToggle);
+    expect(screen.getByText('Sign Out')).toBeInTheDocument();
+
+    fireEvent.mouseDown(document.body);
     expect(screen.queryByText('Sign Out')).not.toBeInTheDocument();
   });
 });

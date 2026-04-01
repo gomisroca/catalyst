@@ -3,15 +3,15 @@ import { FaCodeBranch, FaPen } from 'react-icons/fa6';
 import AuthorActions from '@/app/_components/projects/author-actions';
 import ExpandedDescription from '@/app/_components/projects/expanded-description';
 import Link from '@/app/_components/ui/link';
-import BranchInteractionsMenu from '@/app/projects/[projectId]/(branches)/[branchId]/(interactions)/branch-interactions-menu';
 import PostList from '@/app/projects/[projectId]/(branches)/[branchId]/post-list';
 import { auth } from '@/server/auth';
 import { getBranch } from '@/server/queries/branches';
 
+import BranchInteractionsMenu from './(interactions)/branch-interaction';
+
 export default async function BranchPage({ params }: { params: Promise<{ projectId: string; branchId: string }> }) {
-  const session = await auth();
-  const branch = await getBranch((await params).branchId);
-  if (!branch) return null;
+  const { projectId, branchId } = await params;
+  const [session, branch] = await Promise.all([auth(), getBranch(branchId)]);
 
   const allowCollaborate =
     session?.user?.id === branch.author.id ||
@@ -30,11 +30,7 @@ export default async function BranchPage({ params }: { params: Promise<{ project
             <span>{branch.author?.name ?? branch.author?.email.split('@')[0]}</span>
             <span>•</span>
             <span>
-              {branch.createdAt.toLocaleDateString('en-US', {
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric',
-              })}
+              {branch.createdAt.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
             </span>
             {session?.user.id === branch.author.id && (
               <AuthorActions type="branch" projectId={branch.projectId} branchId={branch.id} />
@@ -42,11 +38,12 @@ export default async function BranchPage({ params }: { params: Promise<{ project
           </div>
         </section>
         {branch.description && <ExpandedDescription description={branch.description} />}
-        <section className="flex items-center justify-between rounded-b-lg bg-zinc-100 p-2 text-sm font-medium transition duration-200 ease-in-out group-hover:bg-zinc-300 dark:bg-zinc-900 group-hover:dark:bg-zinc-950">
-          <BranchInteractionsMenu branchId={branch.id} />
+        <section className="flex items-center justify-between rounded-b-lg bg-zinc-200 p-2 text-sm font-medium dark:bg-zinc-800">
+          <BranchInteractionsMenu projectId={projectId} branchId={branch.id} />
         </section>
       </header>
-      <PostList posts={branch.posts} session={session} />
+
+      <PostList posts={branch.posts} session={session} projectId={projectId} branchId={branchId} />
 
       {allowCollaborate && (
         <Link
