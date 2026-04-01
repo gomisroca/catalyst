@@ -2,25 +2,11 @@
 
 import { type Branch } from 'generated/prisma';
 import { useParams, useRouter } from 'next/navigation';
-import { useMemo } from 'react';
 import { twMerge } from 'tailwind-merge';
 
-type BranchSelectionProps = {
-  projectId: string;
-  branches: Branch[];
-};
-
-export default function BranchSelection({ projectId, branches }: BranchSelectionProps) {
+export default function BranchSelection({ projectId, branches }: { projectId: string; branches: Branch[] }) {
   const router = useRouter();
   const params = useParams<{ projectId: string; branchId: string }>();
-
-  const renderedOptions = useMemo(() => {
-    return branches.map((branch) => (
-      <option key={branch.id} value={branch.id} className="bg-zinc-200 dark:bg-zinc-800">
-        {branch.name}
-      </option>
-    ));
-  }, [branches]);
 
   return (
     <select
@@ -36,7 +22,11 @@ export default function BranchSelection({ projectId, branches }: BranchSelection
       <option value="" disabled className="hidden">
         Branch
       </option>
-      {renderedOptions}
+      {branches.map((branch) => (
+        <option key={branch.id} value={branch.id} className="bg-zinc-200 dark:bg-zinc-800">
+          {branch.name}
+        </option>
+      ))}
     </select>
   );
 }
