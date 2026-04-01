@@ -1,7 +1,7 @@
 import { type Prisma } from 'generated/prisma';
-import DOMPurify from 'isomorphic-dompurify';
 import Image from 'next/image';
 import { type Session } from 'next-auth';
+import sanitizeHtml from 'sanitize-html';
 
 import AuthorActions from '@/app/_components/projects/author-actions';
 
@@ -35,8 +35,7 @@ function Post({
           )}
         </div>
       </div>
-
-      <div className="flex-1 p-4" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(post.content ?? '') }} />
+      <div className="flex-1 p-4" dangerouslySetInnerHTML={{ __html: sanitizeHtml(post.content ?? '') }} />
 
       {post.media.length > 0 && (
         <section className="flex flex-wrap gap-2 p-2">

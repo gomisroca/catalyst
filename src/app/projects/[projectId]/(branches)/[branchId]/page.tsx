@@ -9,8 +9,6 @@ import { getBranch } from '@/server/queries/branches';
 
 import BranchInteractionsMenu from './(interactions)/branch-interaction';
 
-export const dynamic = 'force-dynamic';
-
 export default async function BranchPage({ params }: { params: Promise<{ projectId: string; branchId: string }> }) {
   const { projectId, branchId } = await params;
   const [session, branch] = await Promise.all([auth(), getBranch(branchId)]);
