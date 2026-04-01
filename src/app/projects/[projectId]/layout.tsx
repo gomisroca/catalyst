@@ -1,5 +1,4 @@
 import Image from 'next/image';
-import * as NextLink from 'next/link';
 import { notFound } from 'next/navigation';
 import { Suspense } from 'react';
 
@@ -17,40 +16,28 @@ export default async function ProjectLayout({
   params: Promise<{ projectId: string }>;
   children: React.ReactNode;
 }) {
-  // Get the project from the database
-  const project = await getProject((await params).projectId);
-  if (!project) notFound(); // If the project is not found, redirect to the 404 page
+  const { projectId } = await params;
 
-  // Check if the user is logged in and if they are allowed to collaborate on the project
-  const session = await auth();
+  const [project, session] = await Promise.all([getProject(projectId).catch(() => null), auth()]);
+
+  if (!project) notFound();
+
   const allowCollaborate = session?.user?.id === project.author.id || project.permissions?.allowCollaborate;
 
   return (
-    <div className="flex w-sm flex-col items-center justify-start gap-4 rounded-lg bg-zinc-100 p-4 drop-shadow-md md:w-xl lg:w-2xl dark:bg-zinc-900">
+    <div className="flex w-sm flex-col items-center justify-start gap-4 rounded-lg bg-zinc-200 p-4 drop-shadow-md md:w-xl lg:w-2xl dark:bg-zinc-900">
       <header className="flex w-full items-center justify-between border-b border-zinc-300 pb-2 dark:border-zinc-700">
         <div className="flex items-center gap-2">
           {project.picture && (
-            <span className="items-center justify-center rounded-full bg-radial-[at_15%_15%] via-zinc-300 to-75% p-1 dark:via-zinc-700">
-              <Image
-                src={project.picture}
-                alt="Project Picture"
-                width={50}
-                height={50}
-                className="h-12 w-12 rounded-full"
-              />
-            </span>
+            <Image src={project.picture} alt="Project Picture" width={48} height={48} className="rounded-lg" />
           )}
           <section className="flex flex-col items-start justify-start">
             <h1 className="text-2xl leading-tight font-bold tracking-tight">{project.name}</h1>
             <div className="flex gap-1 text-sm font-medium text-zinc-500 dark:text-zinc-400">
-              <NextLink.default href={`/profile/${project.author.id}`}>{project.author.name}</NextLink.default>
+              <Link href={`/profile/${project.author.id}`}>{project.author.name}</Link>
               <span>•</span>
               <span>
-                {project.createdAt.toLocaleDateString('en-US', {
-                  year: 'numeric',
-                  month: 'long',
-                  day: 'numeric',
-                })}
+                {project.createdAt.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
               </span>
             </div>
           </section>
@@ -58,9 +45,7 @@ export default async function ProjectLayout({
         <section className="flex items-center justify-center gap-1">
           <BranchSelection projectId={project.id} branches={project.branches} />
           {allowCollaborate && (
-            <Link
-              href={`/projects/${project.id}/create`}
-              className="flex h-[25px] w-[25px] items-center justify-center rounded-full">
+            <Link href={`/projects/${project.id}/create`} className="flex size-6 items-center justify-center">
               <span className="text-xl font-bold">+</span>
             </Link>
           )}
