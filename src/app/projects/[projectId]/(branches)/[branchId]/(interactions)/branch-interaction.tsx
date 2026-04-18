@@ -1,8 +1,11 @@
+'use client';
+
+import { type User } from 'next-auth';
+import { type InteractionWithUser } from 'types';
+
 import { toggleBranchInteraction } from '@/actions/branches';
 import ExtraInteractions from '@/app/_components/projects/extra-interactions';
 import InteractionButton from '@/app/_components/projects/interaction-button';
-import { auth } from '@/server/auth';
-import { getBranchInteractions } from '@/server/queries/branches';
 
 const typeMap = {
   likes: 'LIKE',
@@ -10,25 +13,45 @@ const typeMap = {
   bookmarks: 'BOOKMARK',
 } as const;
 
-export default async function BranchInteractionsMenu({ projectId, branchId }: { projectId: string; branchId: string }) {
-  const [session, data] = await Promise.all([auth(), getBranchInteractions(branchId)]);
+type Interactions = {
+  likes: InteractionWithUser[];
+  shares: InteractionWithUser[];
+  bookmarks: InteractionWithUser[];
+};
+type ExtraInteractions = {
+  reports: InteractionWithUser[];
+  hides: InteractionWithUser[];
+};
 
+export default function BranchInteractionsMenu({
+  projectId,
+  branchId,
+  interactions,
+  extraInteractions,
+  user,
+}: {
+  projectId: string;
+  branchId: string;
+  interactions: Interactions;
+  extraInteractions: ExtraInteractions;
+  user?: User;
+}) {
   return (
     <div className="flex flex-row gap-2">
-      {(Object.keys(data.interactions) as Array<keyof typeof data.interactions>).map((key) => (
+      {(Object.keys(interactions) as Array<keyof typeof interactions>).map((key) => (
         <InteractionButton
           key={key}
           type={typeMap[key]}
-          data={data.interactions[key]}
-          user={session?.user}
+          data={interactions[key]}
+          user={user}
           entityId={branchId}
           entityKey="branchId"
           onInteract={() => toggleBranchInteraction(typeMap[key], projectId, branchId)}
         />
       ))}
       <ExtraInteractions
-        user={session?.user}
-        data={data.extraInteractions}
+        user={user}
+        data={extraInteractions}
         entityId={branchId}
         entityKey="branchId"
         onInteract={(type) => toggleBranchInteraction(type, projectId, branchId)}
