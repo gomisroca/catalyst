@@ -6,7 +6,7 @@ import { startTransition, useOptimistic } from 'react';
 import { FaBookmark, FaEye, FaShare, FaStar } from 'react-icons/fa6';
 import { MdWarning } from 'react-icons/md';
 import { twMerge } from 'tailwind-merge';
-import { type InteractionType } from 'types';
+import { type InteractionType, type InteractionWithUser } from 'types';
 
 import Button from '@/app/_components/ui/button';
 import { messageAtom } from '@/atoms/message';
@@ -21,20 +21,6 @@ const interactionIcons: Record<InteractionType, React.ReactNode> = {
 };
 
 const hiddenCount: InteractionType[] = ['HIDE', 'REPORT'];
-
-type InteractionWithUser = {
-  id: string;
-  type: string;
-  createdAt: Date;
-  userId: string;
-  user: {
-    id: string;
-    name: string | null;
-    email: string;
-    emailVerified: Date | null;
-    image: string | null;
-  };
-};
 
 type InteractionButtonProps = {
   type: InteractionType;

@@ -47,3 +47,17 @@ type SearchItem =
   | { type: 'branch'; content: ExtendedBranch }
   | { type: 'project'; content: ExtendedProject }
   | { type: 'user'; content: User };
+
+type InteractionWithUser = {
+  id: string;
+  type: string;
+  createdAt: Date;
+  userId: string;
+  user: {
+    id: string;
+    name: string | null;
+    email: string;
+    emailVerified: Date | null;
+    image: string | null;
+  };
+};
