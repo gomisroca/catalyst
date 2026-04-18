@@ -5,13 +5,17 @@ import ExpandedDescription from '@/app/_components/projects/expanded-description
 import Link from '@/app/_components/ui/link';
 import PostList from '@/app/projects/[projectId]/(branches)/[branchId]/post-list';
 import { auth } from '@/server/auth';
-import { getBranch } from '@/server/queries/branches';
+import { getBranch, getBranchInteractions } from '@/server/queries/branches';
 
 import BranchInteractionsMenu from './(interactions)/branch-interaction';
 
 export default async function BranchPage({ params }: { params: Promise<{ projectId: string; branchId: string }> }) {
   const { projectId, branchId } = await params;
-  const [session, branch] = await Promise.all([auth(), getBranch(branchId)]);
+  const [session, branch, interactionsData] = await Promise.all([
+    auth(),
+    getBranch(branchId),
+    getBranchInteractions(branchId),
+  ]);
 
   const allowCollaborate =
     session?.user?.id === branch.author.id ||
@@ -39,7 +43,13 @@ export default async function BranchPage({ params }: { params: Promise<{ project
         </section>
         {branch.description && <ExpandedDescription description={branch.description} />}
         <section className="flex items-center justify-between rounded-b-lg bg-zinc-200 p-2 text-sm font-medium dark:bg-zinc-800">
-          <BranchInteractionsMenu projectId={projectId} branchId={branch.id} />
+          <BranchInteractionsMenu
+            projectId={projectId}
+            branchId={branch.id}
+            interactions={interactionsData.interactions}
+            extraInteractions={interactionsData.extraInteractions}
+            user={session?.user}
+          />
         </section>
       </header>
 

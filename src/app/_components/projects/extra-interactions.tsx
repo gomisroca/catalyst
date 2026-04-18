@@ -5,24 +5,10 @@ import { type User } from 'next-auth';
 import { useState } from 'react';
 import { BsThreeDotsVertical } from 'react-icons/bs';
 import { twMerge } from 'tailwind-merge';
-import { type InteractionType } from 'types';
+import { type InteractionType, type InteractionWithUser } from 'types';
 
 import InteractionButton from '@/app/_components/projects/interaction-button';
 import Button from '@/app/_components/ui/button';
-
-type InteractionWithUser = {
-  id: string;
-  type: string;
-  createdAt: Date;
-  userId: string;
-  user: {
-    id: string;
-    name: string | null;
-    email: string;
-    emailVerified: Date | null;
-    image: string | null;
-  };
-};
 
 type ExtraInteractionsProps = {
   user?: User;

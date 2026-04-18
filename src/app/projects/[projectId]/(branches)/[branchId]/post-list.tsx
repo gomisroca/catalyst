@@ -4,6 +4,7 @@ import { type Session } from 'next-auth';
 import sanitizeHtml from 'sanitize-html';
 
 import AuthorActions from '@/app/_components/projects/author-actions';
+import { getPostInteractions } from '@/server/queries/posts';
 
 import PostInteractionsMenu from './(posts)/(interactions)/post-interaction';
 
@@ -11,7 +12,7 @@ type ExtendedPost = Prisma.PostGetPayload<{
   include: { media: true; author: true; interactions: { include: { user: true } } };
 }>;
 
-function Post({
+async function Post({
   post,
   session,
   projectId,
@@ -22,6 +23,8 @@ function Post({
   projectId: string;
   branchId: string;
 }) {
+  const interactionsData = await getPostInteractions(post.id);
+
   return (
     <div className="group flex flex-col rounded-lg bg-zinc-200 drop-shadow-sm hover:drop-shadow-md dark:bg-zinc-800">
       <div className="flex items-center justify-between rounded-t-lg bg-zinc-300 p-2 transition duration-200 ease-in-out group-hover:bg-white dark:bg-zinc-700 dark:group-hover:bg-black">
@@ -53,7 +56,14 @@ function Post({
       )}
 
       <section className="flex items-center justify-between rounded-b-lg bg-zinc-300 p-2 text-sm font-medium transition duration-200 ease-in-out group-hover:bg-white dark:bg-zinc-700 dark:group-hover:bg-black">
-        <PostInteractionsMenu projectId={projectId} branchId={branchId} postId={post.id} />
+        <PostInteractionsMenu
+          projectId={projectId}
+          branchId={branchId}
+          postId={post.id}
+          interactions={interactionsData.interactions}
+          extraInteractions={interactionsData.extraInteractions}
+          user={session?.user}
+        />
       </section>
     </div>
   );
